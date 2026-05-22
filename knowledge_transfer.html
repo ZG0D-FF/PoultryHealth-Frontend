@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐔 SmartEars — Knowledge Transfer Guide</title>
+    <meta name="description" content="Knowledge Transfer guide for the Monarch ORCA Poultry Health AI system">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c0c14;
+            --bg-card: #13131f;
+            --bg-card-hover: #1a1a2a;
+            --bg-code: #0d0d18;
+            --accent: #00d4ff;
+            --accent-2: #a855f7;
+            --accent-3: #22c55e;
+            --accent-4: #f97316;
+            --accent-5: #ec4899;
+            --text: #e2e8f0;
+            --text-2: #94a3b8;
+            --text-3: #64748b;
+            --border: rgba(255,255,255,0.06);
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: rgba(13,13,20,0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            z-index: 100;
+            overflow-y: auto;
+            padding: 24px 0;
+            transition: transform 0.3s;
+        }
+
+        .sidebar-brand {
+            padding: 0 24px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .sidebar-brand h1 {
+            font-size: 18px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-brand p {
+            font-size: 11px;
+            color: var(--text-3);
+            margin-top: 2px;
+        }
+
+        .nav-group { margin-bottom: 12px; }
+
+        .nav-group-title {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-3);
+            padding: 8px 24px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 24px;
+            font-size: 13px;
+            color: var(--text-2);
+            text-decoration: none;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-card);
+            color: var(--text);
+        }
+
+        .nav-link.active {
+            background: rgba(0,212,255,0.06);
+            color: var(--accent);
+            border-left-color: var(--accent);
+        }
+
+        .nav-link .nav-emoji { font-size: 16px; flex-shrink: 0; }
+
+        .progress-bar {
+            margin: 16px 24px;
+            padding: 12px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .progress-bar p {
+            font-size: 11px;
+            color: var(--text-3);
+            margin-bottom: 6px;
+        }
+
+        .progress-track {
+            height: 4px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            border-radius: 2px;
+            transition: width 0.5s;
+        }
+
+        .progress-text {
+            font-size: 10px;
+            color: var(--text-3);
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        /* ===== MAIN ===== */
+        .main {
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+
+        .section {
+            padding: 60px 60px;
+            max-width: 960px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section:last-child { border-bottom: none; }
+
+        .section-number {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .section h2 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .section .subtitle {
+            font-size: 15px;
+            color: var(--text-2);
+            margin-bottom: 32px;
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+        }
+
+        .card:hover {
+            border-color: rgba(255,255,255,0.1);
+            transform: translateY(-1px);
+        }
+
+        .card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: var(--text-2);
+            line-height: 1.7;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .mini-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .mini-card .mc-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .mini-card h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .mini-card p {
+            font-size: 12px;
+            color: var(--text-3);
+        }
+
+        /* ===== DIAGRAM ===== */
+        .diagram {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            margin: 24px 0;
+            overflow-x: auto;
+        }
+
+        .diagram pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--text-2);
+            white-space: pre;
+        }
+
+        /* ===== CODE ===== */
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: rgba(0,212,255,0.08);
+            color: var(--accent);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 16px 0;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--text-2);
+        }
+
+        .code-block .comment { color: var(--text-3); }
+        .code-block .keyword { color: var(--accent-2); }
+        .code-block .string { color: var(--accent-3); }
+        .code-block .func { color: var(--accent); }
+
+        /* ===== TABLE ===== */
+        .table-wrap {
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead th {
+            text-align: left;
+            padding: 10px 14px;
+            background: var(--bg-card);
+            border-bottom: 2px solid var(--border);
+            font-weight: 600;
+            color: var(--text-2);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-2);
+        }
+
+        tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+        /* ===== BADGE ===== */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-blue { background: rgba(0,212,255,0.12); color: var(--accent); }
+        .badge-purple { background: rgba(168,85,247,0.12); color: var(--accent-2); }
+        .badge-green { background: rgba(34,197,94,0.12); color: var(--accent-3); }
+        .badge-orange { background: rgba(249,115,22,0.12); color: var(--accent-4); }
+        .badge-pink { background: rgba(236,72,153,0.12); color: var(--accent-5); }
+        .badge-grey { background: rgba(255,255,255,0.06); color: var(--text-3); }
+
+        /* ===== CALLOUT ===== */
+        .callout {
+            border-left: 4px solid;
+            padding: 16px 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .callout-blue { border-color: var(--accent); background: rgba(0,212,255,0.04); }
+        .callout-green { border-color: var(--accent-3); background: rgba(34,197,94,0.04); }
+        .callout-orange { border-color: var(--accent-4); background: rgba(249,115,22,0.04); }
+        .callout-red { border-color: #ef4444; background: rgba(239,68,68,0.04); }
+
+        .callout strong { color: var(--text); }
+
+        /* ===== STEP COUNTER ===== */
+        .steps { counter-reset: step; margin: 24px 0; }
+
+        .step {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 24px;
+            counter-increment: step;
+        }
+
+        .step-num {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            flex-shrink: 0;
+            color: #000;
+        }
+
+        .step-num::after { content: counter(step); }
+
+        .step-content {
+            flex: 1;
+            padding-top: 6px;
+        }
+
+        .step-content h4 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .step-content p {
+            font-size: 13px;
+            color: var(--text-2);
+        }
+
+        /* ===== FAQ ACCORDION ===== */
+        .faq-item {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .faq-q {
+            padding: 16px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.15s;
+        }
+
+        .faq-q:hover { background: var(--bg-card); }
+
+        .faq-q::after {
+            content: '+';
+            font-size: 20px;
+            color: var(--accent);
+            transition: transform 0.2s;
+        }
+
+        .faq-item.open .faq-q::after { transform: rotate(45deg); }
+
+        .faq-a {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s;
+            padding: 0 20px;
+        }
+
+        .faq-item.open .faq-a {
+            max-height: 400px;
+            padding: 0 20px 16px;
+        }
+
+        .faq-a p {
+            font-size: 13px;
+            color: var(--text-2);
+            line-height: 1.7;
+        }
+
+        /* ===== TIMELINE ===== */
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+            margin: 24px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 14px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--accent), var(--accent-2), var(--accent-3));
+            border-radius: 2px;
+        }
+
+        .tl-item {
+            position: relative;
+            margin-bottom: 28px;
+        }
+
+        .tl-item::before {
+            content: '';
+            position: absolute;
+            left: -32px;
+            top: 6px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 3px solid var(--accent);
+            background: var(--bg);
+        }
+
+        .tl-item h4 {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .tl-item .tl-date {
+            font-size: 11px;
+            color: var(--text-3);
+            margin-bottom: 4px;
+        }
+
+        .tl-item p {
+            font-size: 13px;
+            color: var(--text-2);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 200;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .section { padding: 40px 24px; }
+            .mobile-toggle { display: flex; align-items: center; justify-content: center; }
+        }
+
+        /* scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+    
+        .mermaid { overflow-x: auto; padding: 10px; border-radius: var(--radius); background: var(--bg-code); border: 1px solid var(--border); }
+    </style>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+    </script>
+
+    <!-- MathJax config BEFORE loader -->
+    <script>
+    window.MathJax = {
+      tex: {
+        inlineMath:  [['\\(','\\)']],
+        displayMath: [['\\[','\\]']]
+      },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] },
+      startup:  { typeset: false }
+    };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+    <!-- Lenis Scrolling -->
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const lenis = new Lenis({ smooth: true });
+            function raf(time) {
+                lenis.raf(time);
+                requestAnimationFrame(raf);
+            }
+            requestAnimationFrame(raf);
+            
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        });
+    </script>
+
+</head>
+<body>
+
+<button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<!-- ===== SIDEBAR ===== -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <h1>🐔 SmartEars KT</h1>
+        <p>Knowledge Transfer Guide</p>
+    </div>
+
+    <div class="progress-bar">
+        <p>Reading Progress</p>
+        <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+        <div class="progress-text" id="progress-text">0%</div>
+    </div>
+
+    <div class="nav-group">
+	<div class="nav-group-title">Live Tools</div>
+        <a href="index.html" target="_blank" class="nav-link" style="color: var(--accent); border-left-color: var(--accent); background: rgba(0,212,255,0.06);">
+            <span class="nav-emoji">🖥️</span> Launch Dashboard
+        </a>
+    </div>
+        <div class="nav-group-title">Getting Started</div>
+        <a href="#welcome" class="nav-link active"><span class="nav-emoji">👋</span> Welcome</a>
+        <a href="#what-is-this" class="nav-link"><span class="nav-emoji">❓</span> What Is This?</a>
+        <a href="#the-one-minute" class="nav-link"><span class="nav-emoji">⚡</span> 1-Minute Summary</a>
+    </div>
+
+    <div class="nav-group">
+        <div class="nav-group-title">How It Works</div>
+        <a href="#big-picture" class="nav-link"><span class="nav-emoji">🗺️</span> The Big Picture</a>
+        <a href="#workflow" class="nav-link"><span class="nav-emoji">📋</span> Workflow Diagram</a>
+        <a href="#the-pipeline" class="nav-link"><span class="nav-emoji">🔄</span> The Audio Pipeline</a>
+        <a href="#the-models" class="nav-link"><span class="nav-emoji">🧠</span> The AI Models</a>
+        <a href="#the-cascade" class="nav-link"><span class="nav-emoji">⚔️</span> The Cascade</a>
+        <a href="#deep-dive" class="nav-link"><span class="nav-emoji">🔭</span> Deep Dive (All Levels)</a>
+    </div>
+
+    <div class="nav-group">
+        <div class="nav-group-title">Codebase</div>
+        <a href="#file-map" class="nav-link"><span class="nav-emoji">📂</span> File Map</a>
+        <a href="#key-files" class="nav-link"><span class="nav-emoji">📄</span> Key Files Explained</a>
+        <a href="#features-80" class="nav-link"><span class="nav-emoji">🔬</span> The 80 Features</a>
+    </div>
+
+    <div class="nav-group">
+        <div class="nav-group-title">Reference</div>
+        <a href="#version-history" class="nav-link"><span class="nav-emoji">📅</span> Version History</a>
+        <a href="#faq" class="nav-link"><span class="nav-emoji">💬</span> FAQ</a>
+        <a href="#glossary" class="nav-link"><span class="nav-emoji">📖</span> Glossary</a>
+    </div>
+</nav>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main">
+
+    <!-- WELCOME -->
+    <section class="section" id="welcome">
+        <div class="section-number">Chapter 01</div>
+        <h2>SmartEars: Poultry Disease Detection via Voice Analysis on Edge Devices</h2>
+        <p class="subtitle">An AI system that listens to chicken sounds on a Raspberry Pi to detect respiratory diseases in real-time — before visible symptoms appear.</p>
+
+        <div class="card" style="border-left: 4px solid var(--accent); background: rgba(0,212,255,0.03);">
+            <h3>🎯 Project Title & Objective</h3>
+            <p style="font-size:16px; color: var(--text); font-weight: 500; margin-bottom: 12px;">
+                <strong>Title:</strong> SmartEars — Poultry Respiratory Disease Detection Using Bioacoustic Voice Analysis on Edge Devices
+            </p>
+            <p><strong>Objective:</strong> To design and deploy a low-cost, real-time, AI-powered acoustic monitoring system that can automatically detect respiratory diseases in poultry by analyzing their vocalizations — using only a USB microphone and a Raspberry Pi (edge device), without requiring cloud connectivity for core inference.</p>
+            <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div style="padding: 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px;">Author</div>
+                    <div style="font-size: 14px; font-weight: 600; margin-top: 2px;">Dibyajyotee Ghosh (ZG0D-FF)</div>
+                </div>
+                <div style="padding: 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px;">Current Version</div>
+                    <div style="font-size: 14px; font-weight: 600; margin-top: 2px; color: var(--accent-3);">V12 TITAN (Production)</div>
+                </div>
+                <div style="padding: 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px;">Hardware</div>
+                    <div style="font-size: 14px; font-weight: 600; margin-top: 2px;">Raspberry Pi 3B + USB Mic</div>
+                </div>
+                <div style="padding: 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px;">Codename</div>
+                    <div style="font-size: 14px; font-weight: 600; margin-top: 2px;">Monarch ORCA</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="callout callout-blue">
+            <strong>What you'll learn:</strong> What this project does, how it works, where every file lives, what every AI model does, and how the whole system fits together. No prior knowledge required.
+        </div>
+
+        <div class="card-grid">
+            <div class="mini-card">
+                <div class="mc-icon">🐔</div>
+                <h4>The Problem</h4>
+                <p>Sick chickens on farms sound different from healthy ones. We use AI to listen and detect disease early — before farmers notice.</p>
+            </div>
+            <div class="mini-card">
+                <div class="mc-icon">🎤</div>
+                <h4>The Hardware</h4>
+                <p>A Raspberry Pi 3B with a USB microphone, placed near the poultry pen. Runs 24/7, no internet needed for core function.</p>
+            </div>
+            <div class="mini-card">
+                <div class="mc-icon">🧠</div>
+                <h4>The AI</h4>
+                <p>6 machine learning models analyze 80 audio features extracted from chicken sounds. A "Queen" meta-learner makes the final call.</p>
+            </div>
+            <div class="mini-card">
+                <div class="mc-icon">📱</div>
+                <h4>The Alert</h4>
+                <p>If sick birds are detected, a Telegram message is sent instantly to the farmer's phone. A web dashboard shows real-time status.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- WHAT IS THIS -->
+    <section class="section" id="what-is-this">
+        <div class="section-number">Chapter 02</div>
+        <h2>What Is This Project?</h2>
+        <p class="subtitle">An AI-powered poultry disease detection system that listens to chicken sounds.</p>
+
+        <div class="card">
+            <h3>🏷️ Official Name</h3>
+            <p><strong>SmartEars</strong> — A Practical Framework for Poultry Respiratory Monitoring via Spectrogram-Based Audio Classification and AI-Assisted Labeling</p>
+        </div>
+
+        <div class="card">
+            <h3>🎯 The Goal</h3>
+            <p>Detect respiratory diseases in poultry <strong>early</strong> — by analyzing the sounds they make. Sick chickens produce different vocalizations (rattling, wheezing, irregular rhythms) that the AI can pick up before a human farmer would notice visual symptoms.</p>
+        </div>
+
+        <div class="card">
+            <h3>🏗️ The Stack</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr></thead>
+                    <tbody>
+                        <tr><td>Training</td><td>Python + Google Colab</td><td>Train the ML models on labeled audio data</td></tr>
+                        <tr><td>Edge AI</td><td>Raspberry Pi 3B</td><td>Run inference in real-time on the farm</td></tr>
+                        <tr><td>Audio</td><td>librosa + scipy</td><td>Feature extraction and DSP filtering</td></tr>
+                        <tr><td>ML Models</td><td>scikit-learn + XGBoost</td><td>SVM, RF, KNN, LR, XGB, StackingClassifier</td></tr>
+                        <tr><td>Gatekeeper</td><td>Google YAMNet (TFLite)</td><td>Pre-filter: "is this a bird sound?"</td></tr>
+                        <tr><td>Dashboard</td><td>HTML + WebSocket</td><td>Real-time HUD in browser</td></tr>
+                        <tr><td>Alerts</td><td>Telegram Bot API</td><td>Push sick-detection alerts to phone</td></tr>
+                        <tr><td>AI Chat</td><td>Groq (LLama 3.1)</td><td>J.A.R.V.I.S. assistant for status queries</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ONE MINUTE SUMMARY -->
+    <section class="section" id="the-one-minute">
+        <div class="section-number">Chapter 03</div>
+        <h2>⚡ The 1-Minute Summary</h2>
+        <p class="subtitle">If you read nothing else, read this.</p>
+
+        <div class="steps">
+            <div class="step">
+                <div class="step-num"></div>
+                <div class="step-content">
+                    <h4>Microphone listens</h4>
+                    <p>A USB mic on a Raspberry Pi records audio continuously at 44.1kHz. When it detects a sound louder than threshold (0.15 amplitude), it starts recording until silence returns.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num"></div>
+                <div class="step-content">
+                    <h4>Audio is cleaned</h4>
+                    <p>The recording is downsampled to 16kHz and passed through a bandpass filter (300–4000 Hz) to isolate chicken vocalization frequencies and remove farm machinery noise.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num"></div>
+                <div class="step-content">
+                    <h4>YAMNet checks: "Is this a bird?"</h4>
+                    <p>Google's pre-trained YAMNet model (521 audio classes) checks if the sound is bird-related. If the bird score is below 0.05, it's classified as background noise and ignored.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num"></div>
+                <div class="step-content">
+                    <h4>80 features are extracted</h4>
+                    <p>The audio is analyzed for 80 bioacoustic features: MFCCs, pitch, energy, spectral shape, rhythm, and more. These numbers become the "fingerprint" of the sound.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num"></div>
+                <div class="step-content">
+                    <h4>AI models diagnose</h4>
+                    <p>A cascade of models (SVM → Logistic Regression → HoneyBee Queen stacker) votes on whether the chicken is Healthy or Sick. A human can confirm or override via terminal.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num"></div>
+                <div class="step-content">
+                    <h4>Alert + Archive</h4>
+                    <p>If sick: Telegram alert sent. The audio is saved to a "correction vault" with its label for future retraining. The web dashboard updates in real-time.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BIG PICTURE -->
+    <section class="section" id="big-picture">
+        <div class="section-number">Chapter 04</div>
+        <h2>🗺️ The Big Picture</h2>
+        <p class="subtitle">Three machines, one pipeline.</p>
+
+        <div class="mermaid">
+flowchart LR
+    subgraph Colab ["Google Colab (Training)"]
+        A[v12.py trains models] --> B[.pkl files]
+    end
+    subgraph Pi ["Raspberry Pi 3B (Production)"]
+        C[monitor.py runs 24/7]
+        D[USB Mic] --> C
+    end
+    subgraph Browser ["Browser (any PC)"]
+        E[HUD Dashboard]
+    end
+    subgraph Phone ["Your Phone"]
+        F[Telegram Alerts]
+    end
+    B -- USB / SCP --> Pi
+    C -- WebSocket ws://:5000 --> E
+    C -- Telegram API --> F
+</div>
+    </section>
+
+    <!-- WORKFLOW DIAGRAM -->
+    <section class="section" id="workflow">
+        <div class="section-number">Chapter 04.5</div>
+        <h2>📋 V12 Workflow Diagram</h2>
+        <p class="subtitle">The complete execution flow of the production system, traced from monitor.py.</p>
+
+        <div class="mermaid">
+flowchart TD
+    subgraph BOOT ["[BOOT] main()"]
+        B1["Load scaler & models"] --> B2["Load yamnet.tflite"]
+        B2 --> B3["Init SOS bandpass filter"]
+        B3 --> B4["Init Groq client"]
+        B4 --> B5["asyncio.run_main"]
+    end
+
+    B5 --> T1(("Task 1:<br/>listen_and_process"))
+    B5 --> T2(("Task 2:<br/>telegram_jarvis_listener"))
+    B5 --> T3(("Task 3:<br/>websockets.serve:5000"))
+
+    subgraph TASK1 ["listen_and_process()"]
+        IDLE["IDLE: record_chunk 0.5s"] --> CHK{"amplitude > 0.15?"}
+        CHK -- "No" --> IDLE
+        CHK -- "Yes" --> TRIG["Record until silence or 15s max"]
+        TRIG --> PRE["preprocess: resample 16kHz + bandpass"]
+        PRE --> YAM["YAMNet Gatekeeper"]
+        YAM --> YCHK{"bird_score < 0.05?"}
+        YCHK -- "Yes" --> NOISE["🔇 Noise"]
+        NOISE --> IDLE
+        YCHK -- "No" --> FEAT["extract_features: 80 feats"]
+        FEAT --> NORM["scaler.transform"]
+        NORM --> ZCHK{"max |z| > 6.0?"}
+        ZCHK -- "Yes" --> ALIEN["👽 Alien Noise"]
+        ALIEN --> IDLE
+        ZCHK -- "No" --> SVM["SVM SCOUT"]
+        SVM --> JARVIS["ask_jarvis_confirmation"]
+        JARVIS -- "User disagrees" --> LR["LR SCOUT"]
+        LR -- "User disagrees" --> QUEEN["HONEYBEE QUEEN"]
+        JARVIS -- "Agrees" --> FIN["FINAL"]
+        LR -- "Agrees" --> FIN
+        QUEEN --> FIN
+        FIN --> ALERT{"Sick?"}
+        ALERT -- "Yes" --> TG["send_tg_alert"]
+        ALERT -- "No" --> VAULT["sf.write correction_vault"]
+        TG --> VAULT
+        VAULT --> IDLE
+    end
+</div>
+    </section>
+
+    <!-- THE PIPELINE -->
+    <section class="section" id="the-pipeline">
+        <div class="section-number">Chapter 05</div>
+        <h2>🔄 The Audio Pipeline</h2>
+        <p class="subtitle">What happens to sound from microphone to diagnosis.</p>
+
+        <div class="card">
+            <h3>🎤 Step 1: Recording</h3>
+            <p>The Pi records 0.5-second chunks at 44,100 Hz. When a chunk's peak amplitude exceeds <code>0.15</code>, the system starts capturing. It keeps recording until 3 consecutive chunks are quiet (below <code>0.10</code>), or 15 seconds max.</p>
+        </div>
+
+        <div class="card">
+            <h3>🧹 Step 2: Preprocessing</h3>
+            <p>Audio is resampled from 44,100 Hz → 16,000 Hz, then cleaned with a 5th-order Butterworth SOS bandpass filter. This keeps only the 300–4,000 Hz range — where chicken vocalizations live. Farm machinery, wind, and low rumbles are removed.</p>
+        </div>
+
+        <div class="card">
+            <h3>🚪 Step 3: YAMNet Gatekeeper</h3>
+            <p>Google's pre-trained <code>yamnet.tflite</code> model (521 audio classes) evaluates the sound. It sums the probabilities of bird-related classes (indices 73-81, 93, 100-102). If the total is below <code>0.05</code>, the sound is ignored as "not a bird." This prevents the system from misdiagnosing a tractor engine as a sick chicken.</p>
+        </div>
+
+        <div class="card">
+            <h3>🔬 Step 4: Feature Extraction</h3>
+            <p>80 numerical features are computed from the audio using <code>librosa</code>. These capture everything: pitch, rhythm, energy, spectral shape, noisiness. See the <a href="#features-80" style="color:var(--accent)">80 Features</a> section for the full breakdown.</p>
+        </div>
+
+        <div class="card">
+            <h3>🛡️ Step 5: Z-Score Anomaly Shield</h3>
+            <p>The 80 features are normalized using a <code>StandardScaler</code> (fitted during training). If any normalized feature has an absolute value greater than <code>6.0</code>, the sound is classified as "Alien Noise" — it's so far from any chicken the system has ever heard that it can't possibly be one.</p>
+        </div>
+
+        <div class="card">
+            <h3>⚔️ Step 6: Cascade Inference</h3>
+            <p>See <a href="#the-cascade" style="color:var(--accent)">The Cascade</a> section for full details.</p>
+        </div>
+    </section>
+
+    <!-- THE MODELS -->
+    <section class="section" id="the-models">
+        <div class="section-number">Chapter 06</div>
+        <h2>🧠 The AI Models</h2>
+        <p class="subtitle">There are 6 trained models + 1 pre-trained gatekeeper.</p>
+
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Model</th><th>File</th><th>Type</th><th>Role</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>YAMNet</strong></td><td><code>yamnet.tflite</code></td><td>Pre-trained CNN</td><td>🚪 Gatekeeper — "is this a bird sound?"</td></tr>
+                    <tr><td><strong>SVM Scout</strong></td><td><code>svm_model.pkl</code></td><td>SVM (RBF kernel)</td><td>⚔️ Primary first-responder</td></tr>
+                    <tr><td><strong>LR Scout</strong></td><td><code>lr_model.pkl</code></td><td>Logistic Regression</td><td>🔄 Second opinion (if user disputes SVM)</td></tr>
+                    <tr><td><strong>RandomForest</strong></td><td><code>rf_model.pkl</code></td><td>300 decision trees</td><td>🐝 Internal to Queen meta-learner</td></tr>
+                    <tr><td><strong>XGBoost</strong></td><td><code>xgb_model.pkl</code></td><td>Gradient boosting</td><td>🐝 Internal to Queen meta-learner</td></tr>
+                    <tr><td><strong>KNN</strong></td><td><code>knn_model.pkl</code></td><td>K-Nearest Neighbors</td><td>🐝 Internal to Queen meta-learner</td></tr>
+                    <tr><td><strong>HoneyBee Queen</strong></td><td><code>queen_meta.pkl</code></td><td>StackingClassifier → MLP</td><td>👑 Final arbiter — combines all 5 models</td></tr>
+                    <tr><td><strong>Scaler</strong></td><td><code>scaler.pkl</code></td><td>StandardScaler</td><td>📏 Normalizes 80 features to zero-mean/unit-variance</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="callout callout-blue">
+            <strong>💡 Why so many models?</strong> No single model is perfect. The SVM is fast but sometimes wrong. The Queen takes longer but uses 5 models' opinions to make a better decision. This is called <em>ensemble learning</em>.
+        </div>
+    </section>
+
+    <!-- THE CASCADE -->
+    <section class="section" id="the-cascade">
+        <div class="section-number">Chapter 07</div>
+        <h2>⚔️ The Inference Cascade</h2>
+        <p class="subtitle">A chain of escalation — like escalating a support ticket.</p>
+
+        <div class="mermaid">
+flowchart TD
+    A["Audio Input"] --> B
+    subgraph Gatekeeper
+        B["YAMNet"] -- "Is this a bird?" --> C{"yes"}
+    end
+    C --> D["80 Feature Extraction"]
+    D -- "MFCC, Delta, ZCR, Spectral..." --> E["Z-Score Shield"]
+    E -- "Z > 6 -> ALIEN NOISE" --> F{"normal"}
+    F --> G["SVM Scout <br/> 1st opinion"]
+    G --> H["LR Scout <br/> 2nd opinion"]
+    H --> I["HoneyBee Queen <br/> Final"]
+    G -.-> J(("Human Confirmation <br/> J.A.R.V.I.S. 10s prompt"))
+    H -.-> J
+    I -.-> J
+    J --> K{"✅ Healthy"}
+    J --> L{"🚨 Sick"}
+    L --> M["Telegram Alert"]
+    K --> N[("Vault Audio")]
+    L --> N
+</div>
+
+        <div class="callout callout-green">
+            <strong>🧑‍🌾 Human-in-the-loop:</strong> At every step, the human operator can agree or disagree. If they disagree, the next (more powerful) model is consulted. The Queen is always the final answer if all else is disputed.
+        </div>
+    </section>
+
+    <!-- DEEP DIVE -->
+    <section class="section" id="deep-dive">
+        <div class="section-number">Chapter 07.5</div>
+        <h2>🔭 Progressive Deep Dive — From Sky to Silicon</h2>
+        <p class="subtitle">Understanding the system at every level of abstraction — from "what does it do" down to individual bytes.</p>
+
+        <div class="callout callout-blue">
+            <strong>How to read this:</strong> Each level zooms in further. Start at Level 0 for the big picture. By Level 5 you'll know what every byte is doing.
+        </div>
+
+        <!-- LEVEL 0 -->
+        <div class="card" style="border-left: 4px solid #64748b;">
+            <h3>🛩️ Level 0 — Bird's Eye View</h3>
+            <p><strong>What:</strong> A box on a farm listens to chickens and texts the farmer if one is sick.</p>
+            <div class="diagram"><pre>
+  🐔🐔🐔 Chickens  →  🎤 Microphone  →  🍓 Raspberry Pi  →  📱 Farmer's Phone
+   (clucking)          (listening)       (AI thinking)      ("Alert: Sick!")
+            </pre></div>
+        </div>
+
+        <!-- LEVEL 1 -->
+        <div class="card" style="border-left: 4px solid var(--accent);">
+            <h3>🏗️ Level 1 — System Architecture</h3>
+            <p><strong>What:</strong> Three machines work together. Colab trains the brain, Pi runs it, Browser watches.</p>
+            <div class="mermaid">
+flowchart LR
+    subgraph Colab ["Google Colab (Training)"]
+        A[v12.py trains models] --> B[.pkl files]
+    end
+    subgraph Pi ["Raspberry Pi 3B (Production)"]
+        C[monitor.py runs 24/7]
+        D[USB Mic] --> C
+    end
+    subgraph Browser ["Browser (any PC)"]
+        E[HUD Dashboard]
+    end
+    subgraph Phone ["Your Phone"]
+        F[Telegram Alerts]
+    end
+    B -- USB / SCP --> Pi
+    C -- WebSocket ws://:5000 --> E
+    C -- Telegram API --> F
+</div>
+        </div>
+
+        <!-- LEVEL 2 -->
+        <div class="card" style="border-left: 4px solid var(--accent-2);">
+            <h3>🔧 Level 2 — Module Level</h3>
+            <p><strong>What:</strong> Inside the Pi, <code>monitor.py</code> runs 3 async tasks in parallel.</p>
+            <div class="mermaid">
+flowchart TD
+    A[asyncio.run_main] --> B[listen_and_process]
+    A --> C[telegram_jarvis_listener]
+    A --> D[websockets.serve:5000]
+    B -.-> E[(ORCA_SENSORY_DATA)]
+    C -.-> E
+</div>
+        </div>
+
+        <!-- LEVEL 3 -->
+        <div class="card" style="border-left: 4px solid var(--accent-3);">
+            <h3>⚙️ Level 3 — Function Call Chain</h3>
+            <p><strong>What:</strong> The exact sequence of function calls inside <code>listen_and_process()</code>.</p>
+            <div class="mermaid">
+flowchart TD
+    A[record_chunk] --> B{trigger?}
+    B -- yes --> C[record until silence]
+    C --> D[_preprocess]
+    D --> E[_yamnet_infer]
+    E --> F[extract_features]
+    F --> G[scaler.transform]
+    G --> H[svm.predict_proba]
+    H --> I[broadcast_telemetry]
+    I --> J[ask_jarvis_confirmation]
+    J --> K[sf.write]
+</div>
+        </div>
+
+        <!-- LEVEL 4 -->
+        <div class="card" style="border-left: 4px solid var(--accent-4);">
+            <h3>📊 Level 4 — Data Shape Transformations</h3>
+            <p><strong>What:</strong> The exact shape, type, and size of data at every stage.</p>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Stage</th><th>Shape</th><th>Type</th><th>Size</th></tr></thead>
+                    <tbody>
+                        <tr><td>Mic chunk (0.5s)</td><td><code>[22050, 1]</code></td><td>float32</td><td>88.2 KB</td></tr>
+                        <tr><td>Full recording (3s)</td><td><code>[132300]</code></td><td>float32</td><td>529 KB</td></tr>
+                        <tr><td>Resampled (16kHz)</td><td><code>[48000]</code></td><td>float32</td><td>192 KB</td></tr>
+                        <tr><td>Bandpass filtered</td><td><code>[48000]</code></td><td>float32</td><td>192 KB</td></tr>
+                        <tr><td>YAMNet input</td><td><code>[15600]</code></td><td>float32</td><td>62.4 KB</td></tr>
+                        <tr><td>YAMNet scores</td><td><code>[N, 521]</code></td><td>float32</td><td>~8 KB</td></tr>
+                        <tr><td>Bird score</td><td>scalar</td><td>float64</td><td>8 B</td></tr>
+                        <tr style="background:rgba(0,212,255,0.03)"><td colspan="4" style="color:var(--accent);font-weight:600">── Feature Extraction ──</td></tr>
+                        <tr><td>STFT spectrogram</td><td><code>[1025, T]</code></td><td>complex128</td><td>~1.5 MB</td></tr>
+                        <tr><td>Mel spectrogram</td><td><code>[128, T]</code></td><td>float64</td><td>varies</td></tr>
+                        <tr><td>MFCC matrix</td><td><code>[13, T]</code></td><td>float64</td><td>varies</td></tr>
+                        <tr><td>MFCC mean (Scout)</td><td><code>[13]</code></td><td>float64</td><td>104 B</td></tr>
+                        <tr><td>Delta mean</td><td><code>[13]</code></td><td>float64</td><td>104 B</td></tr>
+                        <tr><td>Chroma + Contrast + ...</td><td><code>[12+7+8+13+13]</code></td><td>float64</td><td>424 B</td></tr>
+                        <tr style="background:rgba(34,197,94,0.03)"><td colspan="4" style="color:var(--accent-3);font-weight:600">── Concatenated ──</td></tr>
+                        <tr><td><strong>raw_feats</strong></td><td><code>[80]</code></td><td>float64</td><td><strong>640 B</strong></td></tr>
+                        <tr><td>feats_scaled</td><td><code>[1, 80]</code></td><td>float64</td><td>640 B</td></tr>
+                        <tr style="background:rgba(249,115,22,0.03)"><td colspan="4" style="color:var(--accent-4);font-weight:600">── Model Outputs ──</td></tr>
+                        <tr><td>SVM probabilities</td><td><code>[2]</code></td><td>float64</td><td>16 B</td></tr>
+                        <tr><td>Queen probabilities</td><td><code>[2]</code></td><td>float64</td><td>16 B</td></tr>
+                        <tr><td>Final diagnosis</td><td>string</td><td>str</td><td>~7 B</td></tr>
+                        <tr style="background:rgba(236,72,153,0.03)"><td colspan="4" style="color:var(--accent-5);font-weight:600">── Outputs ──</td></tr>
+                        <tr><td>WebSocket JSON</td><td>dict</td><td>JSON</td><td>~3 KB</td></tr>
+                        <tr><td>Telegram payload</td><td>dict</td><td>JSON</td><td>~200 B</td></tr>
+                        <tr><td>Vaulted .wav</td><td><code>[N]</code></td><td>float32</td><td>~192 KB</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- LEVEL 5 -->
+        <div class="card" style="border-left: 4px solid var(--accent-5);">
+            <h3>🔬 Level 5 — Byte & Signal Level</h3>
+            <p><strong>What:</strong> What happens to individual audio samples and bytes.</p>
+
+            <div class="card-grid">
+                <div class="mini-card">
+                    <div class="mc-icon">🎤</div>
+                    <h4>Microphone → ADC</h4>
+                    <p>USB mic ADC samples air pressure 44,100×/sec. Each sample = 1 float32 = 4 bytes = 32 bits (1 sign + 8 exp + 23 mantissa). Range: -1.0 to +1.0.</p>
+                </div>
+                <div class="mini-card">
+                    <div class="mc-icon">📉</div>
+                    <h4>Resampling</h4>
+                    <p>Polyphase FIR anti-aliasing filter + decimation factor 2.756×. 132,300 samples → 48,000. Frequencies above 8kHz are removed (Nyquist).</p>
+                </div>
+                <div class="mini-card">
+                    <div class="mc-icon">🧹</div>
+                    <h4>Bandpass (SOS)</h4>
+                    <p>5th-order Butterworth, 3 biquad sections. Forward+backward (zero-phase). y[n] = b0·x[n] + b1·x[n-1] + b2·x[n-2] - a1·y[n-1] - a2·y[n-2]. ~54 FLOPs/sample.</p>
+                </div>
+                <div class="mini-card">
+                    <div class="mc-icon">📐</div>
+                    <h4>STFT → Spectrogram</h4>
+                    <p>2048-sample window (128ms). Hop=512 (32ms). FFT → 1025 complex bins/frame. Each complex = 16 bytes. Output: ~1.47 MB spectrogram.</p>
+                </div>
+                <div class="mini-card">
+                    <div class="mc-icon">🎵</div>
+                    <h4>Mel + MFCC</h4>
+                    <p>128 mel-scale triangular filters → log dB → DCT → 13 cepstral coefficients/frame. Mean across time → 13 floats = 104 bytes. The acoustic fingerprint.</p>
+                </div>
+                <div class="mini-card">
+                    <div class="mc-icon">🎯</div>
+                    <h4>Feature Vector</h4>
+                    <p>80 features × 8 bytes = 640 bytes total. That's the entire chicken sound compressed from 192 KB audio into 640 bytes. A 300× compression ratio.</p>
+                </div>
+                <div class="mini-card">
+                    <div class="mc-icon">⚖️</div>
+                    <h4>StandardScaler</h4>
+                    <p>For each feature: (x - μ) / σ. Mean and std from training. 2 FLOPs per feature × 80 = 160 FLOPs. Still 640 bytes but now zero-mean, unit-variance.</p>
+                </div>
+                <div class="mini-card">
+                    <div class="mc-icon">🗳️</div>
+                    <h4>SVM Decision</h4>
+                    <p>K(x,sv) = exp(-γ||x-sv||²) for ~200 support vectors. ~32,000 FLOPs. Output: 2 probs = 16 bytes. argmax → 1 bit: Healthy (0) or Sick (1).</p>
+                </div>
+            </div>
+
+            <div class="callout callout-green" style="margin-top:20px">
+                <strong>The journey of one chicken sound:</strong><br>
+                🎤 Air vibrations → <strong>88,200 bytes</strong> (0.5s raw) → resampled to <strong>~32,000 bytes</strong> → bandpass → STFT to <strong>~1.5 MB</strong> spectrogram → collapsed to <strong>640 bytes</strong> (80 features) → normalized → SVM kernels → <strong>16 bytes</strong> (2 probs) → <strong>1 bit</strong>: Healthy or Sick.
+            </div>
+        </div>
+    </section>
+
+    
+    <!-- HARDWARE -->
+    <section class="section" id="hardware">
+        <div class="section-number">Chapter 09</div>
+        <h2>🔌 Hardware & Architecture Evolution</h2>
+        <p class="subtitle">Why the Raspberry Pi, and why shift to the ESP32?</p>
+        
+        <div class="card">
+            <h3>🍓 Why use Raspberry Pi 3B and a USB Mic?</h3>
+            <p><strong>Rapid Prototyping:</strong> The Pi 3B runs a full Linux OS (Debian/Ubuntu), which makes it incredibly easy to run standard Python libraries like <code>librosa</code>, <code>scikit-learn</code>, and <code>sounddevice</code> without complex cross-compilation.</p>
+            <p><strong>USB Microphone:</strong> A plug-and-play USB microphone has an integrated ADC (Analog-to-Digital Converter) and bypasses the noise typically found on a Pi's analog audio inputs. However, USB mics are bulky and draw significant power.</p>
+        </div>
+
+        <div class="card">
+            <h3>⚡ Why shift to ESP32 with 4+ I2S Mics?</h3>
+            <p><strong>Power & Cost:</strong> A Raspberry Pi requires ~3-5 Watts and costs ~$35+. An ESP32 microcontroller uses &lt;0.5 Watts and costs ~$3. It can run on batteries or small solar panels.</p>
+            <p><strong>I2S Microphones (e.g., INMP441):</strong> I2S is a digital protocol designed specifically for audio. Using 4 or more I2S mics allows for <em>Spatial Audio Processing</em>. By calculating the Time Difference of Arrival (TDOA) between the mics, the AI can triangulate exactly <strong>which</strong> chicken is sick in a large barn.</p>
+            <p><strong>Real Edge Deployment:</strong> The ESP32 eliminates the overhead of an OS. It boots instantly and handles real-time interrupts perfectly.</p>
+        </div>
+
+        <div class="card">
+            <h3>🧠 Why TinyML?</h3>
+            <p>TinyML brings machine learning directly to microcontrollers. Instead of sending 44.1kHz audio streams to the cloud (which takes massive bandwidth, incurs latency, and raises privacy issues), TinyML allows the ESP32 to compute the FFT, extract MFCCs, and run an SVM directly on its 240MHz processor. It only sends a few bytes (the "Sick" alert) over the network.</p>
+        </div>
+    </section>
+
+    <!-- MATH DEEP DIVE -->
+    <section class="section" id="math">
+        <div class="section-number">Chapter 10</div>
+        <h2>🧮 The Mathematics of SmartEars</h2>
+        <p class="subtitle">Explaining the core algorithms in deep mathematical detail.</p>
+
+        <div class="card">
+            <h3>🌊 Why FFT (Fast Fourier Transform)?</h3>
+            <p>Sound is recorded as changes in air pressure over time (Time Domain). But chicken diseases (like rattling/wheezing) manifest as specific frequency bands. The FFT converts Time Domain → Frequency Domain.</p>
+            <p><strong>The Math:</strong> For a discrete signal <code>x[n]</code>, the DFT (Discrete Fourier Transform) is:<br>
+            <code>X[k] = Σ (n=0 to N-1) x[n] · e^(-i·2π·k·n/N)</code></p>
+            <p>This complex exponential breaks the sound down into constituent sine waves (Euler's formula). The FFT is an O(N log N) algorithm to compute this rapidly.</p>
+        </div>
+
+        <div class="card">
+            <h3>🎵 Mel-Frequency Cepstral Coefficients (MFCC)</h3>
+            <p>Why MFCC instead of raw FFT? Because human (and animal) hearing is not linear. We easily tell the difference between 100Hz and 200Hz, but not between 10,000Hz and 10,100Hz.</p>
+            <ol>
+                <li><strong>Mel Filterbank:</strong> We apply overlapping triangular filters to the power spectrum. The spacing is linear below 1kHz and logarithmic above. <code>m = 2595 · log10(1 + f/700)</code></li>
+                <li><strong>Logarithm:</strong> We take the log of the filter energies because loudness perception is logarithmic (decibels).</li>
+                <li><strong>DCT (Discrete Cosine Transform):</strong> We apply a DCT to the log-mel energies to decorrelate the features. This collapses the spectral envelope into just 13 numbers.</li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <h3>🤖 Why SVM and RF over Deep Learning?</h3>
+            <p>Deep Learning (like CNNs/ResNets) requires massive datasets (millions of samples) and heavy compute power (GPUs). SmartEars uses classical Machine Learning for three reasons:</p>
+            <ol>
+                <li><strong>Data Efficiency:</strong> SVMs and Random Forests can train highly accurate boundaries with only hundreds or thousands of labeled samples.</li>
+                <li><strong>Feature Engineering:</strong> Because we mathematically extract 80 highly targeted bioacoustic features (using DSP), the models don't have to "learn how to listen." They just learn the boundaries.</li>
+                <li><strong>Edge Computing:</strong> An SVM prediction (RBF kernel) requires computing <code>K(x, x_i) = exp(-γ||x - x_i||^2)</code> for the support vectors. This requires only a few thousand floating-point operations, easily running on an ESP32 in microseconds.</li>
+            </ol>
+        </div>
+    </section>
+\n    <!-- FILE MAP -->
+    <section class="section" id="file-map">
+        <div class="section-number">Chapter 08</div>
+        <h2>📂 File Map</h2>
+        <p class="subtitle">Every important file in the project and what it does.</p>
+
+        <div class="card">
+            <h3>🗂️ Root Files (Training / Desktop)</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>File</th><th>Version</th><th>What It Does</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>v12.py</code></td><td><span class="badge badge-green">V12 CURRENT</span></td><td>The main training script. Runs on Google Colab. Trains all 6 models.</td></tr>
+                        <tr><td><code>CHICKEN Ai.py</code></td><td><span class="badge badge-blue">V6</span></td><td>Older trainer with YAMNet gatekeeper + MFCC neural network.</td></tr>
+                        <tr><td><code>train_yamnet.py</code></td><td><span class="badge badge-grey">V4</span></td><td>YAMNet transfer learning trainer. Used Google TF Hub.</td></tr>
+                        <tr><td><code>train.py</code></td><td><span class="badge badge-grey">V1</span></td><td>The original. Simple RandomForest on 13 MFCCs.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📟 voiceanalyser/ (Raspberry Pi Deployment)</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>File</th><th>What It Does</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>monitor.py</code></td><td><strong>THE main runtime.</strong> V12 TITAN. This is what runs on the Pi 24/7.</td></tr>
+                        <tr><td><code>yamnet.tflite</code></td><td>Google's YAMNet pre-trained audio classifier (gatekeeper)</td></tr>
+                        <tr><td><code>svm_model.pkl</code></td><td>SVM Scout model file</td></tr>
+                        <tr><td><code>lr_model.pkl</code></td><td>Logistic Regression model file</td></tr>
+                        <tr><td><code>queen_meta.pkl</code></td><td>HoneyBee Queen StackingClassifier</td></tr>
+                        <tr><td><code>rf_model.pkl</code></td><td>RandomForest (loaded internally by Queen)</td></tr>
+                        <tr><td><code>xgb_model.pkl</code></td><td>XGBoost (loaded internally by Queen)</td></tr>
+                        <tr><td><code>knn_model.pkl</code></td><td>KNN (loaded internally by Queen)</td></tr>
+                        <tr><td><code>scaler.pkl</code></td><td>StandardScaler for normalizing 80 features</td></tr>
+                        <tr><td><code>farm_log.txt</code></td><td>Real inference log from field deployment (Mar 2026)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🌐 HTML Dashboards</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>File</th><th>What It Does</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <a href="index.html" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                    <code>index.html</code> ↗
+                                </a>
+                            </td>
+                            <td>V11 HUD — green cyberpunk theme, lock screen, Three.js background</td>
+                        </tr>
+                        <tr><td><code>poultryhealth_v12_titan.html</code></td><td>V12 HUD — blue MONARCH ORCA theme, specimen batch IDs</td></tr>
+                        <tr><td><code>research.html</code></td><td>Bioacoustic tuning dashboard — feature thresholds and charts</td></tr>
+                        <tr><td><code>project_neural_map.html</code></td><td>Interactive graph of all files, models, and connections</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- KEY FILES -->
+    <section class="section" id="key-files">
+        <div class="section-number">Chapter 09</div>
+        <h2>📄 Key Files Explained</h2>
+        <p class="subtitle">Deep dive into the two most important files.</p>
+
+        <div class="card">
+            <h3>🏋️ v12.py — The Training Script</h3>
+            <p>This runs on <strong>Google Colab</strong>. It reads audio files from Google Drive, extracts 80 features from each, trains 6 ML models, and saves them as <code>.pkl</code> files.</p>
+
+            <div style="margin-top: 12px;">
+                <strong>Key functions:</strong>
+                <ul style="margin: 8px 0; padding-left: 20px; color: var(--text-2); font-size: 13px;">
+                    <li><code>create_butter_bandpass()</code> + <code>apply_bandpass_filter()</code> — DSP audio cleaning</li>
+                    <li><code>extract_v12_features(y, sr)</code> — Extracts all 80 features from one audio clip</li>
+                    <li><code>process_dataset(data_dir)</code> — Walks Healthy/Sick folders, extracts features for all files</li>
+                    <li><code>analyze_and_visualize(X, y)</code> — PCA + t-SNE for visualization</li>
+                    <li><code>train_and_compare()</code> — Trains all 6 models + HoneyBee Queen stacker</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🛰️ monitor.py — The Pi Runtime</h3>
+            <p>This runs on the <strong>Raspberry Pi</strong> 24/7. It's fully async with 3 concurrent tasks.</p>
+
+            <div style="margin-top: 12px;">
+                <strong>Key functions:</strong>
+                <ul style="margin: 8px 0; padding-left: 20px; color: var(--text-2); font-size: 13px;">
+                    <li><code>record_chunk()</code> — Records 0.5s audio from USB mic</li>
+                    <li><code>extract_features(y_clean)</code> — Mirrors v12.py's feature extraction (80 features)</li>
+                    <li><code>listen_and_process()</code> — Main loop: trigger → record → preprocess → gate → extract → cascade</li>
+                    <li><code>run_honeybee_hive(feats_scaled)</code> — Runs the Queen meta-learner</li>
+                    <li><code>ask_jarvis_llm()</code> — Sends queries to Groq LLama for J.A.R.V.I.S. chat</li>
+                    <li><code>telegram_jarvis_listener()</code> — Background Telegram bot handler</li>
+                    <li><code>broadcast_telemetry()</code> — Sends JSON to all WebSocket dashboard clients</li>
+                    <li><code>main()</code> — Launches all 3 tasks concurrently</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 80 FEATURES -->
+    <section class="section" id="features-80">
+        <div class="section-number">Chapter 10</div>
+        <h2>🔬 The 80 Features</h2>
+        <p class="subtitle">Every audio clip is converted into 80 numbers. Here's what each one means.</p>
+
+        <div class="callout callout-orange">
+            <strong>Why 80?</strong> The first 27 are "Scout" features — fast to compute, good enough for a quick check. The remaining 53 are "Queen" features — deeper acoustic analysis. Together they give the AI a complete picture of the sound.
+        </div>
+
+        <div class="card">
+            <h3>🟢 Scout Features (1–27) — Fast & Cheap</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>#</th><th>Name</th><th>What It Measures</th></tr></thead>
+                    <tbody>
+                        <tr><td>1-13</td><td>MFCC 1-13</td><td>The "shape" of the sound spectrum — like a fingerprint of timbre</td></tr>
+                        <tr><td>14-26</td><td>Delta MFCC 1-13</td><td>How fast the MFCCs are changing over time (velocity)</td></tr>
+                        <tr><td>27</td><td>Zero-Crossing Rate</td><td>How "noisy" vs "tonal" the sound is</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🔴 Queen Features (28–80) — Deep Analysis</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>#</th><th>Name</th><th>What It Measures</th></tr></thead>
+                    <tbody>
+                        <tr><td>28</td><td>Spectral Centroid</td><td>"Brightness" of the sound (higher = brighter)</td></tr>
+                        <tr><td>29</td><td>Spectral Rolloff</td><td>Where most of the energy is concentrated in frequency</td></tr>
+                        <tr><td>30</td><td>Spectral Bandwidth</td><td>How wide the frequency spread is</td></tr>
+                        <tr><td>31</td><td>Spectral Flatness</td><td>Is it more "noisy" (flat) or "tonal" (peaky)?</td></tr>
+                        <tr><td>32-33</td><td>RMS Mean/Std</td><td>Average volume and volume stability</td></tr>
+                        <tr><td>34-35</td><td>F0 Mean/Std</td><td>Average pitch and pitch stability</td></tr>
+                        <tr><td>36</td><td>Voiced Ratio</td><td>What fraction of time has detectable pitch</td></tr>
+                        <tr><td>37</td><td>Tempo</td><td>Rhythm/beats per minute of vocalizations</td></tr>
+                        <tr><td>38</td><td>Onset Rate</td><td>How frequently new sounds start</td></tr>
+                        <tr><td>39</td><td>SNR</td><td>Signal-to-Noise ratio (loudness vs background)</td></tr>
+                        <tr><td>40</td><td>IOI Std</td><td>Irregularity of rhythm (sick = more irregular)</td></tr>
+                        <tr><td>41-48</td><td>Mel Bands 1-8</td><td>Energy in 8 frequency bands (mel-scaled)</td></tr>
+                        <tr><td>49-60</td><td>Chroma 1-12</td><td>Energy in each musical note (A through G#)</td></tr>
+                        <tr><td>61-67</td><td>Spectral Contrast 1-7</td><td>Difference between peaks and valleys in spectrum</td></tr>
+                        <tr><td>68-80</td><td>Delta2 MFCC 1-13</td><td>Acceleration of MFCC changes (2nd derivative)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- VERSION HISTORY -->
+    <section class="section" id="version-history">
+        <div class="section-number">Chapter 11</div>
+        <h2>📅 Version History</h2>
+        <p class="subtitle">How the project evolved over time.</p>
+
+        <div class="timeline">
+            <div class="tl-item">
+                <div class="tl-date">Early 2026</div>
+                <h4>V1 — Basic RandomForest</h4>
+                <p>The very first version. <code>train.py</code> extracts 13 MFCCs from audio, trains a RandomForest. No gatekeeper, no filtering, no dashboard.</p>
+            </div>
+            <div class="tl-item">
+                <div class="tl-date">2026</div>
+                <h4>V4 — YAMNet Transfer Learning</h4>
+                <p>Used Google's YAMNet as a feature extractor (1024-dim embeddings). Trained a small neural network on top. First TFLite export for Raspberry Pi.</p>
+            </div>
+            <div class="tl-item">
+                <div class="tl-date">2026</div>
+                <h4>V6 — Gatekeeper Era</h4>
+                <p>Added YAMNet as a "gatekeeper" to filter non-bird sounds. Audio quality scoring (RMS/ZCR/flatness). 3 monitor variants: FINAL, PRODUCTION (fixed gate bug), SICK_SENSITIVE (multi-tier alerts).</p>
+            </div>
+            <div class="tl-item">
+                <div class="tl-date">March 2026</div>
+                <h4>V8→V11 — Ensemble Era</h4>
+                <p>Added SVM, multiple model ensemble. V11 "J.A.R.V.I.S. Titan" introduced 7-model ensemble, WebSocket HUD, correction vault, DSP bandpass, dynamic audio capture. 27 features.</p>
+            </div>
+            <div class="tl-item" style="border-left: 3px solid var(--accent-3); padding-left: 12px;">
+                <div class="tl-date">March 20, 2026+</div>
+                <h4 style="color:var(--accent-3)">V12 — TITAN (Current)</h4>
+                <p>The current production version. <strong>80 features</strong> (27 Scout + 53 Queen). HoneyBee Queen StackingClassifier meta-learner. Cascading inference (SVM→LR→Queen). J.A.R.V.I.S. LLM via Groq. Telegram bot. Z-Score anomaly shield. Async triple-threaded architecture. GroupKFold validation.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+        <div class="section-number">Chapter 12</div>
+        <h2>💬 FAQ</h2>
+        <p class="subtitle">Questions you'll probably have.</p>
+
+        <div class="faq-item">
+            <div class="faq-q">Where do I retrain the models?</div>
+            <div class="faq-a"><p>On <strong>Google Colab</strong> using <code>v12.py</code>. Upload your audio data to Google Drive under <code>/MyDrive/CHICKENAI/</code> with <code>Healthy/</code> and <code>Sick/</code> subfolders. Run all cells. Download the .pkl files and transfer to the Pi.</p></div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-q">What hardware is needed?</div>
+            <div class="faq-a"><p>Raspberry Pi 3B (or newer) + any USB microphone. The Pi needs Python 3.7+ with librosa, scikit-learn, sounddevice, websockets installed. No GPU needed — inference is CPU-only.</p></div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-q">Can it work without internet?</div>
+            <div class="faq-a"><p><strong>Mostly yes.</strong> Core detection works fully offline. You lose: Telegram alerts, J.A.R.V.I.S. chat (Groq API), and the browser dashboard if you're remote. The dashboard works on the local network.</p></div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-q">What's the "correction vault"?</div>
+            <div class="faq-a"><p>Every audio clip the system analyzes is saved with its label (healthy/sick/noise) in <code>correction_vault/</code>. When a human overrides the AI's diagnosis, the corrected label is used. These recordings can be fed back into training to improve the models.</p></div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-q">What's the accuracy?</div>
+            <div class="faq-a"><p>V11 ensemble achieved 75% accuracy. V12 with the HoneyBee Queen meta-learner achieved ~60% accuracy on real-world noisy data. The confusion matrices show ~60% healthy recall and ~60% sick recall.</p></div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-q">What do the dashboard passwords mean?</div>
+            <div class="faq-a"><p>Both <code>index.html</code> and <code>poultryhealth_v12_titan.html</code> have a lock screen. Accepted passwords: <code>cluck</code>, <code>cluck!</code>, <code>CLUCK</code>, <code>bawk</code>, <code>cluckcluck</code>. It's a fun chicken-themed gate.</p></div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-q">What's the difference between index.html and the V12 HTML?</div>
+            <div class="faq-a"><p><code>index.html</code> is the V11 green cyberpunk theme ("HONEY BEE HIVE"). <code>poultryhealth_v12_titan.html</code> is the V12 deep blue "MONARCH ORCA" theme with specimen batch IDs and "ANOMALY" labeling. Same WebSocket connectivity, different aesthetics.</p></div>
+        </div>
+    </section>
+
+    <!-- GLOSSARY -->
+    <section class="section" id="glossary">
+        <div class="section-number">Chapter 13</div>
+        <h2>📖 Glossary</h2>
+        <p class="subtitle">Every term you might not know.</p>
+
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Term</th><th>What It Means</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>MFCC</strong></td><td>Mel-Frequency Cepstral Coefficients — audio features that mimic how human ears perceive sound</td></tr>
+                    <tr><td><strong>YAMNet</strong></td><td>Google's pre-trained model that can identify 521 types of sounds (birds, speech, music, etc.)</td></tr>
+                    <tr><td><strong>Gatekeeper</strong></td><td>YAMNet-based filter that checks "is this a bird sound?" before AI analysis</td></tr>
+                    <tr><td><strong>Scout</strong></td><td>A fast, lightweight model (SVM or Logistic Regression) that gives first opinion</td></tr>
+                    <tr><td><strong>Queen / HoneyBee Queen</strong></td><td>The StackingClassifier meta-learner — it combines all 5 models' opinions into one answer</td></tr>
+                    <tr><td><strong>Cascade</strong></td><td>The escalation chain: SVM → LR → Queen — each more powerful, activated by human disagreement</td></tr>
+                    <tr><td><strong>DSP</strong></td><td>Digital Signal Processing — math that cleans and filters audio signals</td></tr>
+                    <tr><td><strong>Bandpass</strong></td><td>A filter that only keeps frequencies between 300–4000 Hz (chicken range)</td></tr>
+                    <tr><td><strong>TFLite</strong></td><td>TensorFlow Lite — compressed ML models for small devices like Raspberry Pi</td></tr>
+                    <tr><td><strong>Correction Vault</strong></td><td>Folder where the Pi saves analyzed audio + labels for future retraining</td></tr>
+                    <tr><td><strong>J.A.R.V.I.S.</strong></td><td>The AI chat assistant (like Iron Man's Jarvis) powered by Groq's LLama model</td></tr>
+                    <tr><td><strong>F0</strong></td><td>Fundamental frequency — the base pitch of a chicken's vocalization</td></tr>
+                    <tr><td><strong>ZCR</strong></td><td>Zero-Crossing Rate — how often the audio waveform crosses zero (higher = noisier)</td></tr>
+                    <tr><td><strong>SNR</strong></td><td>Signal-to-Noise Ratio — how loud the actual signal is vs background noise</td></tr>
+                    <tr><td><strong>IOI</strong></td><td>Inter-Onset Interval — time gap between consecutive sound events (sick = irregular)</td></tr>
+                    <tr><td><strong>Stacking</strong></td><td>ML technique: multiple models' predictions become input to a "meta-model" that decides</td></tr>
+                    <tr><td><strong>StandardScaler</strong></td><td>Normalizes all features to have mean=0, std=1 so no feature dominates</td></tr>
+                    <tr><td><strong>GroupKFold</strong></td><td>Cross-validation that prevents the same recording session from being in both train and test sets</td></tr>
+                    <tr><td><strong>WebSocket</strong></td><td>A persistent two-way connection between the Pi and the browser for real-time updates</td></tr>
+                    <tr><td><strong>Orb</strong></td><td>The circular status indicator on the dashboard: green=healthy, red=sick, grey=noise</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- THEORETICAL FOUNDATIONS -->
+    <section class="section" id="theoretical-foundations">
+        <div class="section-number">Chapter 15</div>
+        <h2>📚 Deep Theoretical Foundations</h2>
+        <p class="subtitle">The underlying physics, mathematics, and edge logic powering SmartEars.</p>
+
+        <div class="card">
+            <div class="card-header">1. IoT Edge Architecture & Constraints</div>
+            <p><strong>The IoT Pipeline Hierarchy:</strong> Sending raw audio directly to the Cloud is a rookie mistake that creates severe lag and drains battery. This reinforces why SmartEars must process the FFT and SVM locally at the Edge, passing only lightweight actionable intelligence up the chain.</p>
+            <p><strong>Hardware Interrupts vs. Polling:</strong> Our <code>monitor.py</code> avoids "busy-waiting" (polling) which would freeze the CPU entirely. Instead, it uses event-driven interrupts to handle incoming audio chunks seamlessly, preventing the system from bottlenecking.</p>
+            <p><strong>Microcontroller Memory Loadouts:</strong> Our <code>.pkl</code> SVM weights and TFLite models are stored securely in Non-Volatile Flash memory, while the runtime <code>ORCA_SENSORY_DATA</code> is processed rapidly in the tiny, volatile SRAM.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">2. Audio Data Acquisition Mathematics</div>
+            <p><strong>Sampling vs. Quantization:</strong> Capturing physical sound requires splitting it in two ways: discretizing time (Sample Rate, like 16kHz) and discretizing amplitude (Quantization).</p>
+            <p><strong>Signal-to-Quantization-Noise Ratio (SQNR):</strong> Dictated by the formula <code>SQNR = 6.02N + 1.76 dB</code>. This explains exactly why we utilize high-bit digital I2S microphones. Every single bit added to the ADC hardware crushes the quantization noise floor by exactly 6 dB, pulling the faint respiratory sounds of a sick chicken cleanly out of the background fuzz.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">3. Agentic AI (Explaining J.A.R.V.I.S.)</div>
+            <p><strong>Tools and Function Calling:</strong> J.A.R.V.I.S. (Groq) is not just a passive chatbot predicting the next token. It operates as an "Agentic AI" that has been given access to Python functions (Tools), allowing it to halt text generation, trigger real-world actions (sending Telegram alerts), and evaluate physical states.</p>
+            <p><strong>Safety Drift & Hallucinations:</strong> To prevent the LLM's safety protocols from slowly degrading or hallucinating fake disease states over a long continuous stream, our system relies on strict, structured prompt bounds and a hard 10-second confirmation window.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">4. Advanced Anomaly Detection (The Future of the Shield)</div>
+            <p><strong>Autoencoders / VAEs:</strong> Currently, we use a rigid math-based Z-Score Shield (<code>Z &gt; 6.0 = Alien Noise</code>). The future evolution of this shield is an Autoencoder used for density estimation. By learning the exact latent probability distribution of a "normal" barn environment, the AI will instantly flag any outlier sound (like a tractor engine) simply because it falls outside the mathematically learned distribution.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">5. I²S (Inter-IC Sound) Protocol</div>
+            <p><strong>Raw PCM Audio Streaming:</strong> Unlike I²C, I²S is specifically optimized for streaming PCM audio data. Our digital microphone streams raw audio to the edge device using this protocol. By strictly separating the clock (SCK), word select (WS for L/R channels), and data (SD) lines, I²S minimizes physical jitter. This is absolutely critical for ensuring mathematically clean FFT conversions before the AI even touches the data.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">6. DMA (Direct Memory Access) Transfers</div>
+            <p><strong>Zero-Latency Concurrency:</strong> Our system bypasses the CPU for high-speed audio operations. The DMA controller funnels the incoming I²S audio stream directly into the ESP32/Pi's SRAM. Because the CPU is completely bypassed during data transfer, it can continuously crunch the heavy SVM math without ever dropping or missing incoming audio frames.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">7. Hardware Logic Level Shifting</div>
+            <p><strong>Voltage Constraints:</strong> A core physical engineering constraint at the edge. We utilize logic level shifters to step down voltages (e.g., from 5V sensor logic to 3.3V Pi logic) to safely communicate between different hardware nodes without frying the sensitive receiver pins.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">8. UART Hardware FIFOs & Flow Control</div>
+            <p><strong>Preventing Data Overrun:</strong> We rely on UART First-In-First-Out (FIFO) hardware buffers. When the edge CPU is locked up at 100% capacity running the HoneyBee Queen cascade inference, these hardware buffers physically hold the incoming bytes, ensuring no physical sensor telemetry is lost while the processor is busy.</p>
+    </section>
+
+    <!-- MICROCONTROLLERS & PHYSICAL LAYERS -->
+    <section class="section" id="microcontrollers">
+        <div class="section-label">Chapter 16</div>
+        <h2 class="section-title">Microcontrollers & <span class="gold">Physical Layers</span></h2>
+
+        <div class="faq-grid">
+            <div class="card">
+                <div class="card-header">1. I²S Audio Acquisition (The SmartEars Core)</div>
+                <p><strong>PCM & The Nyquist Theorem:</strong> To accurately capture the faint respiratory sounds of a sick chicken without aliasing distortion, the analog audio signal must be sampled at a rate at least twice the highest frequency (Nyquist Theorem). We utilize the I²S protocol, which is optimized exclusively for streaming this PCM (Pulse Code Modulation) audio data.<br><br>
+                <strong>Quantization & Bit Depth:</strong> Digital microphones convert analog amplitudes into discrete values. A higher bit depth (e.g., 16-bit or 24-bit) drastically lowers the quantization noise floor, pulling clean audio out of the background fuzz.<br><br>
+                <strong>I²S Pins:</strong> The protocol strictly separates the clock and data lines to minimize physical jitter: <em>Serial Data (SD)</em> for the audio bits, <em>Word Select (WS)</em> to toggle left/right channels, and <em>Serial Clock (SCK)</em> for synchronization.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">2. Microcontroller Serial Protocols</div>
+                <p><strong>UART (Telemetry):</strong> An asynchronous protocol ideal for lightweight text alerts (like sending SICK/HEALTHY to a WiFi module). It relies on Start, Stop, and Parity bits rather than a shared clock. <em>Baud Rate</em> (signal changes per second) dictates the speed, which both devices must agree upon beforehand.<br><br>
+                <strong>SPI (High-Speed Data):</strong> A synchronous, full-duplex protocol designed for high-speed peripherals (like SD cards or fast sensors). It uses Master Out Slave In (MOSI), Master In Slave Out (MISO), Serial Clock (SCK), and Slave Select (SS). It supports multiple Clock Polarity (CPOL) and Phase (CPHA) modes, and devices can even be daisy-chained.<br><br>
+                <strong>I²C (Sensor Expansion):</strong> A synchronous, half-duplex protocol using only two wires (SDA and SCL). It uses a Master/Slave architecture with 7-bit addresses, Start/Stop conditions, and ACK/NACK bits. It relies on a command-response cycle, making it perfect for wiring up additional environmental sensors (like the Senseair K30 CO2 sensor) to the same bus without consuming extra pins.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">3. The Edge ML Ecosystem</div>
+                <p><strong>TensorFlow Lite for Microcontrollers:</strong> A drastically optimized version of the TF Lite framework designed to run neural networks on embedded devices with only tens of kilobytes of memory.<br><br>
+                <strong>ESP-IDF Environment:</strong> The official development framework for Espressif chips. We compile and flash our C/C++ firmware to the ESP32 edge device using the ESP-IDF toolchain to achieve maximum bare-metal performance.</p>
+            </div>
+        
+            <div class="card">
+                <div class="card-header">Interactive 3D Hardware Model</div>
+                <p><strong>Raspberry Pi 3 Model B:</strong> The physical edge device that powers SmartEars. Click below to load an interactive, explorable 3D hardware schematic natively rendered in WebGL via Sketchfab.</p>
+                <div style="margin-top: 1.5rem;">
+                    <div style="width:100%;height:520px;border:0.5px solid #222;border-radius:8px;overflow:hidden;background:#0a0a0a;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;"
+                      onclick="this.innerHTML='<iframe src=\'https://sketchfab.com/models/78fede6fe71142dcb5b8dcc170845431/embed?autostart=1&amp;ui_theme=dark&amp;ui_infos=0&amp;ui_watermark=0\' width=\'100%\' height=\'100%\' frameborder=\'0\' allow=\'autoplay;fullscreen;xr-spatial-tracking\' allowfullscreen></iframe>'">
+                      <div style="text-align:center;">
+                        <div style="color:#c9a84c;font-size:1.2rem;letter-spacing:4px;font-family:monospace;">[ LOAD 3D MODEL ]</div>
+                        <div style="color:#555;font-size:0.72rem;letter-spacing:2px;margin-top:8px;font-family:monospace;">RASPBERRY PI 3 MODEL B — SKETCHFAB</div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+</div>
+
+<script>
+// ===== NAVIGATION + PROGRESS =====
+const sections = document.querySelectorAll('.section');
+const navLinks = document.querySelectorAll('.nav-link');
+const progressFill = document.getElementById('progress');
+const progressText = document.getElementById('progress-text');
+
+function updateNav() {
+    const scrollPos = window.scrollY + 200;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = Math.min(100, Math.round((window.scrollY / docHeight) * 100));
+    progressFill.style.width = pct + '%';
+    progressText.textContent = pct + '%';
+
+    let current = '';
+    sections.forEach(s => {
+        if (s.offsetTop <= scrollPos) current = s.id;
+    });
+
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) link.classList.add('active');
+    });
+}
+
+document.querySelector('.main').addEventListener('scroll', updateNav);
+window.addEventListener('scroll', updateNav);
+
+// FAQ Accordion
+document.querySelectorAll('.faq-q').forEach(q => {
+    q.addEventListener('click', () => {
+        q.parentElement.classList.toggle('open');
+    });
+});
+</script>
+
+
+
+</body>
+</html>
