@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Monarch ORCA — Project Neural Map</title>
+    <meta name="description" content="Interactive neural network visualization of the Monarch ORCA Poultry Health AI system architecture">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a2e;
+            --bg-hover: #252540;
+            --accent-blue: #00d4ff;
+            --accent-purple: #a855f7;
+            --accent-green: #22c55e;
+            --accent-orange: #f97316;
+            --accent-red: #ef4444;
+            --accent-yellow: #eab308;
+            --accent-pink: #ec4899;
+            --accent-cyan: #06b6d4;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: rgba(255,255,255,0.06);
+            --glow-blue: 0 0 20px rgba(0,212,255,0.3);
+            --glow-purple: 0 0 20px rgba(168,85,247,0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ===== HEADER ===== */
+        #header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 56px;
+            background: rgba(10,10,15,0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 100;
+            gap: 16px;
+        }
+
+        #header .logo {
+            font-weight: 900;
+            font-size: 16px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        #header .sep { width: 1px; height: 24px; background: var(--border); }
+
+        #header .subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .header-controls {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .mode-btn {
+            padding: 6px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .mode-btn.active {
+            background: rgba(0,212,255,0.1);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* ===== CANVAS ===== */
+        #canvas-container {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ===== SIDE PANEL ===== */
+        #side-panel {
+            position: fixed;
+            top: 56px;
+            right: -420px;
+            width: 420px;
+            bottom: 0;
+            background: rgba(18,18,26,0.95);
+            backdrop-filter: blur(30px);
+            border-left: 1px solid var(--border);
+            z-index: 50;
+            transition: right 0.35s cubic-bezier(0.4,0,0.2,1);
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        #side-panel.open { right: 0; }
+
+        #side-panel .close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        #side-panel .close-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-path {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            word-break: break-all;
+        }
+
+        .panel-section {
+            margin-top: 20px;
+        }
+
+        .panel-section h3 {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .func-item {
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            border-left: 3px solid;
+            cursor: default;
+        }
+
+        .func-item .fname {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--accent-cyan);
+        }
+
+        .func-item .fdesc {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .dep-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 2px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .model-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            margin: 2px;
+            background: rgba(168,85,247,0.1);
+            border: 1px solid rgba(168,85,247,0.3);
+            color: var(--accent-purple);
+        }
+
+        /* ===== LEGEND ===== */
+        #legend {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(18,18,26,0.92);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 50;
+            min-width: 200px;
+        }
+
+        #legend h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .legend-line {
+            width: 24px;
+            height: 2px;
+            flex-shrink: 0;
+            border-radius: 1px;
+        }
+
+        /* ===== VERSION TIMELINE ===== */
+        #version-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 0;
+            background: rgba(10,10,15,0.96);
+            backdrop-filter: blur(30px);
+            border-top: 1px solid var(--border);
+            z-index: 80;
+            transition: height 0.35s cubic-bezier(0.4,0,0.2,1);
+            overflow: hidden;
+        }
+
+        #version-panel.open {
+            height: 320px;
+        }
+
+        .timeline-container {
+            padding: 24px 40px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .timeline-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .timeline-header h2 {
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .timeline {
+            position: relative;
+            display: flex;
+            gap: 0;
+            align-items: flex-start;
+            padding-bottom: 16px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-green), var(--accent-orange));
+            border-radius: 2px;
+        }
+
+        .version-node {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            min-width: 160px;
+            cursor: pointer;
+        }
+
+        .version-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 3px solid;
+            background: var(--bg-primary);
+            z-index: 2;
+            margin-bottom: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .version-node:hover .version-dot {
+            transform: scale(1.4);
+        }
+
+        .version-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            width: 100%;
+            max-width: 200px;
+            transition: all 0.2s;
+        }
+
+        .version-node:hover .version-card {
+            border-color: rgba(255,255,255,0.15);
+            transform: translateY(-4px);
+        }
+
+        .version-card .vtitle {
+            font-weight: 700;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .version-card .vchanges {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .version-card .vchanges span {
+            display: block;
+        }
+
+        .v-added { color: var(--accent-green) !important; }
+        .v-changed { color: var(--accent-orange) !important; }
+        .v-removed { color: var(--accent-red) !important; }
+
+        /* ===== SEARCH ===== */
+        #search-box {
+            position: relative;
+        }
+
+        #search-input {
+            width: 220px;
+            padding: 6px 12px 6px 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        #search-input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(0,212,255,0.1);
+            width: 300px;
+        }
+
+        #search-box::before {
+            content: '🔍';
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+        }
+
+        /* ===== MINIMAP ===== */
+        #minimap {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 180px;
+            height: 120px;
+            background: rgba(18,18,26,0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            z-index: 50;
+            overflow: hidden;
+        }
+
+        #minimap canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ===== TOOLTIP ===== */
+        #tooltip {
+            position: fixed;
+            padding: 8px 14px;
+            background: rgba(26,26,46,0.96);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-primary);
+            pointer-events: none;
+            z-index: 200;
+            display: none;
+            max-width: 280px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+
+        #tooltip .tt-label {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        #tooltip .tt-type {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== STATS BAR ===== */
+        #stats-bar {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            height: 36px;
+            background: rgba(10,10,15,0.8);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 24px;
+            z-index: 90;
+            font-size: 11px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+        }
+
+        .stat-item .stat-val {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.12); }
+
+        /* ===== LOADING ===== */
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s;
+        }
+
+        #loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-text {
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--text-muted);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <!-- LOADING -->
+    <div id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Initializing Neural Map...</div>
+    </div>
+
+    <!-- HEADER -->
+    <div id="header">
+        <span class="logo">🧠 MONARCH ORCA</span>
+        <span class="sep"></span>
+        <span class="subtitle">Project Neural Map — Poultry Health AI System</span>
+
+        <div class="header-controls">
+            <div id="search-box">
+                <input type="text" id="search-input" placeholder="Search files, functions..." />
+            </div>
+            <button class="mode-btn active" data-mode="all" id="btn-all">All Nodes</button>
+            <button class="mode-btn" data-mode="files" id="btn-files">Files Only</button>
+            <button class="mode-btn" data-mode="functions" id="btn-functions">Functions</button>
+            <button class="mode-btn" data-mode="data" id="btn-data">Data Flow</button>
+            <button class="mode-btn" data-mode="versions" id="btn-versions">📅 Version History</button>
+        </div>
+    </div>
+
+    <!-- STATS BAR -->
+    <div id="stats-bar">
+        <div class="stat-item">Files: <span class="stat-val" id="stat-files">0</span></div>
+        <div class="stat-item">Functions: <span class="stat-val" id="stat-funcs">0</span></div>
+        <div class="stat-item">Connections: <span class="stat-val" id="stat-edges">0</span></div>
+        <div class="stat-item">Models: <span class="stat-val" id="stat-models">0</span></div>
+        <div class="stat-item">Versions: <span class="stat-val" id="stat-versions">5</span></div>
+        <div class="stat-item" style="margin-left:auto; color: var(--text-muted);">Scroll to zoom · Drag to pan · Click nodes for details</div>
+    </div>
+
+    <!-- CANVAS -->
+    <div id="canvas-container">
+        <canvas id="graph-canvas"></canvas>
+    </div>
+
+    <!-- TOOLTIP -->
+    <div id="tooltip">
+        <div class="tt-label"></div>
+        <div class="tt-type"></div>
+    </div>
+
+    <!-- LEGEND -->
+    <div id="legend">
+        <h4>Node Types</h4>
+        <div class="legend-item"><div class="legend-dot" style="background:#00d4ff"></div>Python Script (Training)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div>Python Script (Monitor)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>Function / Method</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>ML Model File (.pkl/.tflite)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ec4899"></div>HTML Dashboard</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#06b6d4"></div>External Service / API</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#eab308"></div>Data / Config</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Hardware Device</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Documentation</div>
+        <h4 style="margin-top:14px">Connections</h4>
+        <div class="legend-item"><div class="legend-line" style="background:#00d4ff"></div>Imports / Calls</div>
+        <div class="legend-item"><div class="legend-line" style="background:#f97316"></div>Loads Model</div>
+        <div class="legend-item"><div class="legend-line" style="background:#22c55e"></div>Data Flow</div>
+        <div class="legend-item"><div class="legend-line" style="background:rgba(255,255,255,0.15)"></div>Contains (File→Func)</div>
+    </div>
+
+    <!-- SIDE PANEL -->
+    <div id="side-panel">
+        <button class="close-btn" onclick="closeSidePanel()">✕</button>
+        <div id="panel-content"></div>
+    </div>
+
+    <!-- VERSION TIMELINE -->
+    <div id="version-panel">
+        <div class="timeline-container">
+            <div class="timeline-header">
+                <h2>📅 Version Evolution Timeline</h2>
+                <button class="mode-btn" onclick="toggleVersionPanel()">Close ✕</button>
+            </div>
+            <div class="timeline" id="timeline"></div>
+        </div>
+    </div>
+
+    <!-- MINIMAP -->
+    <div id="minimap">
+        <canvas id="minimap-canvas"></canvas>
+    </div>
+
+<script>
+// ======================================================================
+// 🧠 MONARCH ORCA — PROJECT NEURAL MAP ENGINE
+// ======================================================================
+
+// ===== DATA MODEL =====
+const NODE_TYPES = {
+    TRAIN_SCRIPT: { color: '#00d4ff', radius: 28, label: 'Training Script' },
+    MONITOR_SCRIPT: { color: '#a855f7', radius: 28, label: 'Monitor Script' },
+    FUNCTION: { color: '#22c55e', radius: 14, label: 'Function' },
+    MODEL: { color: '#f97316', radius: 20, label: 'ML Model' },
+    HTML: { color: '#ec4899', radius: 22, label: 'Dashboard' },
+    SERVICE: { color: '#06b6d4', radius: 18, label: 'External Service' },
+    DATA: { color: '#eab308', radius: 16, label: 'Data / Config' },
+    LEGACY: { color: '#64748b', radius: 20, label: 'Legacy Script' },
+    LIBRARY: { color: '#8b5cf6', radius: 16, label: 'Library' },
+    HARDWARE: { color: '#ef4444', radius: 24, label: 'Hardware' },
+    DOCS: { color: '#10b981', radius: 18, label: 'Documentation' },
+};
+
+const EDGE_TYPES = {
+    IMPORTS: { color: 'rgba(0,212,255,0.35)', width: 1.5, dashed: false },
+    LOADS_MODEL: { color: 'rgba(249,115,22,0.5)', width: 2, dashed: false },
+    DATA_FLOW: { color: 'rgba(34,197,94,0.4)', width: 2, dashed: true },
+    CONTAINS: { color: 'rgba(255,255,255,0.08)', width: 1, dashed: false },
+    CALLS: { color: 'rgba(0,212,255,0.2)', width: 1, dashed: true },
+    WEBSOCKET: { color: 'rgba(236,72,153,0.4)', width: 2, dashed: true },
+    API_CALL: { color: 'rgba(6,182,212,0.4)', width: 1.5, dashed: true },
+};
+
+// ===== NODE DEFINITIONS =====
+const nodes = [
+    // ====== TRAINING SCRIPTS (Colab / PC) ======
+    { id: 'train_py', label: 'train.py', type: 'TRAIN_SCRIPT', group: 'training',
+      desc: 'V1 basic RandomForest trainer. MFCC features only. 3 classes: Healthy/Unhealthy/Noise.',
+      path: 'train.py',
+      imports: ['os', 'librosa', 'numpy', 'sklearn.ensemble.RandomForestClassifier', 'sklearn.model_selection.train_test_split', 'sklearn.metrics.accuracy_score', 'joblib'],
+      functions: [
+        { name: '(script)', desc: 'Loads .wav files, extracts 13 MFCCs, trains RF, saves chicken_model.pkl' }
+      ],
+      models_out: ['chicken_model_pkl'],
+      version: 'V1'
+    },
+    { id: 'train_yamnet_py', label: 'train_yamnet.py', type: 'TRAIN_SCRIPT', group: 'training',
+      desc: 'V4 YAMNet transfer learning trainer. Uses Google YAMNet embeddings (1024-dim) + tiny NN.',
+      path: 'train_yamnet.py',
+      imports: ['os', 'numpy', 'librosa', 'tensorflow', 'tensorflow_hub'],
+      functions: [
+        { name: '(script)', desc: 'Loads audio at 16kHz, extracts YAMNet embeddings, trains 2-layer NN, exports TFLite' }
+      ],
+      models_out: ['chicken_yamnet_tflite'],
+      version: 'V4'
+    },
+    { id: 'chicken_ai_py', label: 'CHICKEN Ai.py', type: 'TRAIN_SCRIPT', group: 'training',
+      desc: 'V6 Gatekeeper + MFCC trainer. Dual-layer filtering: acoustic quality score + YAMNet bird detection.',
+      path: 'CHICKEN Ai.py',
+      imports: ['os', 'librosa', 'pickle', 'numpy', 'sklearn.utils', 'tensorflow', 'tensorflow_hub', 'tqdm'],
+      functions: [
+        { name: 'get_audio_quality_score(y)', desc: 'Computes RMS/ZCR/flatness quality score (0-100)' },
+        { name: '(pipeline)', desc: '2-layer filter → MFCC extraction → NN training → TFLite export' }
+      ],
+      models_out: ['chicken_elite_mfcc_v6_tflite'],
+      version: 'V6'
+    },
+    { id: 'v12_py', label: 'v12.py', type: 'TRAIN_SCRIPT', group: 'training',
+      desc: 'V12 TITAN — Full ML pipeline. 80-feature extraction (27 Scout + 53 Queen). Trains 5 models + HoneyBee Queen stacking meta-learner. DSP bandpass filtering. GroupKFold validation.',
+      path: 'v12.py',
+      imports: ['os', 'librosa', 'numpy', 'pandas', 'matplotlib', 'seaborn', 'tqdm', 'sklearn.*', 'xgboost', 'scipy.signal', 'tensorflow_hub', 'pickle', 'joblib', 're'],
+      functions: [
+        { name: 'create_butter_bandpass(lowcut, highcut, fs, order)', desc: 'Creates Butterworth bandpass filter coefficients' },
+        { name: 'apply_bandpass_filter(data, lowcut, highcut, fs, order)', desc: 'Applies bandpass filter 300-4000Hz to clean audio' },
+        { name: 'extract_v12_features(y, sr, extract_queen)', desc: 'Extracts 80 features: 27 Scout (MFCC+Delta+ZCR) + 53 Queen (spectral, F0, tempo, mel, chroma, contrast, delta2, SNR, IOI)' },
+        { name: 'process_dataset(data_dir)', desc: 'Walks dataset folders, filters with YAMNet gatekeeper, extracts features, tracks groups' },
+        { name: 'analyze_and_visualize(X, y)', desc: 'StandardScaler + PCA (95% variance) + t-SNE 2D visualization' },
+        { name: 'train_and_compare(X_train, X_test, y_train, y_test)', desc: 'Trains SVM, RF, XGBoost, KNN, LR individually + StackingClassifier (HoneyBee Queen) meta-learner' }
+      ],
+      models_out: ['v12_svm_pkl','v12_rf_pkl','v12_xgb_pkl','v12_knn_pkl','v12_lr_pkl','v12_queen_pkl','v12_scaler_pkl'],
+      version: 'V12'
+    },
+
+    // ====== MONITOR SCRIPTS (Raspberry Pi) ======
+    { id: 'monitor_py', label: 'monitor.py', type: 'MONITOR_SCRIPT', group: 'monitor',
+      desc: 'V12 TITAN Production monitor. Runs on Raspberry Pi. Async audio capture, YAMNet gatekeeper, cascading SVM→LR→HoneyBee Queen inference, WebSocket HUD, Telegram alerts, J.A.R.V.I.S. LLM chatbot via Groq.',
+      path: 'voiceanalyser/monitor.py',
+      imports: ['os', 'sys', 'select', 'json', 'asyncio', 'websockets', 'numpy', 'sounddevice', 'soundfile', 'librosa', 'requests', 'pickle', 'joblib', 'shutil', 'scipy.signal', 'datetime', 'socket', 'warnings', 'time', 'concurrent.futures', 'groq'],
+      functions: [
+        { name: 'ask_jarvis_llm(user_query, telemetry_snapshot)', desc: 'Sends query to Groq LLama-3.1-8B with J.A.R.V.I.S. persona + telemetry context' },
+        { name: 'send_tg_alert(token, chat, confidence)', desc: 'Dispatches sick detection alert to Telegram bot' },
+        { name: 'get_ip()', desc: 'Auto-discovers Pi local IP for WebSocket server' },
+        { name: 'apply_sos_filter(data)', desc: 'Applies cached SOS bandpass filter (300-4000Hz)' },
+        { name: 'broadcast_telemetry(data)', desc: 'Sends JSON telemetry to all connected WebSocket HUD clients' },
+        { name: 'ws_handler(websocket, path)', desc: 'WebSocket connection handler for HUD clients' },
+        { name: 'run_honeybee_hive(feats_scaled)', desc: 'Runs StackingClassifier Queen meta-learner for final diagnosis' },
+        { name: 'ask_jarvis_confirmation(diag, conf)', desc: 'Terminal prompt for human-in-the-loop verification (10s timeout)' },
+        { name: 'record_chunk(duration)', desc: 'Records 0.5s audio from USB mic at 44.1kHz' },
+        { name: 'extract_features(y_clean)', desc: 'Extracts 80 V12 features from cleaned audio (mirrors v12.py)' },
+        { name: 'listen_and_process()', desc: 'Main async loop: trigger→record→preprocess→YAMNet→DSP→SVM→LR→Queen cascade' },
+        { name: 'telegram_jarvis_listener()', desc: 'Background Telegram bot listener for J.A.R.V.I.S. queries' },
+        { name: 'main()', desc: 'Launches triple-threaded: audio + WebSocket HUD + Telegram listener' },
+        { name: '_yamnet_infer(inp)', desc: 'Thread-safe YAMNet TFLite inference helper' },
+        { name: '_preprocess(audio_flat)', desc: 'Resample 44.1kHz→16kHz + bandpass filter' }
+      ],
+      models_in: ['svm_model_pkl', 'lr_model_pkl', 'queen_meta_pkl', 'scaler_pkl', 'yamnet_tflite'],
+      version: 'V12'
+    },
+
+    // ====== LEGACY MONITORS ======
+    { id: 'monitor_v6_final', label: 'monitor_v6_FINAL.py', type: 'LEGACY', group: 'archive',
+      desc: 'V6 "Smart Farm Sentry" — dual-model monitor. YAMNet gatekeeper uses top_class argmax (buggy). Loads chicken_model.tflite. 14 features (13 MFCC + ZCR). Sick alert threshold: 3 consecutive, 70% confidence.',
+      path: 'voiceanalyser/archive_v6/monitor_v6_FINAL.py', version: 'V6',
+      imports: ['os', 'numpy', 'sounddevice', 'soundfile', 'librosa', 'requests', 'time', 'datetime', 'warnings', 'TFLite Interpreter'],
+      functions: [
+        { name: 'send_telegram_alert(message)', desc: 'Sends Telegram notification on sick detection' },
+        { name: 'log_event(diagnosis, confidence)', desc: 'Appends timestamped diagnosis to farm_log.txt' },
+        { name: 'analyze_audio(audio_data)', desc: 'Two-layer: YAMNet gatekeeper (top_class argmax) → MFCC classifier' }
+      ]
+    },
+    { id: 'monitor_v6_prod', label: 'monitor_v6_PRODUCTION.py', type: 'LEGACY', group: 'archive',
+      desc: 'V6 PRODUCTION — FIXED YAMNet gating. Uses summed bird_score instead of buggy top_class argmax. Loads chicken_elite_mfcc_v6.tflite. Same 14 features.',
+      path: 'voiceanalyser/archive_v6/monitor_v6_PRODUCTION.py', version: 'V6',
+      imports: ['os', 'numpy', 'sounddevice', 'soundfile', 'librosa', 'requests', 'time', 'datetime', 'warnings', 'TFLite Interpreter'],
+      functions: [
+        { name: 'send_telegram_alert(message)', desc: 'Sends Telegram notification' },
+        { name: 'log_event(diagnosis, confidence)', desc: 'Appends to farm_log.txt' },
+        { name: 'analyze_audio(audio_data)', desc: 'YAMNet gate (summed bird_score > 0.2) → MFCC classifier' }
+      ]
+    },
+    { id: 'monitor_v6_sick', label: 'monitor_v6_SICK_SENSITIVE.py', type: 'LEGACY', group: 'archive',
+      desc: 'V6 SICK-SENSITIVE — ultra-sensitive illness detection. Multi-tier: preds[1]>0.15→HIGH, >0.05→LOW. Alerts on FIRST sick detection (threshold=1). Returns raw_sick_prob for logging.',
+      path: 'voiceanalyser/archive_v6/monitor_v6_SICK_SENSITIVE.py', version: 'V6',
+      imports: ['os', 'numpy', 'sounddevice', 'soundfile', 'librosa', 'requests', 'time', 'datetime', 'warnings', 'TFLite Interpreter'],
+      functions: [
+        { name: 'send_telegram_alert(message)', desc: 'Sends alert with severity level (HIGH/LOW)' },
+        { name: 'log_event(diagnosis, confidence, raw_sick_prob)', desc: '3-param variant: logs raw sick probability' },
+        { name: 'analyze_audio(audio_data)', desc: 'Returns (diagnosis, confidence, raw_sick_prob) — multi-tier sick detection' }
+      ]
+    },
+    { id: 'monitor_v11', label: 'monitor_v11_titan.py', type: 'LEGACY', group: 'archive',
+      desc: 'V11 "J.A.R.V.I.S. Titan" — first multi-model ensemble. Loads 7 models: YAMNet + SVM + RF + XGB + KNN + Queen NN TFLite. 27 features (13 MFCC + 13 delta + ZCR). Dynamic audio capture (records until 1.5s silence). WebSocket HUD. Correction vault. DSP bandpass 300-4000Hz.',
+      path: 'voiceanalyser/models_v11_legacy/monitor_v11_titan.py', version: 'V11',
+      imports: ['os', 'sys', 'select', 'json', 'asyncio', 'websockets', 'numpy', 'sounddevice', 'soundfile', 'librosa', 'requests', 'pickle', 'joblib', 'shutil', 'scipy.signal', 'datetime', 'socket', 'warnings', 'TFLite Interpreter'],
+      functions: [
+        { name: 'get_ip()', desc: 'Discovers local IP via UDP socket' },
+        { name: 'apply_sos_filter(data)', desc: '5th-order SOS bandpass filter (300-4000Hz)' },
+        { name: 'broadcast_telemetry(data)', desc: 'Sends JSON to all WebSocket HUD clients' },
+        { name: 'ws_handler(websocket, path)', desc: 'WebSocket connection handler' },
+        { name: 'run_honeybee_hive(feats_scaled, svm_probs)', desc: 'Ensemble: RF+XGB+KNN → fuse with SVM probs → Queen NN TFLite' },
+        { name: 'ask_jarvis_confirmation(diag, conf)', desc: 'Terminal prompt for user confirmation (10s timeout)' },
+        { name: 'listen_and_process()', desc: 'Main sentry loop with dynamic audio capture' },
+        { name: 'main()', desc: 'Starts WebSocket server + sentry loop' }
+      ]
+    },
+    { id: 'legacy_monitor', label: 'monitor.py (legacy)', type: 'LEGACY', group: 'archive',
+      desc: 'Original "Dual-Model Ultimate Edition" — earliest version. Uses chicken_elite_mfcc_v4.tflite. Hardcoded Telegram credentials. top_class argmax gating (buggy). 14 features.',
+      path: 'voiceanalyser/legacy_scripts/monitor.py', version: 'V4',
+      imports: ['os', 'numpy', 'sounddevice', 'soundfile', 'librosa', 'requests', 'time', 'datetime', 'warnings', 'TFLite Interpreter'],
+      functions: [
+        { name: 'send_telegram_alert(message)', desc: 'Sends Telegram notification (hardcoded credentials)' },
+        { name: 'log_event(diagnosis, confidence)', desc: 'Appends to farm_log.txt' },
+        { name: 'analyze_audio(audio_data)', desc: 'YAMNet gate (buggy top_class) → MFCC V4 classifier' }
+      ]
+    },
+    { id: 'legacy_monitor_fixed', label: 'monitor_fixed.py', type: 'LEGACY', group: 'archive',
+      desc: 'Bug-fixed monitor. Changed model file to chicken_model.tflite. Added os.path.exists() checks. Lists available .tflite files on model-not-found error. Comment: "With only 4 sick samples, predictions will be unreliable!"',
+      path: 'voiceanalyser/legacy_scripts/monitor_fixed.py', version: 'V6',
+      imports: ['os', 'numpy', 'sounddevice', 'soundfile', 'librosa', 'requests', 'time', 'datetime', 'warnings', 'TFLite Interpreter'],
+      functions: [
+        { name: 'send_telegram_alert(message)', desc: 'Sends Telegram (env vars with placeholders)' },
+        { name: 'log_event(diagnosis, confidence)', desc: 'Appends to farm_log.txt' },
+        { name: 'analyze_audio(audio_data)', desc: 'YAMNet gate → MFCC classifier with file existence checks' }
+      ]
+    },
+    { id: 'check_pure', label: 'check_pure.py', type: 'LEGACY', group: 'archive',
+      desc: 'Batch diagnostic — tests 3 WAV files (healthy/sick/noise) through YAMNet embeddings (output[1], MAX pooling) + chicken_yamnet_v2.tflite classifier. No mic, no MFCC.',
+      path: 'voiceanalyser/legacy_scripts/check_pure.py', version: 'V4',
+      imports: ['numpy', 'librosa', 'ai_edge_litert.interpreter', 'warnings', 'os'],
+      functions: [
+        { name: '(script)', desc: 'Loads 3 test WAVs → YAMNet embeddings (max pool) → V2 classifier → prints predictions' }
+      ]
+    },
+    { id: 'test_bypass', label: 'test_bypass.py', type: 'LEGACY', group: 'archive',
+      desc: 'Digital bypass test — single WAV through YAMNet embeddings (output[1], MEAN pooling) + chicken_yamnet.tflite V1 classifier. No gating, direct embed→classify.',
+      path: 'voiceanalyser/legacy_scripts/test_bypass.py', version: 'V4',
+      imports: ['numpy', 'librosa', 'ai_edge_litert.interpreter', 'warnings'],
+      functions: [
+        { name: '(script)', desc: 'Loads test_healthy.wav → YAMNet embeddings (mean pool) → V1 classifier → prints result' }
+      ]
+    },
+    { id: 'test_yamnet_debug', label: 'test_yamnet_debug.py', type: 'LEGACY', group: 'archive',
+      desc: 'YAMNet debug tool — records 5s from mic, runs YAMNet scores (output[0]), prints top 10 class indices + summed bird_score vs threshold 0.2. Saves to /dev/shm/test.wav.',
+      path: 'voiceanalyser/legacy_scripts/test_yamnet_debug.py', version: 'V8',
+      functions: [{ name: 'Various', desc: 'YAMNet TFLite shape debugging' }]
+    },
+
+    // ====== ML MODELS ======
+    { id: 'chicken_model_pkl', label: 'chicken_model.pkl', type: 'MODEL', group: 'models',
+      desc: 'V1 RandomForest model. 13 MFCC features → 3 classes.', version: 'V1', path: 'chicken_model.pkl' },
+    { id: 'chicken_yamnet_tflite', label: 'chicken_yamnet.tflite', type: 'MODEL', group: 'models',
+      desc: 'V4 YAMNet transfer NN model. 1024-dim embeddings → 3 classes.', version: 'V4', path: 'chicken_yamnet.tflite' },
+    { id: 'chicken_elite_mfcc_v6_tflite', label: 'chicken_elite_mfcc_v6.tflite', type: 'MODEL', group: 'models',
+      desc: 'V6 MFCC NN model. 14 features, gatekeeper-filtered data.', version: 'V6', path: 'chicken_elite_mfcc_v6.tflite' },
+    { id: 'v8_tflite', label: 'chicken_model_v8.tflite', type: 'MODEL', group: 'models',
+      desc: 'V8 TFLite model. Intermediate version.', version: 'V8', path: 'voiceanalyser/models_v8_legacy/chicken_model_v8.tflite' },
+    { id: 'v11_nn_tflite', label: 'v11_nn.tflite', type: 'MODEL', group: 'models',
+      desc: 'V11 Neural Network TFLite for honeybee production.', version: 'V11', path: 'voiceanalyser/models_v11_legacy/chicken_honeybee_nn_v11_production_honeybee.tflite' },
+    { id: 'svm_model_pkl', label: 'svm_model.pkl', type: 'MODEL', group: 'models',
+      desc: 'V12 SVM Scout. RBF kernel, C=10, balanced class weights. Primary first-responder.', version: 'V12', path: 'voiceanalyser/svm_model.pkl' },
+    { id: 'lr_model_pkl', label: 'lr_model.pkl', type: 'MODEL', group: 'models',
+      desc: 'V12 Logistic Regression Scout. Secondary scout when SVM is disputed.', version: 'V12', path: 'voiceanalyser/lr_model.pkl' },
+    { id: 'queen_meta_pkl', label: 'queen_meta.pkl', type: 'MODEL', group: 'models',
+      desc: 'V12 HoneyBee Queen Meta-Learner. StackingClassifier (SVM+RF+XGB+KNN+LR → MLP). Final arbiter.', version: 'V12', path: 'voiceanalyser/queen_meta.pkl' },
+    { id: 'scaler_pkl', label: 'scaler.pkl', type: 'MODEL', group: 'models',
+      desc: 'V12 StandardScaler. Fitted on training data. 80 features.', version: 'V12', path: 'voiceanalyser/scaler.pkl' },
+    { id: 'yamnet_tflite', label: 'yamnet.tflite', type: 'MODEL', group: 'models',
+      desc: 'Google YAMNet pre-trained audio classifier. 521 classes. Used as gatekeeper to identify bird sounds.', version: 'ALL', path: 'voiceanalyser/yamnet.tflite' },
+    { id: 'rf_model_pkl', label: 'rf_model.pkl', type: 'MODEL', group: 'models',
+      desc: 'V12 RandomForest. 300 estimators, balanced. Internal to Queen stacker.', version: 'V12', path: 'voiceanalyser/rf_model.pkl' },
+    { id: 'xgb_model_pkl', label: 'xgb_model.pkl', type: 'MODEL', group: 'models',
+      desc: 'V12 XGBoost. Scale_pos_weight balanced. Internal to Queen stacker.', version: 'V12', path: 'voiceanalyser/xgb_model.pkl' },
+    { id: 'knn_model_pkl', label: 'knn_model.pkl', type: 'MODEL', group: 'models',
+      desc: 'V12 KNN. k=5, distance-weighted. Internal to Queen stacker.', version: 'V12', path: 'voiceanalyser/knn_model.pkl' },
+
+    // ====== HTML DASHBOARDS ======
+    { id: 'index_html', label: 'index.html', type: 'HTML', group: 'dashboard',
+      desc: 'V11 HUD Dashboard — cyberpunk theme with lock screen (passwords: cluck/bawk). Password-protected entry. WebSocket to Pi. Three.js DNA helix background. Charts: raw acoustic, 13 MFCC bars, cascade output. Telegram alerts. Easter egg: type "jarvis". Mock data generator for offline mode. © Dibyajyotee Ghosh 2026.',
+      path: 'index.html', version: 'V11',
+      functions: [
+        { name: 'WebSocket Client', desc: 'Connects to ws://<PI_IP>:5000 — falls back to mock data' },
+        { name: 'Lock Screen', desc: 'Passwords: cluck, cluck!, CLUCK, bawk, cluckcluck' },
+        { name: 'Orb Status Display', desc: 'Visual orb: green=healthy, red=alert, grey=noise, yellow=unknown' },
+        { name: 'Waveform + MFCC Charts', desc: 'Raw acoustic (bandpass filtered), 13 MFCC bars (C0-C12), cascade probabilities' },
+        { name: 'Three.js Background', desc: 'DNA helix + floating shards + particle field (disabled on Pi mode)' },
+        { name: 'Spectrogram Archive', desc: 'Grid of saved spectrogram images from /data/spectrograms/' }
+      ]
+    },
+    { id: 'v12_titan_html', label: 'poultryhealth_v12_titan.html', type: 'HTML', group: 'dashboard',
+      desc: 'V12 TITAN HUD — "MONARCH // ORCA BIOACOUSTICS". Deep ocean blue theme. Queen Hive Meta-Learner branding. Specimen analysis bar with batch ID and ORCA progress. Corner bracket decorations. Scan line animations. Same lock passwords. Healthy→NOMINAL, Sick→ANOMALY.',
+      path: 'poultryhealth_v12_titan.html', version: 'V12',
+      functions: [
+        { name: 'WebSocket Client', desc: 'Connects to ws://<PI_IP>/ws for live telemetry' },
+        { name: 'Lock Screen', desc: 'MONARCH ORGANISATION // CLASSIFICATION: OMEGA' },
+        { name: 'Specimen Header', desc: 'Batch ID, ORCA analysis progress bar, location field' },
+        { name: 'Three Charts', desc: 'Raw signal, MFCC (13 coefficients), Cascade (SVM Scout → Queen Hive)' }
+      ]},
+    { id: 'research_html', label: 'research.html', type: 'HTML', group: 'dashboard',
+      desc: 'Bioacoustic Tuning Dashboard — light-themed Tailwind CSS analytical interface. Radar chart overview + 6 optimization targets: Spectral Bandwidth (H:1200-1800Hz, S:2200-3500Hz), MFCC Stability (H:<0.05/frame, S:>0.15/frame), RMS Energy (H:<0.02std, S:>0.08std), ZCR (H:0.05-0.12, S:0.20-0.45), Spectral Flatness. Chart.js visualizations. Signal chain: bandpass 300-4000Hz, pre-gate >0.15, median smoothing, Z>6.0 rejection.',
+      path: 'research.html', version: 'V12',
+      functions: [
+        { name: 'Sidebar Navigation', desc: '6 optimization targets with switchable Chart.js plots' },
+        { name: 'Math Constraints Card', desc: 'Threshold values per feature (healthy vs sick ranges)' },
+        { name: 'Bio Justification Card', desc: 'Clinical acoustic reasoning for each parameter' }
+      ]},
+
+    // ====== EXTERNAL SERVICES ======
+    { id: 'telegram_api', label: 'Telegram Bot API', type: 'SERVICE', group: 'services',
+      desc: '@PoultryHealth_Bot. Sends sick detection alerts. Receives J.A.R.V.I.S. queries.',
+      path: 'api.telegram.org' },
+    { id: 'groq_api', label: 'Groq LLM API', type: 'SERVICE', group: 'services',
+      desc: 'LLama-3.1-8B-Instant via Groq. Powers J.A.R.V.I.S. AI assistant. Max 60 tokens, temp 0.4.',
+      path: 'Groq Cloud API' },
+    { id: 'yamnet_hub', label: 'TF Hub YAMNet', type: 'SERVICE', group: 'services',
+      desc: 'Google TensorFlow Hub. Downloads pre-trained YAMNet model for training scripts.',
+      path: 'tfhub.dev/google/yamnet/1' },
+    { id: 'websocket_hud', label: 'WebSocket HUD', type: 'SERVICE', group: 'services',
+      desc: 'Real-time WebSocket server on Pi port 5000. Broadcasts telemetry to browser HUD.',
+      path: 'ws://<PI_IP>:5000' },
+
+    // ====== DATA FILES ======
+    { id: 'farm_log', label: 'farm_log.txt', type: 'DATA', group: 'data',
+      desc: 'Real farm inference log (2026-03-05 to 2026-03-08). 86 lines. Categories: Noise🚜 (65-99.7%), Sick🤒 (8.9-85.5%), Ignored Background🔇, Healthy🐔 (92.7-100%). Shows system evolution: early entries = noise/sick only, later entries = clear healthy detections + Sick_Raw field. ~7s between inferences.',
+      path: 'voiceanalyser/farm_log.txt' },
+    { id: 'correction_vault', label: 'correction_vault/', type: 'DATA', group: 'data',
+      desc: 'Correction vault directory. Stores human-labeled audio for future retraining. Subdirs: healthy/, sick/, noise/',
+      path: 'voiceanalyser/correction_vault/' },
+    { id: 'model_card_json', label: 'model_card_v11.json', type: 'DATA', group: 'data',
+      desc: 'V11 model card: {version: "v11_production_honeybee", ensemble_acc: 0.8641, n_features: 35, bandpass: [300, 4000]}. Note: dashboard says 27 features but model card says 35.',
+      path: 'voiceanalyser/models_v11_legacy/model_card_v11_production_honeybee.json' },
+    { id: 'feature_names_pkl', label: 'v12_feature_names.pkl', type: 'DATA', group: 'data',
+      desc: '80-element list of all V12 bioacoustic feature names.',
+      path: 'voiceanalyser/v12_feature_names.pkl' },
+
+    // ====== KEY LIBRARIES ======
+    { id: 'lib_librosa', label: 'librosa', type: 'LIBRARY', group: 'libs',
+      desc: 'Audio feature extraction. MFCC, spectral, chroma, onset detection, F0 pitch tracking.' },
+    { id: 'lib_sklearn', label: 'scikit-learn', type: 'LIBRARY', group: 'libs',
+      desc: 'ML models: SVM, RF, KNN, LR, StackingClassifier, StandardScaler, PCA, t-SNE.' },
+    { id: 'lib_tensorflow', label: 'TensorFlow / TFLite', type: 'LIBRARY', group: 'libs',
+      desc: 'Neural network training + TFLite conversion for Raspberry Pi edge inference.' },
+    { id: 'lib_xgboost', label: 'XGBoost', type: 'LIBRARY', group: 'libs',
+      desc: 'Gradient boosted decision trees. V12 ensemble member.' },
+    { id: 'lib_sounddevice', label: 'sounddevice', type: 'LIBRARY', group: 'libs',
+      desc: 'Real-time audio recording from USB microphone on Raspberry Pi.' },
+    { id: 'lib_scipy', label: 'scipy.signal', type: 'LIBRARY', group: 'libs',
+      desc: 'DSP filters: Butterworth bandpass, SOS filter implementation.' },
+	// ====== HARDWARE ======
+    { id: 'hw_pi3b', label: 'Raspberry Pi 3B', type: 'HARDWARE', group: 'hardware',
+      desc: 'Edge Inference Device. 1.2GHz ARM Cortex-A53, 1GB LPDDR2 RAM. Processes audio streams via DMA/I2S.' },
+    { id: 'hw_usb_mic', label: 'USB Microphone', type: 'HARDWARE', group: 'hardware',
+      desc: 'Acoustic Sensor. Captures 44.1kHz raw PCM audio. High SQNR to isolate respiratory anomalies.' },
+    // ====== DOCUMENTATION ======
+    { id: 'doc_kt', label: 'knowledge_transfer.html', type: 'DOCS', group: 'docs',
+      desc: 'Interactive KT Guide. Covers deep hardware architecture (I2S/SPI/RAM), Linux survival commands, and Viva FAQ.', path: 'knowledge_transfer.html' },
+    { id: 'doc_md', label: 'documentation.md', type: 'DOCS', group: 'docs',
+      desc: 'Core system manual. Details the 80-feature extraction pipeline, V12 TITAN workflow, and ML Cascade strategy.', path: 'documentation.md' },
+];
+
+
+// ===== EDGE DEFINITIONS =====
+const edges = [
+    // Training → Model outputs
+    { from: 'train_py', to: 'chicken_model_pkl', type: 'DATA_FLOW', label: 'exports' },
+    { from: 'train_yamnet_py', to: 'chicken_yamnet_tflite', type: 'DATA_FLOW', label: 'exports' },
+    { from: 'chicken_ai_py', to: 'chicken_elite_mfcc_v6_tflite', type: 'DATA_FLOW', label: 'exports' },
+    { from: 'v12_py', to: 'svm_model_pkl', type: 'DATA_FLOW', label: 'exports' },
+    { from: 'v12_py', to: 'lr_model_pkl', type: 'DATA_FLOW', label: 'exports' },
+    { from: 'v12_py', to: 'queen_meta_pkl', type: 'DATA_FLOW', label: 'exports' },
+    { from: 'v12_py', to: 'rf_model_pkl', type: 'DATA_FLOW', label: 'exports' },
+    { from: 'v12_py', to: 'xgb_model_pkl', type: 'DATA_FLOW', label: 'exports' },
+    { from: 'v12_py', to: 'knn_model_pkl', type: 'DATA_FLOW', label: 'exports' },
+    { from: 'v12_py', to: 'scaler_pkl', type: 'DATA_FLOW', label: 'exports' },
+    { from: 'v12_py', to: 'feature_names_pkl', type: 'DATA_FLOW', label: 'exports' },
+
+    // Monitor ← Model inputs
+    { from: 'monitor_py', to: 'svm_model_pkl', type: 'LOADS_MODEL', label: 'loads' },
+    { from: 'monitor_py', to: 'lr_model_pkl', type: 'LOADS_MODEL', label: 'loads' },
+    { from: 'monitor_py', to: 'queen_meta_pkl', type: 'LOADS_MODEL', label: 'loads' },
+    { from: 'monitor_py', to: 'scaler_pkl', type: 'LOADS_MODEL', label: 'loads' },
+    { from: 'monitor_py', to: 'yamnet_tflite', type: 'LOADS_MODEL', label: 'loads' },
+
+    // Monitor → Services
+    { from: 'monitor_py', to: 'telegram_api', type: 'API_CALL', label: 'sick alerts' },
+    { from: 'monitor_py', to: 'groq_api', type: 'API_CALL', label: 'J.A.R.V.I.S. queries' },
+    { from: 'monitor_py', to: 'websocket_hud', type: 'WEBSOCKET', label: 'telemetry broadcast' },
+
+    // HTML ← WebSocket
+    { from: 'index_html', to: 'websocket_hud', type: 'WEBSOCKET', label: 'connects' },
+    { from: 'v12_titan_html', to: 'websocket_hud', type: 'WEBSOCKET', label: 'connects' },
+
+    // Monitor → Data
+    { from: 'monitor_py', to: 'correction_vault', type: 'DATA_FLOW', label: 'vaults audio' },
+    { from: 'monitor_py', to: 'farm_log', type: 'DATA_FLOW', label: 'logs' },
+
+    // Training Scripts → YAMNet Hub
+    { from: 'train_yamnet_py', to: 'yamnet_hub', type: 'API_CALL', label: 'downloads' },
+    { from: 'chicken_ai_py', to: 'yamnet_hub', type: 'API_CALL', label: 'downloads' },
+    { from: 'v12_py', to: 'yamnet_hub', type: 'API_CALL', label: 'downloads' },
+
+    // Library dependencies
+    { from: 'v12_py', to: 'lib_librosa', type: 'IMPORTS', label: 'uses' },
+    { from: 'v12_py', to: 'lib_sklearn', type: 'IMPORTS', label: 'uses' },
+    { from: 'v12_py', to: 'lib_xgboost', type: 'IMPORTS', label: 'uses' },
+    { from: 'v12_py', to: 'lib_scipy', type: 'IMPORTS', label: 'uses' },
+    { from: 'v12_py', to: 'lib_tensorflow', type: 'IMPORTS', label: 'uses' },
+    { from: 'monitor_py', to: 'lib_librosa', type: 'IMPORTS', label: 'uses' },
+    { from: 'monitor_py', to: 'lib_sounddevice', type: 'IMPORTS', label: 'uses' },
+    { from: 'monitor_py', to: 'lib_scipy', type: 'IMPORTS', label: 'uses' },
+    { from: 'train_py', to: 'lib_librosa', type: 'IMPORTS', label: 'uses' },
+    { from: 'train_py', to: 'lib_sklearn', type: 'IMPORTS', label: 'uses' },
+    { from: 'train_yamnet_py', to: 'lib_librosa', type: 'IMPORTS', label: 'uses' },
+    { from: 'train_yamnet_py', to: 'lib_tensorflow', type: 'IMPORTS', label: 'uses' },
+    { from: 'chicken_ai_py', to: 'lib_librosa', type: 'IMPORTS', label: 'uses' },
+    { from: 'chicken_ai_py', to: 'lib_tensorflow', type: 'IMPORTS', label: 'uses' },
+
+    // Legacy evolution chains
+    { from: 'train_py', to: 'chicken_ai_py', type: 'CALLS', label: 'evolved into' },
+    { from: 'chicken_ai_py', to: 'v12_py', type: 'CALLS', label: 'evolved into' },
+    { from: 'monitor_v6_final', to: 'monitor_v11', type: 'CALLS', label: 'evolved into' },
+    { from: 'monitor_v11', to: 'monitor_py', type: 'CALLS', label: 'evolved into' },
+
+    // V12 internal: v12.py feature extraction is mirrored in monitor.py
+    { from: 'v12_py', to: 'monitor_py', type: 'DATA_FLOW', label: 'feature schema shared' },
+
+    // Legacy monitors → models
+    { from: 'monitor_v6_final', to: 'chicken_elite_mfcc_v6_tflite', type: 'LOADS_MODEL', label: 'loads' },
+    { from: 'monitor_v11', to: 'v11_nn_tflite', type: 'LOADS_MODEL', label: 'loads' },
+	// Hardware & Docs connections
+    { from: 'hw_usb_mic', to: 'hw_pi3b', type: 'DATA_FLOW', label: 'raw PCM audio' },
+    { from: 'hw_pi3b', to: 'monitor_py', type: 'CALLS', label: 'executes' },
+    { from: 'doc_kt', to: 'hw_pi3b', type: 'CALLS', label: 'documents' },
+    { from: 'doc_md', to: 'v12_py', type: 'CALLS', label: 'documents' },
+    { from: 'doc_md', to: 'monitor_py', type: 'CALLS', label: 'documents' },
+];
+
+
+// ===== VERSION HISTORY =====
+const versionHistory = [
+    {
+        id: 'V1', name: 'V1 — Basic RF', color: '#64748b',
+        date: 'Early 2026',
+        changes: [
+            { type: 'added', text: 'RandomForest classifier' },
+            { type: 'added', text: '13 MFCC features' },
+            { type: 'added', text: 'train.py script' },
+            { type: 'added', text: '3-class: Healthy/Unhealthy/Noise' }
+        ]
+    },
+    {
+        id: 'V4', name: 'V4 — YAMNet Transfer', color: '#3b82f6',
+        date: '2026',
+        changes: [
+            { type: 'added', text: 'Google YAMNet embeddings (1024-dim)' },
+            { type: 'added', text: 'TFLite conversion for Pi' },
+            { type: 'added', text: 'train_yamnet.py' },
+            { type: 'changed', text: 'Neural network head on YAMNet' }
+        ]
+    },
+    {
+        id: 'V6', name: 'V6 — Gatekeeper', color: '#06b6d4',
+        date: '2026',
+        changes: [
+            { type: 'added', text: 'YAMNet bird-class gatekeeper' },
+            { type: 'added', text: 'Audio quality scoring (RMS/ZCR/flatness)' },
+            { type: 'added', text: 'CHICKEN Ai.py dual-layer filter' },
+            { type: 'added', text: '3 monitor variants (FINAL/PRODUCTION/SICK_SENSITIVE)' },
+            { type: 'changed', text: 'Separate noise filtering from bird detection' }
+        ]
+    },
+    {
+        id: 'V8-V11', name: 'V8→V11 — Ensemble Era', color: '#a855f7',
+        date: 'Mar 2026',
+        changes: [
+            { type: 'added', text: 'SVM + multiple model ensemble' },
+            { type: 'added', text: 'Confusion matrix tracking' },
+            { type: 'added', text: 'SVM scaler pipeline' },
+            { type: 'added', text: 'Honeybee neural network TFLite' },
+            { type: 'changed', text: 'V11 Titan monitor with DSP bandpass' },
+            { type: 'removed', text: 'Single TFLite model inference' }
+        ]
+    },
+    {
+        id: 'V12', name: 'V12 — TITAN', color: '#22c55e',
+        date: 'Mar 20, 2026+',
+        changes: [
+            { type: 'added', text: '80-feature bioacoustic extraction (27 Scout + 53 Queen)' },
+            { type: 'added', text: 'HoneyBee Queen StackingClassifier meta-learner' },
+            { type: 'added', text: 'Cascading inference: SVM→LR→Queen' },
+            { type: 'added', text: 'J.A.R.V.I.S. LLM (Groq LLama-3.1)' },
+            { type: 'added', text: 'WebSocket real-time HUD' },
+            { type: 'added', text: 'Telegram bot alerts' },
+            { type: 'added', text: 'Correction vault for retraining' },
+            { type: 'added', text: 'GroupKFold cross-validation' },
+            { type: 'added', text: 'Z-Score anomaly shield' },
+            { type: 'added', text: 'DSP SOS bandpass filter (300-4000Hz)' },
+            { type: 'changed', text: 'Async architecture with triple-threading' },
+            { type: 'changed', text: 'Human-in-the-loop J.A.R.V.I.S. confirmation' },
+            { type: 'removed', text: 'Single model inference (replaced by cascade)' }
+        ]
+    }
+];
+
+// ======================================================================
+// 🎨 GRAPH RENDERING ENGINE
+// ======================================================================
+
+const canvas = document.getElementById('graph-canvas');
+const ctx = canvas.getContext('2d');
+const minimapCanvas = document.getElementById('minimap-canvas');
+const minimapCtx = minimapCanvas.getContext('2d');
+
+let W, H;
+let camera = { x: 0, y: 0, zoom: 0.75 };
+let isDragging = false, lastMouse = { x: 0, y: 0 };
+let hoveredNode = null, selectedNode = null;
+let animTime = 0;
+let currentMode = 'all';
+let searchQuery = '';
+
+// Physics
+const DAMPING = 0.92;
+const REPULSION = 4000;
+const ATTRACTION = 0.002;
+const IDEAL_DIST = 200;
+
+// Initialize node positions
+function initLayout() {
+    const groups = {};
+    nodes.forEach(n => {
+        if (!groups[n.group]) groups[n.group] = [];
+        groups[n.group].push(n);
+    });
+
+    const groupPositions = {
+        training: { cx: -400, cy: -350 },
+        monitor: { cx: 400, cy: -200 },
+        archive: { cx: -600, cy: 300 },
+        models: { cx: 0, cy: 100 },
+        dashboard: { cx: 600, cy: -400 },
+        services: { cx: 700, cy: 100 },
+        data: { cx: 200, cy: 400 },
+        libs: { cx: -300, cy: 450 },
+        hardware: { cx: 400, cy: -50 },
+        docs: { cx: 0, cy: -200 },
+    };
+
+    nodes.forEach(n => {
+        const gp = groupPositions[n.group] || { cx: 0, cy: 0 };
+        n.x = gp.cx + (Math.random() - 0.5) * 300;
+        n.y = gp.cy + (Math.random() - 0.5) * 250;
+        n.vx = 0;
+        n.vy = 0;
+        n.targetX = n.x;
+        n.targetY = n.y;
+        const nt = NODE_TYPES[n.type];
+        n.radius = nt ? nt.radius : 16;
+        n.color = nt ? nt.color : '#666666';
+        n.visible = true;
+        n.alpha = 1;
+    });
+}
+
+function applyPhysics() {
+    // Repulsion between nodes
+    for (let i = 0; i < nodes.length; i++) {
+        if (!nodes[i].visible) continue;
+        for (let j = i + 1; j < nodes.length; j++) {
+            if (!nodes[j].visible) continue;
+            const dx = nodes[j].x - nodes[i].x;
+            const dy = nodes[j].y - nodes[i].y;
+            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+            const force = REPULSION / (dist * dist);
+            const fx = (dx / dist) * force;
+            const fy = (dy / dist) * force;
+            nodes[i].vx -= fx;
+            nodes[i].vy -= fy;
+            nodes[j].vx += fx;
+            nodes[j].vy += fy;
+        }
+    }
+
+    // Attraction along edges
+    edges.forEach(e => {
+        const a = nodes.find(n => n.id === e.from);
+        const b = nodes.find(n => n.id === e.to);
+        if (!a || !b || !a.visible || !b.visible) return;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const force = (dist - IDEAL_DIST) * ATTRACTION;
+        const fx = (dx / dist) * force;
+        const fy = (dy / dist) * force;
+        a.vx += fx;
+        a.vy += fy;
+        b.vx -= fx;
+        b.vy -= fy;
+    });
+
+    // Apply velocity
+    let totalMovement = 0;
+    nodes.forEach(n => {
+        if (!n.visible) return;
+        n.vx *= DAMPING;
+        n.vy *= DAMPING;
+        n.x += n.vx;
+        n.y += n.vy;
+        totalMovement += Math.abs(n.vx) + Math.abs(n.vy);
+    });
+
+    return totalMovement;
+}
+
+// ===== RENDERING =====
+function screenToWorld(sx, sy) {
+    return {
+        x: (sx - W / 2) / camera.zoom + camera.x,
+        y: (sy - H / 2) / camera.zoom + camera.y
+    };
+}
+
+function worldToScreen(wx, wy) {
+    return {
+        x: (wx - camera.x) * camera.zoom + W / 2,
+        y: (wy - camera.y) * camera.zoom + H / 2
+    };
+}
+
+function drawEdge(e) {
+    const a = nodes.find(n => n.id === e.from);
+    const b = nodes.find(n => n.id === e.to);
+    if (!a || !b || !a.visible || !b.visible) return;
+
+    const sa = worldToScreen(a.x, a.y);
+    const sb = worldToScreen(b.x, b.y);
+
+    const et = EDGE_TYPES[e.type] || EDGE_TYPES.IMPORTS;
+    
+    // Highlight edges connected to selected/hovered node
+    let alpha = 1;
+    if (selectedNode || hoveredNode) {
+        const target = selectedNode || hoveredNode;
+        if (e.from === target.id || e.to === target.id) {
+            alpha = 1;
+        } else {
+            alpha = 0.15;
+        }
+    }
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = et.color;
+    ctx.lineWidth = et.width;
+
+    if (et.dashed) {
+        ctx.setLineDash([6, 4]);
+    }
+
+    ctx.beginPath();
+    // Slight curve for visual interest
+    const mx = (sa.x + sb.x) / 2;
+    const my = (sa.y + sb.y) / 2;
+    const dx = sb.x - sa.x;
+    const dy = sb.y - sa.y;
+    const cx = mx + dy * 0.08;
+    const cy = my - dx * 0.08;
+
+    ctx.moveTo(sa.x, sa.y);
+    ctx.quadraticCurveTo(cx, cy, sb.x, sb.y);
+    ctx.stroke();
+
+    // Arrow
+    const angle = Math.atan2(sb.y - cy, sb.x - cx);
+    const arrowSize = 6;
+    const ax = sb.x - Math.cos(angle) * (b.radius * camera.zoom + 4);
+    const ay = sb.y - Math.sin(angle) * (b.radius * camera.zoom + 4);
+
+    ctx.fillStyle = et.color;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(ax - arrowSize * Math.cos(angle - 0.4), ay - arrowSize * Math.sin(angle - 0.4));
+    ctx.lineTo(ax - arrowSize * Math.cos(angle + 0.4), ay - arrowSize * Math.sin(angle + 0.4));
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+}
+
+function drawNode(n) {
+    if (!n.visible) return;
+    const s = worldToScreen(n.x, n.y);
+    const r = n.radius * camera.zoom;
+
+    // Culling
+    if (s.x + r < 0 || s.x - r > W || s.y + r < 0 || s.y - r > H) return;
+
+    let nodeAlpha = n.alpha;
+    if (selectedNode || hoveredNode) {
+        const target = selectedNode || hoveredNode;
+        if (n === target) {
+            nodeAlpha = 1;
+        } else {
+            // Check if connected
+            const isConnected = edges.some(e =>
+                (e.from === target.id && e.to === n.id) ||
+                (e.to === target.id && e.from === n.id)
+            );
+            nodeAlpha = isConnected ? 1 : 0.2;
+        }
+    }
+
+    ctx.save();
+    ctx.globalAlpha = nodeAlpha;
+
+    // Glow for hovered/selected
+    if (n === hoveredNode || n === selectedNode) {
+        ctx.shadowColor = n.color;
+        ctx.shadowBlur = 25;
+    }
+
+    // Node circle
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+    
+    // Gradient fill
+    const grad = ctx.createRadialGradient(s.x - r * 0.3, s.y - r * 0.3, 0, s.x, s.y, r);
+    grad.addColorStop(0, n.color + 'cc');
+    grad.addColorStop(1, n.color + '66');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Border
+    ctx.strokeStyle = n.color;
+    ctx.lineWidth = n === hoveredNode || n === selectedNode ? 2.5 : 1.5;
+    ctx.stroke();
+
+    // Pulse animation for active nodes
+    if (n.type === 'MONITOR_SCRIPT' || n.type === 'TRAIN_SCRIPT') {
+        const pulse = Math.sin(animTime * 2 + nodes.indexOf(n)) * 0.3 + 0.7;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, r + 4 + Math.sin(animTime * 3) * 2, 0, Math.PI * 2);
+        ctx.strokeStyle = n.color + '30';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    }
+
+    ctx.shadowBlur = 0;
+
+    // Label
+    if (camera.zoom > 0.4) {
+        ctx.font = `${Math.max(9, 11 * camera.zoom)}px 'Inter', sans-serif`;
+        ctx.fillStyle = '#e2e8f0';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(n.label, s.x, s.y + r + 6);
+
+        // Version badge
+        if (n.version && camera.zoom > 0.6) {
+            ctx.font = `bold ${Math.max(7, 8 * camera.zoom)}px 'JetBrains Mono', monospace`;
+            ctx.fillStyle = n.color + '99';
+            ctx.fillText(n.version, s.x, s.y + r + 20);
+        }
+    }
+
+    ctx.restore();
+}
+
+function render() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Background grid
+    const gridSize = 60 * camera.zoom;
+    const offsetX = (-camera.x * camera.zoom + W / 2) % gridSize;
+    const offsetY = (-camera.y * camera.zoom + H / 2) % gridSize;
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+    ctx.lineWidth = 1;
+    for (let x = offsetX; x < W; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H);
+        ctx.stroke();
+    }
+    for (let y = offsetY; y < H; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+    }
+
+    // Draw group labels
+    if (camera.zoom > 0.35) {
+        const groupLabels = {
+            training: { x: -400, y: -480, label: '🧪 TRAINING PIPELINE (Colab/PC)', color: '#00d4ff' },
+            monitor: { x: 400, y: -380, label: '🛰️ RASPBERRY PI MONITOR', color: '#a855f7' },
+            archive: { x: -600, y: 160, label: '📦 LEGACY ARCHIVE', color: '#64748b' },
+            models: { x: 0, y: -40, label: '🧠 ML MODELS', color: '#f97316' },
+            dashboard: { x: 600, y: -520, label: '📱 HUD DASHBOARDS', color: '#ec4899' },
+            services: { x: 700, y: -30, label: '🌐 EXTERNAL SERVICES', color: '#06b6d4' },
+            data: { x: 200, y: 310, label: '💾 DATA & CONFIG', color: '#eab308' },
+            libs: { x: -300, y: 350, label: '📚 LIBRARIES', color: '#8b5cf6' },
+        };
+
+        Object.values(groupLabels).forEach(g => {
+            const s = worldToScreen(g.x, g.y);
+            ctx.font = `600 ${Math.max(10, 12 * camera.zoom)}px 'Inter', sans-serif`;
+            ctx.fillStyle = g.color + '55';
+            ctx.textAlign = 'center';
+            ctx.fillText(g.label, s.x, s.y);
+        });
+    }
+
+    // Draw edges
+    edges.forEach(drawEdge);
+
+    // Draw nodes
+    nodes.forEach(drawNode);
+}
+
+function renderMinimap() {
+    const mW = minimapCanvas.width;
+    const mH = minimapCanvas.height;
+    minimapCtx.clearRect(0, 0, mW, mH);
+    minimapCtx.fillStyle = 'rgba(10,10,15,0.8)';
+    minimapCtx.fillRect(0, 0, mW, mH);
+
+    // Find bounds
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    nodes.forEach(n => {
+        if (!n.visible) return;
+        minX = Math.min(minX, n.x);
+        maxX = Math.max(maxX, n.x);
+        minY = Math.min(minY, n.y);
+        maxY = Math.max(maxY, n.y);
+    });
+
+    const rangeX = (maxX - minX) || 1;
+    const rangeY = (maxY - minY) || 1;
+    const scale = Math.min(mW / (rangeX + 200), mH / (rangeY + 200));
+
+    nodes.forEach(n => {
+        if (!n.visible) return;
+        const mx = (n.x - minX) * scale + 20;
+        const my = (n.y - minY) * scale + 20;
+        minimapCtx.beginPath();
+        minimapCtx.arc(mx, my, 2, 0, Math.PI * 2);
+        minimapCtx.fillStyle = n.color;
+        minimapCtx.fill();
+    });
+
+    // Viewport rect
+    const tl = screenToWorld(0, 92);
+    const br = screenToWorld(W, H);
+    const vx = (tl.x - minX) * scale + 20;
+    const vy = (tl.y - minY) * scale + 20;
+    const vw = (br.x - tl.x) * scale;
+    const vh = (br.y - tl.y) * scale;
+    minimapCtx.strokeStyle = 'rgba(0,212,255,0.5)';
+    minimapCtx.lineWidth = 1;
+    minimapCtx.strokeRect(vx, vy, vw, vh);
+}
+
+// ===== INTERACTION =====
+function getNodeAtPos(x, y) {
+    const world = screenToWorld(x, y);
+    for (let i = nodes.length - 1; i >= 0; i--) {
+        const n = nodes[i];
+        if (!n.visible) continue;
+        const dx = world.x - n.x;
+        const dy = world.y - n.y;
+        if (dx * dx + dy * dy < (n.radius + 8) * (n.radius + 8)) {
+            return n;
+        }
+    }
+    return null;
+}
+
+function openSidePanel(node) {
+    selectedNode = node;
+    const panel = document.getElementById('side-panel');
+    const content = document.getElementById('panel-content');
+    
+    const nt = NODE_TYPES[node.type];
+    const badgeColor = node.color;
+
+    let html = `
+        <div class="panel-title">
+            ${node.label}
+            <span class="panel-badge" style="background:${badgeColor}22;color:${badgeColor};border:1px solid ${badgeColor}44">
+                ${nt ? nt.label : node.type}
+            </span>
+            ${node.version ? `<span class="panel-badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted)">${node.version}</span>` : ''}
+        </div>
+        <div class="panel-path">${node.path || ''}</div>
+        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:4px">${node.desc || ''}</p>
+    `;
+
+    // Functions
+    if (node.functions && node.functions.length > 0) {
+        html += `<div class="panel-section"><h3>⚡ Functions</h3>`;
+        node.functions.forEach(f => {
+            html += `<div class="func-item" style="border-color:${node.color}">
+                <div class="fname">${f.name}</div>
+                <div class="fdesc">${f.desc}</div>
+            </div>`;
+        });
+        html += `</div>`;
+    }
+
+    // Imports
+    if (node.imports && node.imports.length > 0) {
+        html += `<div class="panel-section"><h3>📦 Imports</h3><div>`;
+        node.imports.forEach(imp => {
+            html += `<span class="dep-tag">${imp}</span>`;
+        });
+        html += `</div></div>`;
+    }
+
+    // Connected models
+    const connectedModels = edges.filter(e =>
+        (e.from === node.id || e.to === node.id) && (e.type === 'LOADS_MODEL' || e.type === 'DATA_FLOW')
+    );
+    if (connectedModels.length > 0) {
+        html += `<div class="panel-section"><h3>🧠 Connected Models / Data</h3><div>`;
+        connectedModels.forEach(e => {
+            const otherId = e.from === node.id ? e.to : e.from;
+            const other = nodes.find(n => n.id === otherId);
+            if (other) {
+                html += `<span class="model-tag">
+                    ${e.type === 'LOADS_MODEL' ? '⬇️' : '⬆️'} ${other.label}
+                    <span style="opacity:0.6">(${e.label})</span>
+                </span>`;
+            }
+        });
+        html += `</div></div>`;
+    }
+
+    // Connections
+    const connections = edges.filter(e => e.from === node.id || e.to === node.id);
+    if (connections.length > 0) {
+        html += `<div class="panel-section"><h3>🔗 All Connections (${connections.length})</h3>`;
+        connections.forEach(e => {
+            const otherId = e.from === node.id ? e.to : e.from;
+            const other = nodes.find(n => n.id === otherId);
+            const dir = e.from === node.id ? '→' : '←';
+            if (other) {
+                html += `<div style="font-size:12px;color:var(--text-secondary);margin:4px 0;display:flex;align-items:center;gap:6px">
+                    <span style="color:${EDGE_TYPES[e.type]?.color || '#666'};font-weight:600">${dir}</span>
+                    <span style="color:${other.color}">${other.label}</span>
+                    <span style="color:var(--text-muted);font-size:10px">(${e.label})</span>
+                </div>`;
+            }
+        });
+        html += `</div>`;
+    }
+
+    content.innerHTML = html;
+    panel.classList.add('open');
+}
+
+function closeSidePanel() {
+    document.getElementById('side-panel').classList.remove('open');
+    selectedNode = null;
+}
+
+function toggleVersionPanel() {
+    document.getElementById('version-panel').classList.toggle('open');
+}
+
+// ===== FILTER MODES =====
+function applyFilter(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn[data-mode]').forEach(b => b.classList.remove('active'));
+    document.querySelector(`[data-mode="${mode}"]`)?.classList.add('active');
+
+    if (mode === 'versions') {
+        toggleVersionPanel();
+        return;
+    }
+
+    document.getElementById('version-panel').classList.remove('open');
+
+    nodes.forEach(n => {
+        switch (mode) {
+            case 'all':
+                n.visible = true;
+                break;
+            case 'files':
+                n.visible = ['TRAIN_SCRIPT','MONITOR_SCRIPT','LEGACY','HTML'].includes(n.type);
+                break;
+            case 'functions':
+                n.visible = ['TRAIN_SCRIPT','MONITOR_SCRIPT','FUNCTION'].includes(n.type);
+                break;
+            case 'data':
+                n.visible = ['TRAIN_SCRIPT','MONITOR_SCRIPT','MODEL','DATA','SERVICE'].includes(n.type);
+                break;
+        }
+    });
+}
+
+function applySearch(query) {
+    searchQuery = query.toLowerCase();
+    if (!searchQuery) {
+        nodes.forEach(n => n.alpha = 1);
+        return;
+    }
+    nodes.forEach(n => {
+        const match = n.label.toLowerCase().includes(searchQuery) ||
+                     (n.desc && n.desc.toLowerCase().includes(searchQuery)) ||
+                     (n.path && n.path.toLowerCase().includes(searchQuery));
+        n.alpha = match ? 1 : 0.15;
+    });
+}
+
+// ===== VERSION TIMELINE =====
+function buildTimeline() {
+    const container = document.getElementById('timeline');
+    container.innerHTML = '';
+    versionHistory.forEach(v => {
+        const div = document.createElement('div');
+        div.className = 'version-node';
+        div.innerHTML = `
+            <div class="version-dot" style="border-color:${v.color};"></div>
+            <div class="version-card">
+                <div class="vtitle" style="color:${v.color}">${v.name}</div>
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">${v.date}</div>
+                <div class="vchanges">
+                    ${v.changes.map(c => `<span class="v-${c.type}">${c.type === 'added' ? '+ ' : c.type === 'changed' ? '~ ' : '- '}${c.text}</span>`).join('')}
+                </div>
+            </div>
+        `;
+        div.addEventListener('click', () => {
+            // Highlight nodes of this version
+            nodes.forEach(n => {
+                if (n.version === v.id || (v.id === 'V8-V11' && (n.version === 'V8' || n.version === 'V11'))) {
+                    n.alpha = 1;
+                } else {
+                    n.alpha = 0.15;
+                }
+            });
+        });
+        container.appendChild(div);
+    });
+}
+
+// ===== MAIN LOOP =====
+function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight - 92;
+    canvas.width = W * devicePixelRatio;
+    canvas.height = H * devicePixelRatio;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+
+    minimapCanvas.width = 180 * devicePixelRatio;
+    minimapCanvas.height = 120 * devicePixelRatio;
+    minimapCtx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+
+let physicsIterations = 0;
+const MAX_PHYSICS = 300;
+
+function animate() {
+    animTime += 0.016;
+
+    if (physicsIterations < MAX_PHYSICS) {
+        const movement = applyPhysics();
+        physicsIterations++;
+        if (movement < 0.5) physicsIterations = MAX_PHYSICS; // Converged
+    }
+
+    render();
+    renderMinimap();
+    requestAnimationFrame(animate);
+}
+
+// ===== EVENT HANDLERS =====
+canvas.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    lastMouse = { x: e.clientX, y: e.clientY };
+    const node = getNodeAtPos(e.clientX, e.clientY - 92);
+    if (node) {
+        openSidePanel(node);
+    } else {
+        closeSidePanel();
+    }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+        camera.x -= (e.clientX - lastMouse.x) / camera.zoom;
+        camera.y -= (e.clientY - lastMouse.y) / camera.zoom;
+        lastMouse = { x: e.clientX, y: e.clientY };
+    }
+
+    const node = getNodeAtPos(e.clientX, e.clientY - 92);
+    hoveredNode = node;
+    canvas.style.cursor = node ? 'pointer' : (isDragging ? 'grabbing' : 'grab');
+
+    const tooltip = document.getElementById('tooltip');
+    if (node && !isDragging) {
+        tooltip.style.display = 'block';
+        tooltip.style.left = (e.clientX + 16) + 'px';
+        tooltip.style.top = (e.clientY + 16) + 'px';
+        tooltip.querySelector('.tt-label').textContent = node.label;
+        tooltip.querySelector('.tt-type').textContent = (NODE_TYPES[node.type]?.label || '') + (node.version ? ' • ' + node.version : '');
+    } else {
+        tooltip.style.display = 'none';
+    }
+});
+
+canvas.addEventListener('mouseup', () => { isDragging = false; });
+canvas.addEventListener('mouseleave', () => {
+    isDragging = false;
+    hoveredNode = null;
+    document.getElementById('tooltip').style.display = 'none';
+});
+
+canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.max(0.15, Math.min(3, camera.zoom * zoomFactor));
+
+    // Zoom towards cursor
+    const wx = (e.clientX - W / 2) / camera.zoom + camera.x;
+    const wy = ((e.clientY - 92) - H / 2) / camera.zoom + camera.y;
+    camera.zoom = newZoom;
+    camera.x = wx - (e.clientX - W / 2) / camera.zoom;
+    camera.y = wy - ((e.clientY - 92) - H / 2) / camera.zoom;
+}, { passive: false });
+
+// Mode buttons
+document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => {
+    btn.addEventListener('click', () => applyFilter(btn.dataset.mode));
+});
+
+// Search
+document.getElementById('search-input').addEventListener('input', (e) => {
+    applySearch(e.target.value);
+});
+
+// ===== STATS =====
+function updateStats() {
+    document.getElementById('stat-files').textContent = nodes.filter(n => ['TRAIN_SCRIPT','MONITOR_SCRIPT','LEGACY','HTML'].includes(n.type)).length;
+    document.getElementById('stat-funcs').textContent = nodes.filter(n => n.functions).reduce((sum, n) => sum + n.functions.length, 0);
+    document.getElementById('stat-edges').textContent = edges.length;
+    document.getElementById('stat-models').textContent = nodes.filter(n => n.type === 'MODEL').length;
+}
+
+// ===== INIT =====
+window.addEventListener('resize', resize);
+
+function init() {
+    resize();
+    initLayout();
+    buildTimeline();
+    updateStats();
+    animate();
+
+    // Remove loading overlay
+    setTimeout(() => {
+        document.getElementById('loading-overlay').classList.add('hidden');
+    }, 800);
+}
+
+init();
+</script>
+</body>
+</html>
