@@ -615,6 +615,13 @@
         <a href="#faq" class="nav-link"><span class="nav-emoji">💬</span> FAQ</a>
         <a href="#glossary" class="nav-link"><span class="nav-emoji">📖</span> Glossary</a>
     </div>
+
+    <div class="nav-group">
+        <div class="nav-group-title">Hardware Specs</div>
+        <a href="#microcontrollers" class="nav-link"><span class="nav-emoji">🔌</span> Microcontrollers</a>
+        <a href="#linux-guide" class="nav-link"><span class="nav-emoji">🐧</span> Linux Guide</a>
+        <a href="#pi-deep-dive" class="nav-link"><span class="nav-emoji">🎛️</span> Pi Deep Dive</a>
+    </div>
 </nav>
 
 <!-- ===== MAIN CONTENT ===== -->
@@ -1172,7 +1179,7 @@ flowchart TD
             </ol>
         </div>
     </section>
-\n    <!-- FILE MAP -->
+<!-- FILE MAP -->
     <section class="section" id="file-map">
         <div class="section-number">Chapter 08</div>
         <h2>📂 File Map</h2>
@@ -1494,17 +1501,69 @@ flowchart TD
         <div class="faq-grid">
             <div class="card">
                 <div class="card-header">1. I²S Audio Acquisition (The SmartEars Core)</div>
-                <p><strong>PCM & The Nyquist Theorem:</strong> To accurately capture the faint respiratory sounds of a sick chicken without aliasing distortion, the analog audio signal must be sampled at a rate at least twice the highest frequency (Nyquist Theorem). We utilize the I²S protocol, which is optimized exclusively for streaming this PCM (Pulse Code Modulation) audio data.<br><br>
-                <strong>Quantization & Bit Depth:</strong> Digital microphones convert analog amplitudes into discrete values. A higher bit depth (e.g., 16-bit or 24-bit) drastically lowers the quantization noise floor, pulling clean audio out of the background fuzz.<br><br>
-                <strong>I²S Pins:</strong> The protocol strictly separates the clock and data lines to minimize physical jitter: <em>Serial Data (SD)</em> for the audio bits, <em>Word Select (WS)</em> to toggle left/right channels, and <em>Serial Clock (SCK)</em> for synchronization.</p>
+                
+                <div class="diagram" style="text-align: center; margin: 15px 0;">
+                    <div class="mermaid">
+                    sequenceDiagram
+                        participant M as I²S Microphone
+                        participant P as Raspberry Pi (SoC)
+                        Note over M,P: Synchronous PCM Audio Stream
+                        P->>M: Serial Clock (SCK) - Sync Pulses
+                        P->>M: Word Select (WS) - Left/Right Toggle
+                        M->>P: Serial Data (SD) - 16-bit/24-bit PCM
+                    </div>
+                </div>
             </div>
+
 
             <div class="card">
                 <div class="card-header">2. Microcontroller Serial Protocols</div>
-                <p><strong>UART (Telemetry):</strong> An asynchronous protocol ideal for lightweight text alerts (like sending SICK/HEALTHY to a WiFi module). It relies on Start, Stop, and Parity bits rather than a shared clock. <em>Baud Rate</em> (signal changes per second) dictates the speed, which both devices must agree upon beforehand.<br><br>
-                <strong>SPI (High-Speed Data):</strong> A synchronous, full-duplex protocol designed for high-speed peripherals (like SD cards or fast sensors). It uses Master Out Slave In (MOSI), Master In Slave Out (MISO), Serial Clock (SCK), and Slave Select (SS). It supports multiple Clock Polarity (CPOL) and Phase (CPHA) modes, and devices can even be daisy-chained.<br><br>
-                <strong>I²C (Sensor Expansion):</strong> A synchronous, half-duplex protocol using only two wires (SDA and SCL). It uses a Master/Slave architecture with 7-bit addresses, Start/Stop conditions, and ACK/NACK bits. It relies on a command-response cycle, making it perfect for wiring up additional environmental sensors (like the Senseair K30 CO2 sensor) to the same bus without consuming extra pins.</p>
+                
+                <div class="diagram" style="text-align: center; margin: 15px 0;">
+                    <div class="mermaid">
+                    graph TD
+                        subgraph UART ["UART: Asynchronous"]
+                            TX1["Tx"] --> RX1["Rx"]
+                            TX2["Tx"] --> RX2["Rx"]
+                        end
+                        
+                        subgraph I2C ["I2C: 2-Wire Synchronous"]
+                            M1["Master"] ---|"SDA"| S1["Slave 1"]
+                            M1 ---|"SCL"| S1
+                            M1 ---|"SDA"| S2["Slave 2"]
+                            M1 ---|"SCL"| S2
+                        end
+                        
+                        subgraph SPI ["SPI: 4-Wire High-Speed"]
+                            M2["Master"] -->|"MOSI"| S3["Slave 1"]
+                            M2 ---|"MISO"| S3
+                            M2 ---|"SCK"| S3
+                            M2 -.->|"CS1"| S3
+                        end
+                        
+                        style UART fill:#1a1a2a,stroke:#a855f7,stroke-width:2px
+                        style I2C fill:#1a1a2a,stroke:#00d4ff,stroke-width:2px
+                        style SPI fill:#1a1a2a,stroke:#22c55e,stroke-width:2px
+                    </div>
+                </div>
+
+                <p><strong>UART:</strong> An asynchronous protocol relying on Start, Stop, and Parity bits rather than a shared clock. <em>Baud Rate</em> dictates the speed.</p>
+                <div style="margin-top: 5px; margin-bottom: 15px; padding: 8px; background: rgba(168, 85, 247, 0.1); border-left: 3px solid #a855f7; border-radius: 4px; font-size: 0.9em;">
+                    <strong>🎯 Why We Use UART:</strong> Ideal for <strong>Telemetry</strong>. We use UART to send lightweight text alerts (like SICK/HEALTHY states) over Tx/Rx directly to our external communication modules (e.g., GSM/WiFi modules).
+                </div>
+
+                <p><strong>SPI:</strong> A synchronous, full-duplex protocol designed for high-speed peripherals. It uses MOSI, MISO, SCK, and dedicated Chip Select (CS) lines for each device.</p>
+                <div style="margin-top: 5px; margin-bottom: 15px; padding: 8px; background: rgba(34, 197, 94, 0.1); border-left: 3px solid #22c55e; border-radius: 4px; font-size: 0.9em;">
+                    <strong>🎯 Why We Use SPI:</strong> Reserved for <strong>High-Speed Data</strong> logging. Used for writing the audio logs and system states rapidly to external SD card modules without bottlenecking the inference cycle.
+                </div>
+
+                <p><strong>I²C:</strong> A synchronous, half-duplex protocol using only two wires (SDA and SCL) with a Master/Slave architecture and 7-bit addresses.</p>
+                <div style="margin-top: 5px; margin-bottom: 15px; padding: 8px; background: rgba(0, 212, 255, 0.1); border-left: 3px solid #00d4ff; border-radius: 4px; font-size: 0.9em;">
+                    <strong>🎯 Why We Use I²C:</strong> Perfect for <strong>Sensor Expansion</strong>. We wire additional environmental sensors (like the Senseair K30 CO2 sensor) to the same I²C bus without consuming extra GPIO pins, allowing us to correlate air quality with respiratory health.
+                </div>
             </div>
+            
+
 
             <div class="card">
                 <div class="card-header">3. The Edge ML Ecosystem</div>
@@ -1526,8 +1585,159 @@ flowchart TD
                 </div>
             </div>
 
+        
+            <div class="card">
+                <div class="card-header">Hardware Wiring Schematics (Derived from Visual OCR)</div>
+                <p>Based on the extracted physical layer diagrams, here is the standard wiring architecture utilized between the Raspberry Pi / ESP32 Edge nodes and their peripherals:</p>
+                <ul style="color: var(--text-2); font-size: 0.95rem; margin-top: 10px; padding-left: 20px; line-height: 1.6;">
+                    <li><strong>I²C Bus:</strong> Utilizes a shared <code>SDA</code> (Data) and <code>SCL</code> (Clock) line across multiple devices (Device 1, Device 2, etc.) using unique addresses.</li>
+                    <li><strong>SPI Bus:</strong> Requires <code>MOSI</code> (Master Out Slave In), <code>MISO</code> (Master In Slave Out), and <code>SCLK</code> (Clock) shared across devices, but crucially requires dedicated <code>CS</code> (Chip Select) lines for each peripheral. Note: Additional configuration is required for more than 2 CS lines.</li>
+                    <li><strong>UART Bus:</strong> A direct point-to-point connection requiring cross-wiring: The Pi's <code>Tx</code> connects to the Device's <code>Rx</code>, and the Pi's <code>Rx</code> connects to the Device's <code>Tx</code>, alongside a shared <code>GND</code>.</li>
+                </ul>
+            </div>
+
         </div>
     </section>
+
+
+    <!-- LINUX BEGINNER GUIDE & FAQ -->
+    <section class="section" id="linux-guide">
+        <div class="section-label">Chapter 17</div>
+        <h2 class="section-title">Edge Device <span class="gold">Command Line Guide</span> & Viva FAQ</h2>
+
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3>🐧 Essential Linux Survival Commands</h3>
+            <p>For team members operating the Raspberry Pi headless, these are the fundamental commands to navigate the system, manage processes, and handle files.</p>
+            
+            <h4 style="color: var(--accent); margin-top: 1.5rem;">Basic Navigation & File Management</h4>
+            <ul style="color: var(--text-2); padding-left: 20px; line-height: 1.8;">
+                <li><code>pwd</code>: Print working directory (where am I?).</li>
+                <li><code>cd /path/to/dir</code>: Change directory. Use <code>cd ..</code> to go back one level.</li>
+                <li><code>ls -la</code>: List all files, including hidden ones, with details.</li>
+                <li><code>nano filename.py</code>: Open the Nano text editor to edit a file. (Ctrl+O to save, Ctrl+X to exit).</li>
+            </ul>
+
+            <h4 style="color: var(--accent); margin-top: 1.5rem;">System Control & Danger Commands</h4>
+            <ul style="color: var(--text-2); padding-left: 20px; line-height: 1.8;">
+                <li><code>sudo &lt;command&gt;</code>: Execute a command with "Superuser" (Root) privileges.</li>
+                <li><code>sudo reboot</code>: Restart the Raspberry Pi safely.</li>
+                <li><code>sudo shutdown -h now</code>: Immediately shut down the system.</li>
+                <li><code>top</code> or <code>htop</code>: View running processes and CPU/RAM usage.</li>
+                <li><code>kill -9 &lt;PID&gt;</code>: <strong>FORCE KILL</strong> a frozen process by its Process ID (PID).</li>
+                <li><code>rm -rf /folder_name</code>: <strong style="color:#ff4444;">DANGER:</strong> Recursively and forcefully delete a folder and everything inside it without asking for confirmation. Use with extreme caution!</li>
+            </ul>
+        </div>
+
+        <div class="faq-grid">
+            <div class="card">
+                <div class="card-header">1. Network Discovery & SSH Setup</div>
+                <p><strong>Find the Pi's IP (Windows CMD):</strong> Run a ping sweep using <code>for /L %i in (1,1,254) do @ping -n 1 -w 10 10.78.117.%i > nul</code> followed by <code>arp -a</code> to find devices on the subnet.<br><br>
+                <strong>Wi-Fi Setup:</strong> Connect to a network directly from the terminal using <code>sudo nmcli dev wifi connect &lt;SSID&gt; password &lt;PASSWORD&gt;</code>.<br><br>
+                <strong>SSH Debugging:</strong> If connection fails, add verbose logging: <code>ssh -vvv raspberrypi@&lt;IP&gt;</code>.<br><br>
+                <strong>TMate Remote Session:</strong> For bypassing firewalls, use a TMate session: <code>ssh gnQaTPfatHz9dbatwVrs5repY@lon1.tmate.io</code>.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">2. Securing the SSH Config</div>
+                <p>Edit the configuration file via <code>sudo nano /etc/ssh/sshd_config</code>. Make sure to uncomment <code>Port 22</code> and <code>ListenAddress 0.0.0.0</code>, and set <code>PasswordAuthentication yes</code>.<br><br>
+                After saving, restart and enable the service:<br>
+                <code>sudo systemctl restart ssh</code><br>
+                <code>sudo systemctl enable ssh</code><br><br>
+                <strong>The "Vault Padlock":</strong> To prevent accidental changes, make the config immutable by running <code>sudo chattr +i /etc/ssh/sshd_config</code>. (To edit it later, use <code>-i</code> to unlock it).</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">3. Transferring Files (SCP)</div>
+                <p>To securely copy files (like ML models) from your local machine to the Pi, use Secure Copy Protocol:<br><br>
+                <code>scp v12_*.pkl monitor.py raspberrypi@192.168.0.13:/home/raspberrypi/</code><br><br>
+                This transfers the files directly over the local network via the SSH protocol.</p>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 2rem; border-left: 4px solid var(--accent); background: rgba(0,212,255,0.03);">
+            <h3>🎓 Project Viva & Academic Defense FAQ</h3>
+            <p style="margin-top: 10px; color: var(--text-2);"><strong>Q: Why analyze chicken sounds?</strong><br>
+            A: The project stems from a field requirement. Our seniors visited Haringhata Meat farms to collect ground-zero requirements from Farm Owners, Medical Officers, and Livestock Officers. SmartEars is the 3rd module built specifically to address their bioacoustic needs.</p>
+            
+            <p style="margin-top: 10px; color: var(--text-2);"><strong>Q: What is the Official Project Topic & Domain?</strong><br>
+            A: The official Topic is <em>"AI-Driven Sustainable Bioacoustic Systems"</em>. The Domains encompass <em>Embedded Systems, Internet of Things (IoT), and Signal Processing</em>. The project title is <em>"AI-Driven Bioacoustic Analysis for Early Detection of Poultry Health Anomalies"</em>.</p>
+            
+            <p style="margin-top: 10px; color: var(--text-2);"><strong>Q: What is our V12 Architecture Strategy & Accuracy?</strong><br>
+            A: We utilize a <strong>Cascaded AI System</strong>. Initially, highly optimized models like Logistic Regression and SVM act as the primary "brain". If they fail or lack confidence, the system escalates the inference to a Hive Meta-Learner (StackingClassifier) or Neural Network. Our baseline SVM Scout currently achieves an ~80.6% accuracy, with micro-optimizations ongoing to improve Sick/Healthy thresholds.</p>
+        </div>
+    </section>
+
+
+    
+    <!-- PI DEEP DIVE -->
+    <section class="section" id="pi-deep-dive">
+        <div class="section-label">Chapter 18</div>
+        <h2 class="section-title">Hardware <span class="gold">Deep Dive</span>: Architecture & Logic</h2>
+        <p class="subtitle">A low-level breakdown of the Raspberry Pi 3B architecture, logic gates, and microcontroller memory structures powering SmartEars.</p>
+
+        <!-- MERMAID DIAGRAM -->
+        <div class="card" style="margin-bottom: 2rem; border-color: var(--accent);">
+            <div class="diagram" style="text-align: center; margin-bottom: 10px;">
+                <div class="mermaid">
+                graph TD
+                    subgraph SoC [Broadcom BCM2837 SoC]
+                        CPU[Quad-core ARM Cortex-A53] --> L1[L1 SRAM: 32KB]
+                        CPU --> L2[L2 SRAM: 512KB]
+                        CPU --> Regs[X0-X30 Registers]
+                        Clock((1.2 GHz Clock)) -.-> CPU
+                    end
+                    
+                    subgraph Memory [External Memory]
+                        RAM[1GB LPDDR2 SDRAM] ---|Volatile| SoC
+                        VRAM[256MB GPU VRAM] ---|Dynamic| SoC
+                        ROM[MicroSD Card] ---|Non-Volatile ROM| SoC
+                    end
+                    
+                    subgraph I/O [Peripheral Logic]
+                        SoC --> Shift[Shift Registers<br>74HC595]
+                        SoC --> ADCs[External ADCs<br>ADCL/ADCH]
+                    end
+                    
+                    style SoC fill:#1a1a2a,stroke:#a855f7,stroke-width:2px
+                    style Memory fill:#13131f,stroke:#00d4ff,stroke-width:2px
+                    style I/O fill:#13131f,stroke:#22c55e,stroke-width:2px
+                    style Clock fill:#f97316,stroke:#fff,stroke-width:2px
+                </div>
+            </div>
+        </div>
+
+        <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 2rem;">
+            <div class="card">
+                <h3>💾 Memory Hierarchy</h3>
+                <ul style="color: var(--text-2); padding-left: 20px; line-height: 1.8;">
+                    <li><strong>RAM (Random Access Memory):</strong> The Pi 3B features 1GB of LPDDR2 SDRAM. This is the volatile byte memory where <code>ORCA_SENSORY_DATA</code> and real-time audio FFT arrays are stored during inference.</li>
+                    <li><strong>ROM (Read-Only Memory):</strong> The Pi lacks onboard ROM. The MicroSD card acts as our non-volatile "ROM", permanently holding the OS and massive <code>.pkl</code> weight files.</li>
+                    <li><strong>VRAM (Video RAM):</strong> A portion of the 1GB RAM (typically 256MB) is dynamically allocated to the Broadcom VideoCore IV GPU for dashboards.</li>
+                    <li><strong>SRAM (Static RAM):</strong> Tiny, ultra-fast caches (L1/L2) baked directly into the CPU die using 6-transistor (6T) flip-flop cells to feed instructions rapidly.</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h3>⚙️ Processing & Logic Level</h3>
+                <ul style="color: var(--text-2); padding-left: 20px; line-height: 1.8;">
+                    <li><strong>Gates & Flip-Flops:</strong> The Quad-core ARM processor relies on billions of MOSFET transistors arranged into logic gates (NAND, NOR) and D-Type Flip-Flops that synchronize data.</li>
+                    <li><strong>Clocks:</strong> Driven by a 1.2 GHz oscillator clock ensuring every byte shifted through registers aligns perfectly in time for real-time DSP.</li>
+                    <li><strong>Registers (ARM):</strong> 64-bit General Purpose Registers (X0-X30) inside the CPU act as the absolute fastest byte memory for immediate numerical SVM hyperplane calculations.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--accent-3);">
+            <h3>🎛️ Peripheral Registers: ADCL/ADCH & Shift Registers</h3>
+            <p>While the Pi excels at processing, interfacing with the physical world requires specialized hardware concepts:</p>
+            <br>
+            <ul style="color: var(--text-2); padding-left: 20px; line-height: 1.8;">
+                <li><strong>Analog-to-Digital Conversion (ADCL / ADCH):</strong> Analog microphone voltages are converted into 10-bit digital values. Because an 8-bit memory register can't hold 10 bits, the result is split across two byte memories: <strong>ADCL (ADC Low Byte)</strong> and <strong>ADCH (ADC High Byte)</strong>. You must read ADCL first to lock the data register, followed by ADCH.</li>
+                <li><strong>Shift Registers:</strong> Used when GPIO pins run out (like the 74HC595). The Pi's clock pulses data out serially (one bit at a time). The shift register's internal D-Type flip-flops catch these bits, storing them temporarily in byte memories, and push them out simultaneously as a parallel signal.</li>
+            </ul>
+        </div>
+    </section>
+
 
 </div>
 
