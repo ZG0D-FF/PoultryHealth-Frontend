@@ -1,381 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PoultryHealth·AI — Professional Diagnostics</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<style>
-:root{
-  --bg-base: #0a0a0c;
-  --bg-panel: rgba(18, 18, 22, 0.75);
-  --border: rgba(255, 255, 255, 0.06);
-  --text-main: #f3f4f6;
-  --text-dim: #9ca3af;
-  --text-mute: #4b5563;
-  --signal-cyan: #06b6d4;
-  --healthy: #10b981;
-  --alert: #ef4444;
-  --noise: #6b7280;
-  --hay: #f59e0b;
-  --font-ui: 'Outfit', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --radius: 16px;
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0; background: var(--bg-base); color: var(--text-main); font-family: var(--font-ui); min-height: 100vh;
-  background-image: radial-gradient(circle at 15% 10%, rgba(6, 182, 212, 0.04) 0%, transparent 40%),
-                    radial-gradient(circle at 85% 90%, rgba(16, 185, 129, 0.04) 0%, transparent 40%);
-}
-::-webkit-scrollbar{width:8px; height:8px;}
-::-webkit-scrollbar-track{background:var(--bg-base);}
-::-webkit-scrollbar-thumb{background:var(--border); border-radius:4px;}
-
-header {
-  position: sticky; top: 0; z-index: 50;
-  background: rgba(10, 10, 12, 0.85); backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 16px 32px;
-}
-.brand { display: flex; align-items: center; gap: 12px; }
-.brand svg { width: 28px; height: 28px; }
-.brand h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
-.brand h1 span { color: var(--signal-cyan); }
-.brand p { margin: 0; font-family: var(--font-mono); font-size: 10px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 1px; }
-
-.controls { display: flex; align-items: center; gap: 12px; }
-input {
-  background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--text-main); font-family: var(--font-mono);
-  font-size: 13px; padding: 8px 14px; width: 200px;
-  transition: border-color 0.2s;
-}
-input:focus { outline: none; border-color: var(--signal-cyan); }
-.btn {
-  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-  color: var(--text-main); padding: 8px 16px; border-radius: 8px;
-  font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
-}
-.btn:hover { background: rgba(255,255,255,0.1); }
-.btn-primary { background: var(--signal-cyan); color: #000; border: none; font-weight: 600; }
-.btn-primary:hover { background: #0891b2; }
-.status-pill {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
-  border: 1px solid var(--border);
-}
-.dot { width: 8px; height: 8px; border-radius: 50%; }
-.status-pill[data-state="live"] { color: var(--healthy); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
-.status-pill[data-state="live"] .dot { background: var(--healthy); box-shadow: 0 0 8px var(--healthy); animation: pulse 2s infinite; }
-.status-pill[data-state="demo"] { color: var(--hay); border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.05); }
-.status-pill[data-state="demo"] .dot { background: var(--hay); box-shadow: 0 0 8px var(--hay); }
-.status-pill[data-state="offline"] { color: var(--alert); border-color: rgba(239,68,68,0.3); }
-.status-pill[data-state="offline"] .dot { background: var(--alert); }
-
-@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-main {
-  max-width: 1400px; margin: 0 auto; padding: 24px;
-  display: grid; grid-template-columns: 1fr 1.5fr; gap: 24px;
-}
-@media (max-width: 1024px) { main { grid-template-columns: 1fr; } }
-
-.panel {
-  background: var(--bg-panel); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 24px;
-  display: flex; flex-direction: column; gap: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-  backdrop-filter: blur(10px);
-}
-.panel-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px;}
-.panel-head h2 { margin: 0; font-size: 14px; font-weight: 500; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
-.panel-head .meta { font-family: var(--font-mono); font-size: 11px; color: var(--text-mute); }
-
-.diag-layout { display: flex; flex-direction: column; gap: 24px; }
-.orb-container { display: flex; align-items: center; gap: 24px; }
-.orb {
-  width: 80px; height: 80px; border-radius: 50%;
-  background: #1f2937; border: 2px solid rgba(255,255,255,0.1);
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.orb[data-state="healthy"] { background: radial-gradient(circle at 30% 30%, #34d399, var(--healthy)); box-shadow: 0 0 30px rgba(16,185,129,0.3); border-color: var(--healthy); }
-.orb[data-state="alert"] { background: radial-gradient(circle at 30% 30%, #f87171, var(--alert)); box-shadow: 0 0 30px rgba(239,68,68,0.4); border-color: var(--alert); animation: pulse-alert 1.5s infinite; }
-.orb[data-state="noise"] { background: #374151; border-color: #4b5563; }
-@keyframes pulse-alert { 0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(239,68,68,0.4); } 50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(239,68,68,0.6); } }
-
-.diag-text h3 { margin: 0 0 4px 0; font-size: 28px; font-weight: 600; letter-spacing: 0.5px; transition: color 0.3s; }
-.diag-text p { margin: 0; font-size: 13px; color: var(--text-dim); }
-.diag-text span { font-weight: 600; color: var(--text-main); }
-.conf-boxes { display: flex; gap: 16px; margin-left: auto; }
-.c-box { text-align: right; }
-.c-box .val { font-family: var(--font-mono); font-size: 22px; font-weight: 600; }
-.c-box .lbl { font-size: 11px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 1px; }
-.c-box.h .val { color: var(--healthy); }
-.c-box.a .val { color: var(--alert); }
-
-.ladder { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
-.l-node { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; position: relative; z-index: 2; }
-.l-node .icon {
-  width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.05);
-  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-mono); font-size: 12px; color: var(--text-mute);
-  transition: all 0.3s;
-}
-.l-node .lbl { font-size: 10px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 1px; text-align: center; font-weight: 500;}
-.l-node.active .icon { background: rgba(6,182,212,0.1); border-color: var(--signal-cyan); color: var(--signal-cyan); box-shadow: 0 0 15px rgba(6,182,212,0.2); transform: translateY(-2px); }
-.l-node.active .lbl { color: var(--signal-cyan); }
-.l-node.lit .icon { border-color: var(--text-dim); color: var(--text-main); }
-.l-line { flex: 1; height: 2px; background: var(--border); margin: 0 -10px; position: relative; top: -10px; z-index: 1; transition: background 0.3s; }
-.l-line.lit { background: var(--text-dim); }
-
-.chart-wrapper { position: relative; height: 200px; width: 100%; }
-
-.span-full { grid-column: 1 / -1; }
-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 12px; text-align: left; }
-th { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text-mute); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; font-size: 11px; }
-td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--text-dim); }
-td.time { color: var(--text-mute); }
-.log-row { animation: fade-in 0.3s ease; }
-@keyframes fade-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-family: var(--font-ui); font-weight: 500; }
-.pill.healthy { background: rgba(16,185,129,0.1); color: var(--healthy); }
-.pill.alert { background: rgba(239,68,68,0.1); color: var(--alert); }
-.pill.noise { background: rgba(107,114,128,0.1); color: var(--noise); }
-
-.gate-msg { font-size: 12px; color: var(--noise); background: rgba(107,114,128,0.05); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); display: inline-block; margin-top: 10px; }
-.hidden { display: none !important; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monarch ORCA V14 — Titan Sentry Bioacoustic Mesh</title>
+  
+  <!-- Modern Clean Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- KaTeX CSS for LaTeX Formula Rendering -->
+  <link rel="stylesheet" href="vendor/katex.min.css">
+  
+  <!-- Showcase Core Stylesheet -->
+  <link rel="stylesheet" href="css/showcase.css">
 </head>
 <body>
 
-<header>
-  <div class="brand">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--signal-cyan)"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-    <div>
-      <h1>PoultryHealth<span>·AI</span></h1>
-      <p>Acoustic Diagnostics Console</p>
+  <!-- ========================================================================
+       1. MINIMALIST APPLE HEADER
+       ======================================================================== -->
+  <header class="app-header">
+    <div class="brand-group">
+      <div class="brand-title">MONARCH ORCA V14</div>
+      <div class="brand-badge">TITAN SENTRY · BIOACOUSTIC MESH</div>
     </div>
-  </div>
-  <div class="controls">
-    <input type="text" id="piAddr" placeholder="192.168.1.100:5000">
-    <button class="btn btn-primary" id="connectBtn">Connect</button>
-    <button class="btn" id="demoBtn">Demo Mode</button>
-    <div class="status-pill" id="statusPill" data-state="demo">
-      <div class="dot"></div><span id="statusTxt">Demo Mode</span>
-    </div>
-  </div>
-</header>
 
-<main>
-  <!-- Diagnosis Panel (Top Left) -->
-  <div class="panel">
-    <div class="panel-head"><h2>Diagnosis Pipeline</h2><span class="meta" id="lastUpdate">awaiting signal...</span></div>
-    <div class="diag-layout">
-      <div class="orb-container">
-        <div class="orb" id="orb" data-state="noise"></div>
-        <div class="diag-text">
-          <h3 id="orbLabel" style="color: var(--noise)">Standby</h3>
-          <p>Source: <span id="diagSource">—</span></p>
+    <nav class="nav-node-tabs">
+      <button class="nav-tab-btn active" data-node="all" onclick="switchStageFocus('all')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:-1px;"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/></svg>Overview
+      </button>
+      <button class="nav-tab-btn" data-node="node0" onclick="switchStageFocus('node0')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:-1px;"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3"/></svg>Node 0: Pi Hub
+      </button>
+      <button class="nav-tab-btn" data-node="node1" onclick="switchStageFocus('node1')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:-1px;"><path d="M2 12h3l3-8 4 16 3-8h7"/></svg>Node 1: ESP32-S3 DevKit
+      </button>
+      <button class="nav-tab-btn" data-node="node2" onclick="switchStageFocus('node2')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:-1px;"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v5M7 17l4-4M17 17l-4-4"/></svg>Node 2: ESP32 DevKit
+      </button>
+    </nav>
+
+    <div class="header-meta">
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        <span>8.0 kHz 16-BIT REALTIME MESH</span>
+      </div>
+      <a href="https://github.com/zgodmr" target="_blank" rel="noopener" class="repo-link">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="margin-right:5px;vertical-align:-1px;"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>GitHub
+      </a>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN WRAPPER
+       ======================================================================== -->
+  <main class="main-wrapper">
+
+    <!-- ======================================================================
+         2. HERO 3D STUDIO STAGE (ALL 6 HARDWARE GLBS - NON-OVERLAPPING)
+         ====================================================================== -->
+    <section class="stage-section">
+      <!-- 3D Canvas Mounting Point -->
+      <div id="three-canvas-container"></div>
+
+      <!-- Stage Top-Left Overlay -->
+      <div class="stage-overlay">
+        <div class="stage-tagline">Autonomous Hardware Sentry</div>
+        <h1 class="stage-title">3-Tier Edge Acoustic Architecture</h1>
+      </div>
+
+      <!-- Stage Top-Right Info Pill -->
+      <div class="stage-info-pill">
+        <span class="info-pill-title" id="info-pill-title">Complete Mesh (All 6 Hardware Units)</span>
+        <span class="info-pill-desc" id="info-pill-desc">Tier 0 Linux Gateway + Tier 1 I2S DSP + Tier 2 ML Sentry</span>
+      </div>
+
+      <!-- Stage Bottom Controls Overlay -->
+      <div class="stage-controls-overlay">
+        <button class="stage-btn active" data-node="all" onclick="switchStageFocus('all')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/></svg>
+          All Nodes
+        </button>
+        <button class="stage-btn" data-node="node0" onclick="switchStageFocus('node0')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+          Node 0 (Pi + USB Mic)
+        </button>
+        <button class="stage-btn" data-node="node1" onclick="switchStageFocus('node1')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h3l3-8 4 16 3-8h7"/></svg>
+          Node 1 (S3 DevKit + INMP441)
+        </button>
+        <button class="stage-btn" data-node="node2" onclick="switchStageFocus('node2')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v5M7 17l4-4M17 17l-4-4"/></svg>
+          Node 2 (DevKit V1 + VR3)
+        </button>
+        <button class="stage-btn active" id="auto-rotate-btn" onclick="toggleAutoRotate()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-1.19"/></svg>
+          Auto Orbit
+        </button>
+        <button class="stage-btn" onclick="resetStageView()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Reset View
+        </button>
+      </div>
+
+      <!-- Loading Spinner -->
+      <div class="stage-loader" id="stage-loader">
+        <div class="spinner-ring"></div>
+        <span>INITIALIZING 3D STAGE...</span>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         3. EXACT SNAP 1 & 2: LIVE BIOACOUSTIC WAVEFORM & SPECTROGRAM ANALYZER
+         ====================================================================== -->
+    <section class="bioacoustic-suite">
+      <!-- Top Card: High-resolution bioacoustic visualizer -->
+      <div class="exact-snap1-card">
+        <div class="card-header-row">
+          <div class="card-title-snap">High-resolution bioacoustic visualizer</div>
+          
+          <div class="audio-controls-row">
+            <!-- 3 Genuine Audio Selectors -->
+            <div class="audio-selector-tabs">
+              <button class="audio-sel-btn active" data-sample="healthy">
+                <span class="sel-icon-dot healthy"></span>
+                Healthy Flock
+              </button>
+              <button class="audio-sel-btn" data-sample="sick">
+                <span class="sel-icon-dot sick"></span>
+                Sick Flock (Distress / Rales)
+              </button>
+              <button class="audio-sel-btn" data-sample="noise">
+                <span class="sel-icon-dot noise"></span>
+                Ambient Farm Noise
+              </button>
+            </div>
+
+            <!-- Play / Pause Button -->
+            <button class="audio-play-btn" id="audio-play-btn" onclick="toggleAudioPlayback()">
+              <svg id="play-btn-icon" width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:6px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span id="play-btn-text">Play Bioacoustic Sample</span>
+            </button>
+          </div>
         </div>
-        <div class="conf-boxes">
-          <div class="c-box h"><div class="val" id="hConf">—</div><div class="lbl">Healthy</div></div>
-          <div class="c-box a"><div class="val" id="dConf">—</div><div class="lbl">Disease</div></div>
+
+        <div class="waveform-container">
+          <canvas id="waveform-canvas"></canvas>
         </div>
       </div>
-      <div>
-        <div class="ladder" id="ladder">
-          <div class="l-node" data-stage="SVM"><div class="icon">01</div><div class="lbl">SVM Scout</div></div>
-          <div class="l-line" data-conn="0"></div>
-          <div class="l-node" data-stage="Logistic Regression"><div class="icon">02</div><div class="lbl">LR Fallback</div></div>
-          <div class="l-line" data-conn="1"></div>
-          <div class="l-node" data-stage="HoneyBee Hive"><div class="icon">03</div><div class="lbl">Hive Meta</div></div>
+
+      <!-- Bottom Card: 13-MFCC spectrogram analyzer -->
+      <div class="exact-snap1-card">
+        <div class="card-header-row">
+          <div class="card-title-snap">13-MFCC spectrogram analyzer</div>
+          <div class="card-metrics-snap">
+            <div>RMS <span id="metric-rms">-45.1 dB</span></div>
+            <div>SNR <span id="metric-snr">22.3 dB</span></div>
+            <div><span id="metric-lat">0.8ms</span> Inference Latency</div>
+          </div>
         </div>
-        <div class="gate-msg hidden" id="gateMsg">YAMNet Gate: Audio filtered (non-bird). Pipeline skipped.</div>
+
+        <div class="spectrogram-body-row">
+          <!-- Left Frequency Axis -->
+          <div class="spectrogram-y-axis">
+            <span>8 kHz</span>
+            <span>6 kHz</span>
+            <span>4 kHz</span>
+            <span>2 kHz</span>
+            <span>0 Hz</span>
+          </div>
+
+          <!-- Live Spectrogram Canvas -->
+          <div class="spectrogram-canvas-wrap">
+            <canvas id="spectrogram-canvas"></canvas>
+            <div class="spectrogram-grid-lines">
+              <div class="grid-line-h"></div>
+              <div class="grid-line-h"></div>
+              <div class="grid-line-h"></div>
+              <div class="grid-line-h"></div>
+              <div class="grid-line-h"></div>
+            </div>
+            <div class="spectrogram-scan-line" id="spectrogram-scan-line"></div>
+          </div>
+        </div>
+
+        <!-- Bottom Metrics Bar -->
+        <div class="spectrogram-footer-row">
+          <div>RMS <span id="b-metric-rms">-45.1 dB</span></div>
+          <div>SNR <span id="b-metric-snr">22.3 dB</span></div>
+          <div><span id="b-metric-lat">0.8ms</span> Inference Latency</div>
+        </div>
       </div>
+    </section>
+
+    <!-- ======================================================================
+         4. EXACT SNAPS 1 & 2: DUAL DEEP DIVE (3D MANIFOLDS + BAYESIAN THRESHOLD)
+         ====================================================================== -->
+    <section class="deep-dive-grid">
+      <!-- Left Card: Exact Snap 2 (02 3D Manifolds) -->
+      <div class="exact-card">
+        <div class="manifold-card-header">02 3D Manifolds</div>
+        <div class="manifold-viewport-wrap">
+          <div id="manifold-canvas-container"></div>
+        </div>
+        <div class="manifold-legend-row">
+          <div><span class="legend-dot-healthy"></span> Healthy Baseline</div>
+          <div><span class="legend-dot-sick"></span> Avian Pathology</div>
+          <div><span class="legend-dot-noise"></span> Farm Noise</div>
+        </div>
+      </div>
+
+      <!-- Right Card: Exact Snap 1/3 (Avian Bayesian Conditioning & Dynamic Inference Threshold) -->
+      <div class="exact-card">
+        <div class="bayesian-card-header">Avian Bayesian Conditioning & Dynamic Inference Threshold</div>
+        
+        <!-- Centered MathJax / KaTeX LaTeX Formula -->
+        <div class="bayesian-latex-box" id="bayesian-math-box"></div>
+
+        <div class="bayesian-interactive-body">
+          <!-- Left: Dual Gaussian Probability Curve Canvas -->
+          <div class="gaussian-container">
+            <canvas id="gaussian-canvas"></canvas>
+            <div class="gaussian-caption">Dual Gaussian prior-to-posterior probability</div>
+          </div>
+
+          <!-- Right: Interactive Semi-Circular Gauge & Precision Slider -->
+          <div class="controls-container">
+            <!-- Gauge Meter -->
+            <div class="gauge-wrap">
+              <svg id="gauge-svg" viewBox="0 0 150 85">
+                <!-- Background Inactive Track Arc -->
+                <path d="M 17 75 A 58 58 0 0 1 133 75" fill="none" stroke="#22252e" stroke-width="8" stroke-linecap="round" />
+                <!-- Active Arc (Bone/Sand) -->
+                <path id="gauge-active-arc" d="M 17 75 A 58 58 0 0 1 116 34" fill="none" stroke="#d8d4c7" stroke-width="8" stroke-linecap="round" />
+                <!-- End Knob Indicator -->
+                <circle id="gauge-knob" cx="116" cy="34" r="6" fill="#d8d4c7" stroke="#0d0e12" stroke-width="2" />
+              </svg>
+              <div class="gauge-readout-center">
+                <div class="gauge-val-text" id="gauge-val">4%</div>
+                <div class="gauge-label-text" id="gauge-label-text">Healthy Normal</div>
+              </div>
+            </div>
+
+            <!-- Horizontal Precision Slider -->
+            <div class="slider-group">
+              <input type="range" id="precision-slider" class="custom-range-slider" min="0.50" max="0.99" step="0.01" value="0.85">
+              <div class="slider-caption-title">Decision Cutoff (T = <span id="slider-val-readout">0.85</span>)</div>
+              <div class="slider-caption-sub">Avian Bayesian Decision Margin</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       5. FOOTER & ACADEMIC ATTRIBUTION
+       ======================================================================== -->
+  <footer class="app-footer">
+    <div class="faculty-badge">
+      <span>Lead Faculty Mentor:</span>
+      <strong>Dr. Subhajit Das</strong>
+      <span>· Associate Professor, UEM Kolkata</span>
     </div>
-  </div>
+    <div>Monarch ORCA V14 Titan Sentry · Autonomous Bioacoustic Surveillance System</div>
+    <div>Engineering Team: Ritam Das (Systems) · Sutirtha Halder (Avionics & AI) · Sharmik Sen (Sensors) · Dibyajyotee Ghosh (Software)</div>
+  </footer>
 
-  <!-- Waveform (Top Right) -->
-  <div class="panel">
-    <div class="panel-head"><h2>Acoustic Signature · Raw</h2><span class="meta" id="waveMeta">0 samples</span></div>
-    <div class="chart-wrapper"><canvas id="waveChart"></canvas></div>
-  </div>
+  <!-- Vendor Libraries (Local Fallbacks) -->
+  <script src="vendor/three.min.js"></script>
+  <script src="vendor/OrbitControls.js"></script>
+  <script src="vendor/GLTFLoader.js"></script>
+  <script src="vendor/DRACOLoader.js"></script>
+  <script src="vendor/katex.min.js"></script>
 
-  <!-- MFCC (Bottom Left) -->
-  <div class="panel">
-    <div class="panel-head"><h2>MFCC Profile · Proc</h2><span class="meta" id="mfccMeta">13 coefficients</span></div>
-    <div class="chart-wrapper"><canvas id="mfccChart"></canvas></div>
-  </div>
-
-  <!-- Confidence Trend (Bottom Right) -->
-  <div class="panel">
-    <div class="panel-head"><h2>Confidence Trend</h2><span class="meta">last 25 events</span></div>
-    <div class="chart-wrapper"><canvas id="trendChart"></canvas></div>
-  </div>
-
-  <!-- Log -->
-  <div class="panel span-full">
-    <div class="panel-head"><h2>Event Telemetry</h2><span class="meta" id="logMeta">0 events</span></div>
-    <div style="max-height: 250px; overflow-y: auto;">
-      <table>
-        <thead><tr><th>Time</th><th>Status</th><th>Detection Node</th><th>Healthy</th><th>Disease</th></tr></thead>
-        <tbody id="logBody"></tbody>
-      </table>
-    </div>
-  </div>
-</main>
-
-<script>
-const $ = id => document.getElementById(id);
-Chart.defaults.color = '#6b7280';
-Chart.defaults.font.family = "'JetBrains Mono', monospace";
-
-// Charts
-const waveCtx = $('waveChart').getContext('2d');
-const waveChart = new Chart(waveCtx, {
-  type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: '#06b6d4', borderWidth: 1.5, pointRadius: 0, tension: 0.1 }] },
-  options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { x: { display: false }, y: { min: -100, max: 100, grid: { color: 'rgba(255,255,255,0.05)' } } }, plugins: { legend: { display: false } } }
-});
-
-const mfccCtx = $('mfccChart').getContext('2d');
-const mfccChart = new Chart(mfccCtx, {
-  type: 'bar', data: { labels: Array.from({length:13}, (_,i)=>'C'+(i+1)), datasets: [{ data: new Array(13).fill(0), backgroundColor: '#f59e0b', borderRadius: 4 }] },
-  options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } }, plugins: { legend: { display: false } } }
-});
-
-const trendCtx = $('trendChart').getContext('2d');
-const trendChart = new Chart(trendCtx, {
-  type: 'line', data: { labels: [], datasets: [
-    { label: 'Healthy', data: [], borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.3 },
-    { label: 'Disease', data: [], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.3 }
-  ]},
-  options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { x: { grid: { display: false } }, y: { min: 0, max: 1, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => (v*100)+'%' } } }, plugins: { legend: { position: 'top', align: 'end', labels: { boxWidth: 12, usePointStyle: true } } } }
-});
-
-function wipeCharts() {
-  waveChart.data.labels = []; waveChart.data.datasets[0].data = []; waveChart.update();
-  $('waveMeta').textContent = 'waiting for signal...';
-  mfccChart.data.datasets[0].data = new Array(13).fill(0); mfccChart.update();
-}
-
-// Logic
-const FRIENDLY = { 'SVM':'SVM Scout', 'Logistic Regression':'LR Fallback', 'HoneyBee Hive':'Hive Meta', 'YAMNet':'YAMNet Gate', 'Z-Score Shield':'Alien Noise Shield' };
-const ORB_LABELS = { healthy: ['Healthy', '#10b981'], alert: ['Alert', '#ef4444'], noise: ['Filtered', '#6b7280'] };
-let currentOrb = 'noise';
-let escChain = [];
-
-function setOrb(status) {
-  currentOrb = status;
-  $('orb').dataset.state = status;
-  $('orbLabel').textContent = ORB_LABELS[status][0];
-  $('orbLabel').style.color = ORB_LABELS[status][1];
-}
-
-function updateLadder() {
-  const STAGES = ['SVM', 'Logistic Regression', 'HoneyBee Hive'];
-  const maxIdx = escChain.reduce((max, s) => Math.max(max, STAGES.indexOf(s)), -1);
-  document.querySelectorAll('.l-node').forEach(n => {
-    const idx = STAGES.indexOf(n.dataset.stage);
-    n.className = 'l-node';
-    if(idx === maxIdx) n.classList.add('active');
-    else if(idx < maxIdx) n.classList.add('lit');
-  });
-  document.querySelectorAll('.l-line').forEach(l => {
-    l.className = 'l-line';
-    if(Number(l.dataset.conn) < maxIdx) l.classList.add('lit');
-  });
-}
-
-function logEvt(ts, diag, orb, hc, dc) {
-  const r = document.createElement('tr'); r.className = 'log-row';
-  r.innerHTML = `<td class="time">${ts}</td><td><span class="pill ${orb}"><span class="dot" style="background:currentColor"></span>${ORB_LABELS[orb][0]}</span></td><td style="color:#f3f4f6">${FRIENDLY[diag]||diag}</td><td>${hc!=null?Math.round(hc*100)+'%':'—'}</td><td>${dc!=null?Math.round(dc*100)+'%':'—'}</td>`;
-  $('logBody').prepend(r);
-  if($('logBody').children.length > 50) $('logBody').lastChild.remove();
-}
-
-function handleMessage(raw) {
-  let msg = typeof raw === 'string' ? JSON.parse(raw) : raw;
-  $('lastUpdate').textContent = `updated ${msg.timestamp || new Date().toTimeString().slice(0,8)}`;
-  
-  if (msg.orb_status === 'noise') {
-    wipeCharts(); // FIX: Wipe charts on noise event
-    setOrb('noise');
-    $('diagSource').textContent = FRIENDLY[msg.diag_source] || msg.diag_source;
-    $('hConf').textContent = '—'; $('dConf').textContent = '—';
-    $('gateMsg').classList.remove('hidden');
-    $('ladder').classList.add('hidden');
-    logEvt(msg.timestamp || new Date().toTimeString().slice(0,8), msg.diag_source, 'noise', null, null);
-    return;
-  }
-
-  const hasRaw = Array.isArray(msg.raw);
-  if (hasRaw) {
-    waveChart.data.labels = msg.raw.map((_,i)=>i); waveChart.data.datasets[0].data = msg.raw; waveChart.update();
-    $('waveMeta').textContent = msg.raw.length + ' samples';
-    mfccChart.data.datasets[0].data = msg.proc; mfccChart.update();
-    escChain = ['SVM'];
-  } else if (escChain.length === 0) escChain = ['SVM'];
-
-  const diag = msg.diag_source || (hasRaw ? 'SVM' : escChain[escChain.length-1]);
-  if (!hasRaw && escChain[escChain.length-1] !== diag) escChain.push(diag);
-  $('diagSource').textContent = FRIENDLY[diag] || diag;
-  
-  $('gateMsg').classList.add('hidden');
-  $('ladder').classList.remove('hidden');
-  updateLadder();
-
-  const hc = msg.hConf, dc = msg.dConf;
-  if(hc != null) {
-    $('hConf').textContent = Math.round(hc*100)+'%'; $('dConf').textContent = Math.round(dc*100)+'%';
-    trendChart.data.labels.push(msg.timestamp || new Date().toTimeString().slice(0,8));
-    trendChart.data.datasets[0].data.push(hc); trendChart.data.datasets[1].data.push(dc);
-    if(trendChart.data.labels.length > 25) { trendChart.data.labels.shift(); trendChart.data.datasets[0].data.shift(); trendChart.data.datasets[1].data.shift(); }
-    trendChart.update();
-  }
-
-  let orb = msg.orb_status;
-  if(orb === undefined && hc != null) orb = hc >= 0.5 ? 'healthy' : 'alert';
-  if(orb) setOrb(orb);
-
-  logEvt(msg.timestamp || new Date().toTimeString().slice(0,8), diag, orb || currentOrb, hc, dc);
-}
-
-// Websocket / Demo Logic
-let ws = null, demoTimer = null, isDemo = true;
-
-function setConn(state, txt) {
-  $('statusPill').dataset.state = state; $('statusTxt').textContent = txt;
-  $('connectBtn').textContent = state === 'live' ? 'Disconnect' : 'Connect';
-}
-
-function startDemo() {
-  if(ws) { ws.close(); ws = null; }
-  isDemo = true; setConn('demo', 'Demo Mode');
-  let time = 0;
-  demoTimer = setInterval(() => {
-    if(Math.random() < 0.2) return handleMessage({ orb_status: 'noise', diag_source: 'YAMNet', timestamp: new Date().toTimeString().slice(0,8) });
-    const hc = Math.random() < 0.6 ? 0.7+Math.random()*0.2 : 0.1+Math.random()*0.3;
-    handleMessage({ raw: Array.from({length:700}, (_,i)=>Math.sin(i*0.1)*50 + (Math.random()-0.5)*20), proc: Array.from({length:13}, ()=>Math.random()*40-20), hConf: hc, dConf: 1-hc, orb_status: hc>0.5?'healthy':'alert', timestamp: new Date().toTimeString().slice(0,8), diag_source:'SVM' });
-  }, 3000);
-}
-
-$('connectBtn').onclick = () => {
-  if(ws && ws.readyState === 1) { startDemo(); return; }
-  clearInterval(demoTimer); isDemo = false; wipeCharts(); // FIX: Wipe charts on connect
-  const addr = $('piAddr').value.trim() || '192.168.1.100:5000';
-  setConn('demo', 'Connecting...');
-  ws = new WebSocket(`ws://${addr.replace(/^wss?:\/\//,'')}/ws`);
-  ws.onopen = () => setConn('live', 'Live');
-  ws.onmessage = e => handleMessage(e.data);
-  ws.onclose = () => { if(!isDemo) { setConn('offline', 'Offline'); setTimeout(()=>$('connectBtn').click(), 5000); } };
-};
-
-$('demoBtn').onclick = startDemo;
-startDemo();
-</script>
+  <!-- Showcase Application Engine -->
+  <script src="js/showcase.js"></script>
 </body>
 </html>

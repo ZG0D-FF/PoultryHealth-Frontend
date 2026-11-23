@@ -1,0 +1,3122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Monarch ORCA V14 Titan Sentry · Industrial Bioacoustic HUD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Local Three.js + Vendor Loaders + Draco (Offline Farm LAN Safe) -->
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script src="vendor/DRACOLoader.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
+
+<style>
+:root {
+  --bg-canvas: #07080a;
+  --bg-panel: rgba(11, 14, 20, 0.78);
+  --bg-pill: rgba(255, 255, 255, 0.04);
+  --border-hairline: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(255, 255, 255, 0.16);
+  --text-main: #f8fafc;
+  --text-dim: #94a3b8;
+  --text-mute: #64748b;
+  --accent-bone: #d8d4c7;
+  --accent-amber: #f59e0b;
+  --accent-emerald: #10b981;
+  --accent-rose: #f43f5e;
+  --accent-cyan: #38bdf8;
+  --accent-slate: #94a3b8;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, monospace;
+  --radius-panel: 12px;
+  --radius-pill: 999px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  min-height: 100vh; height: auto; overflow-x: hidden; overflow-y: auto;
+  background-color: var(--bg-canvas);
+  color: var(--text-main); font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+body { display: flex; flex-direction: column; }
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 99px; }
+
+/* Top Titanium Header */
+header {
+  flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; row-gap: 8px; column-gap: 12px;
+  padding: 10px 20px; border-bottom: 1px solid var(--border-hairline);
+  background: rgba(7, 8, 10, 0.88); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  z-index: 20; position: sticky; top: 0;
+}
+.brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.brand h1 { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; color: var(--text-main); white-space: nowrap; }
+.brand h1 span { color: var(--accent-bone); font-weight: 400; }
+.brand sub {
+  font-size: 9px; color: var(--text-mute); font-family: var(--font-mono);
+  letter-spacing: 0.08em; text-transform: uppercase; padding-left: 12px;
+  border-left: 1px solid var(--border-hairline); white-space: nowrap;
+}
+.header-status {
+  display: flex; align-items: center; justify-content: flex-end; gap: 5px;
+  font-size: 10px; font-family: var(--font-mono);
+  flex: 1 1 auto; min-width: 0; flex-wrap: wrap; max-width: 100%;
+}
+.ws-input {
+  background: var(--bg-pill); border: 1px solid var(--border-hairline); color: var(--text-main);
+  font-family: var(--font-mono); font-size: 10px; padding: 4px 10px; border-radius: var(--radius-pill);
+  width: 152px; outline: none; transition: border-color 0.2s; flex-shrink: 0;
+}
+.ws-input:focus { border-color: var(--accent-bone); }
+.select-ctl {
+  background: #0d1016; border: 1px solid var(--border-hairline); color: var(--text-main);
+  font-family: var(--font-mono); font-size: 10px; padding: 4px 8px; border-radius: var(--radius-pill);
+  outline: none; cursor: pointer; flex-shrink: 0; max-width: 168px;
+}
+.badge {
+  display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; cursor: pointer;
+  border-radius: var(--radius-pill); border: 1px solid var(--border-hairline);
+  background: var(--bg-pill); font-size: 10px; color: var(--text-dim); transition: all 0.2s;
+  flex-shrink: 0; user-select: none;
+}
+.badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-mute); }
+.badge.live { border-color: rgba(16, 185, 129, 0.4); color: var(--accent-emerald); background: rgba(16, 185, 129, 0.06); }
+.badge.live .dot { background: var(--accent-emerald); box-shadow: 0 0 8px var(--accent-emerald); }
+.badge.warn .dot { background: var(--accent-amber); }
+
+.btn-ctrl {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  padding: 4px 9px; border-radius: var(--radius-pill); cursor: pointer;
+  border: 1px solid var(--border-hairline); background: var(--bg-pill); color: var(--text-dim);
+  transition: all 0.2s; flex-shrink: 0;
+}
+.btn-ctrl:hover { background: rgba(255, 255, 255, 0.08); color: var(--text-main); border-color: var(--border-highlight); }
+.btn-ctrl.active { border-color: var(--accent-bone); color: #fff; background: rgba(255, 255, 255, 0.12); }
+.btn-ctrl.unsupported { opacity: 0.42; border-style: dashed; }
+.sample-group { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; border-left: 1px solid var(--border-hairline); padding-left: 6px; max-width: 100%; min-width: 0; }
+.btn-play {
+  background: rgba(216, 212, 199, 0.12); border: 1px solid var(--accent-bone); color: var(--accent-bone);
+  font-family: var(--font-mono); font-size: 10px; padding: 4px 10px; border-radius: var(--radius-pill);
+  cursor: pointer; flex-shrink: 0; transition: all 0.2s;
+}
+.btn-play:hover { background: var(--accent-bone); color: #07080a; }
+#clock { color: var(--text-mute); padding-left: 6px; flex-shrink: 0; }
+
+/* 12-Column Industrial Bento Grid (Exact Desktop Vibe Preserved) */
+.main-grid {
+  flex: 1; display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: auto auto;
+  gap: 16px; padding: 16px 24px 36px; min-height: 900px;
+}
+.panel {
+  display: flex; flex-direction: column; gap: 10px; min-height: 380px; min-width: 0;
+  background: var(--bg-panel); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+  border: 1px solid var(--border-hairline); border-radius: var(--radius-panel);
+  padding: 16px 18px; position: relative;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.04), 0 20px 40px -20px rgba(0, 0, 0, 0.85);
+}
+.panel-q1, .panel-q2 { min-height: 440px; }
+.panel-q3, .panel-q4, .panel-q5 { min-height: 380px; }
+.panel::before, .panel::after {
+  content: ""; position: absolute; width: 7px; height: 7px; pointer-events: none;
+}
+.panel::before { top: 0; left: 0; border-top: 1px solid rgba(255,255,255,0.22); border-left: 1px solid rgba(255,255,255,0.22); }
+.panel::after { bottom: 0; right: 0; border-bottom: 1px solid rgba(255,255,255,0.22); border-right: 1px solid rgba(255,255,255,0.22); }
+
+/* Bento Cell Placement */
+.panel-q1 { grid-column: 1 / 6; grid-row: 1; }
+.panel-q2 { grid-column: 6 / 13; grid-row: 1; padding: 0; overflow: hidden; }
+.panel-q3 { grid-column: 1 / 6; grid-row: 2; }
+.panel-q4 { grid-column: 6 / 10; grid-row: 2; }
+.panel-q5 { grid-column: 10 / 13; grid-row: 2; }
+
+.panel-head {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap;
+}
+.panel-head h2 {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--accent-bone); font-family: var(--font-mono);
+}
+.panel-meta { font-size: 9px; font-family: var(--font-mono); color: var(--text-mute); }
+.badges-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.metric-pill {
+  font-size: 9px; font-family: var(--font-mono); padding: 3px 8px; border-radius: var(--radius-pill);
+  border: 1px solid var(--border-hairline); background: var(--bg-pill); color: var(--text-dim);
+}
+.metric-pill.mode-live { border-color: rgba(16,185,129,0.35); color: var(--accent-emerald); }
+.metric-pill.mode-dsp { border-color: rgba(56,189,248,0.35); color: var(--accent-cyan); }
+
+/* Q1: Bioacoustic Visualizer */
+.q1-content {
+  flex: 1; display: flex; flex-direction: column; gap: 8px; min-height: 0;
+}
+.waveform-box {
+  flex: 1; min-height: 90px; position: relative; border-radius: 6px;
+  background: rgba(0, 0, 0, 0.45); border: 1px solid var(--border-hairline); overflow: hidden;
+}
+#waveformCanvas { width: 100%; height: 100%; display: block; }
+.drop-hint {
+  position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+  background: rgba(7, 8, 10, 0.88); border: 1.5px dashed var(--accent-bone);
+  font-family: var(--font-mono); font-size: 10px; color: var(--accent-bone);
+  letter-spacing: 0.08em; text-transform: uppercase; pointer-events: none; z-index: 10;
+  border-radius: 6px;
+}
+.waveform-box.drag-over .drop-hint { display: flex; }
+.q1-mode-tag {
+  position: absolute; top: 5px; right: 7px; font-family: var(--font-mono); font-size: 8px;
+  padding: 2px 6px; border-radius: 4px; background: rgba(7, 8, 10, 0.82);
+  border: 1px solid var(--border-hairline); color: var(--text-dim); pointer-events: none;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+
+.spectrogram-box {
+  flex: 1.45; min-height: 150px; display: flex; gap: 8px; position: relative;
+  border-radius: 6px; background: rgba(0, 0, 0, 0.55); border: 1px solid var(--border-hairline);
+  padding: 4px 6px; overflow: hidden;
+}
+.freq-scale {
+  width: 42px; display: flex; flex-direction: column; justify-content: space-between;
+  font-size: 8px; font-family: var(--font-mono); color: var(--text-mute); text-align: right;
+  padding: 2px 5px 2px 0; border-right: 1px solid var(--border-hairline); user-select: none; flex-shrink: 0;
+}
+.spec-canvas-wrap { flex: 1; position: relative; overflow: hidden; height: 100%; min-width: 0; }
+#spectrogramCanvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+
+/* Q2: 3D Bioacoustic Viewport */
+.panel-q2 .panel-head {
+  position: absolute; top: 12px; left: 16px; right: 16px; z-index: 10; pointer-events: none;
+}
+.panel-q2 .panel-head h2 {
+  background: rgba(7, 8, 10, 0.78); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  padding: 5px 12px; border-radius: var(--radius-pill); border: 1px solid var(--border-hairline);
+}
+.q2-controls-right { display: flex; align-items: center; gap: 6px; pointer-events: auto; flex-wrap: wrap; }
+.mode-tabs {
+  display: flex; gap: 3px; pointer-events: auto;
+  background: rgba(7, 8, 10, 0.78); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  padding: 3px; border-radius: var(--radius-pill); border: 1px solid var(--border-hairline);
+}
+.mode-tab {
+  font-family: var(--font-mono); font-size: 9px; padding: 4px 10px; border-radius: var(--radius-pill);
+  background: transparent; color: var(--text-dim); border: none; cursor: pointer; transition: all 0.2s;
+}
+.mode-tab:hover { color: var(--text-main); }
+.mode-tab.active { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.orbit-lock-btn {
+  display: none; font-family: var(--font-mono); font-size: 9px; padding: 5px 10px;
+  border-radius: var(--radius-pill); border: 1px solid var(--border-hairline);
+  background: rgba(7, 8, 10, 0.85); color: var(--text-dim); cursor: pointer;
+}
+.orbit-lock-btn.unlocked { border-color: var(--accent-emerald); color: var(--accent-emerald); }
+body.is-coarse .orbit-lock-btn { display: inline-flex; align-items: center; gap: 4px; }
+
+.viewport-3d { position: relative; width: 100%; height: 100%; flex: 1; outline: none; min-height: 440px; }
+#threeCanvas { width: 100%; height: 100%; display: block; outline: none; }
+body.is-coarse #threeCanvas.scroll-safe { touch-action: pan-y; }
+#fallback2DCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: none; }
+.viewport-reticle {
+  position: absolute; bottom: 12px; left: 16px; right: 16px; font-family: var(--font-mono);
+  font-size: 9px; color: var(--text-mute); pointer-events: none; letter-spacing: 0.10em;
+  display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+}
+.axis-3d-labels {
+  position: absolute; top: 52px; left: 16px; display: flex; flex-direction: column; gap: 3px;
+  pointer-events: none; z-index: 10;
+}
+.axis-3d {
+  font-family: var(--font-mono); font-size: 8px; font-weight: 500;
+  padding: 2px 6px; border-radius: 3px; background: rgba(0, 0, 0, 0.65);
+  border: 1px solid var(--border-hairline); letter-spacing: 0.04em;
+}
+.axis-3d.x { color: var(--accent-emerald); border-left: 2px solid var(--accent-emerald); }
+.axis-3d.y { color: var(--accent-amber); border-left: 2px solid var(--accent-amber); }
+.axis-3d.z { color: var(--accent-cyan); border-left: 2px solid var(--accent-cyan); }
+
+/* Q3: Statistical Inference & Dual Arbitration */
+.q3-split {
+  flex: 1; display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; min-height: 0;
+}
+.chart-box {
+  display: flex; flex-direction: column; gap: 4px; min-height: 220px; min-width: 0;
+  background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-hairline);
+  border-radius: 6px; padding: 6px 8px; position: relative;
+}
+.chart-title {
+  font-size: 9px; font-family: var(--font-mono); color: var(--text-mute);
+  text-transform: uppercase; letter-spacing: 0.06em; display: flex; justify-content: space-between; gap: 6px;
+}
+.chart-canvas-wrap { flex: 1; min-height: 0; position: relative; touch-action: none; }
+.chart-canvas-wrap canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
+
+.axis-lbl-x {
+  position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-mono); font-size: 8px; color: var(--text-mute);
+  text-transform: uppercase; letter-spacing: 0.06em; pointer-events: none; white-space: nowrap;
+}
+.axis-lbl-y {
+  position: absolute; top: 50%; left: 14px; transform: translateY(-50%) rotate(-90deg);
+  transform-origin: left center; font-family: var(--font-mono); font-size: 8px;
+  color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.06em; pointer-events: none; white-space: nowrap;
+}
+.chart-inspect-badge {
+  position: absolute; top: 4px; right: 6px; max-width: calc(100% - 12px);
+  background: rgba(7, 8, 10, 0.92); border: 1px solid var(--border-hairline);
+  padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 8.5px;
+  color: var(--accent-bone); pointer-events: none; z-index: 5; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Q4: IEEE Bioacoustic Perturbation Telemetry Cards */
+.perturbation-grid {
+  flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; min-height: 0;
+}
+.p-card {
+  display: flex; flex-direction: column; justify-content: space-between; min-width: 0;
+  background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-hairline);
+  border-radius: 6px; padding: 8px; position: relative; min-height: 0;
+}
+.p-name { font-size: 8px; font-family: var(--font-mono); color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.08em; }
+.p-val { font-size: 13.5px; font-weight: 500; font-family: var(--font-mono); color: var(--text-main); letter-spacing: -0.02em; margin: 2px 0; white-space: nowrap; }
+.p-sub { font-size: 8px; font-family: var(--font-mono); color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.p-sparkline-wrap { height: 42px; width: 100%; margin-top: 4px; position: relative; }
+.p-sparkline-wrap canvas { width: 100%; height: 100%; display: block; }
+.screening-strip {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  padding: 5px 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-hairline); font-family: var(--font-mono); font-size: 8.5px;
+  color: var(--text-dim); flex-shrink: 0; flex-wrap: wrap;
+}
+.screening-strip strong { color: var(--accent-bone); font-weight: 600; }
+.screening-strip.alarm { border-color: rgba(244, 63, 94, 0.45); background: rgba(244, 63, 94, 0.08); }
+.screening-strip.alarm strong { color: var(--accent-rose); }
+.screening-strip.live-ok { border-color: rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.06); }
+.screening-strip.live-ok strong { color: var(--accent-emerald); }
+
+/* Q5: Hardware Status & Automation Terminal Shell */
+.q5-stack {
+  flex: 1; display: flex; flex-direction: column; gap: 6px; min-height: 0;
+}
+.hw-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; flex-shrink: 0;
+}
+.hw-card {
+  background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-hairline);
+  border-radius: 6px; padding: 4px 6px; font-family: var(--font-mono); min-width: 0;
+}
+.hw-card .hw-lbl { font-size: 7.5px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hw-card .hw-val { font-size: 9.5px; color: var(--accent-bone); font-weight: 500; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Inline Dual HITL Banner (Hidden Until Pi Sends hitl.active === true) */
+.hitl-banner {
+  display: none; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap;
+  padding: 5px 8px; border-radius: 6px; flex-shrink: 0;
+  background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.45);
+  font-family: var(--font-mono); font-size: 8.5px; color: var(--accent-amber);
+}
+.hitl-banner.active { display: flex; }
+.hitl-actions { display: flex; gap: 4px; }
+.hitl-btn {
+  font-family: var(--font-mono); font-size: 8px; font-weight: 600; padding: 2px 7px;
+  border-radius: 4px; cursor: pointer; border: 1px solid var(--border-highlight);
+  background: rgba(0,0,0,0.55); color: var(--text-main);
+}
+.hitl-btn.h:hover { border-color: var(--accent-emerald); color: var(--accent-emerald); }
+.hitl-btn.s:hover { border-color: var(--accent-rose); color: var(--accent-rose); }
+.hitl-btn.n:hover { border-color: var(--accent-slate); color: var(--accent-slate); }
+
+/* Control Strip: Filter Tabs & Macro Bar */
+.term-controls-strip {
+  display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-shrink: 0; flex-wrap: wrap;
+  background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-hairline); border-radius: 5px; padding: 3px 6px;
+}
+.term-tab-row { display: flex; gap: 4px; }
+.term-tab {
+  background: transparent; border: 1px solid transparent; color: var(--text-dim);
+  font-family: var(--font-mono); font-size: 8px; font-weight: 600; padding: 2px 6px;
+  border-radius: 3px; cursor: pointer; text-transform: uppercase; transition: all 0.15s ease;
+}
+.term-tab:hover { color: var(--accent-bone); border-color: rgba(255,255,255,0.1); }
+.term-tab.active { background: var(--accent-bone); color: #000; border-color: var(--accent-bone); }
+
+.term-macro-row { display: flex; gap: 4px; flex-wrap: wrap; }
+.macro-btn {
+  background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-hairline);
+  color: var(--accent-bone); font-family: var(--font-mono); font-size: 8px;
+  padding: 2px 6px; border-radius: 3px; cursor: pointer; transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.macro-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--accent-bone); }
+.macro-btn:active { transform: translateY(1px); }
+
+/* Integrated Terminal Shell */
+.terminal-shell {
+  flex: 1; min-height: 150px; background: rgba(5, 6, 8, 0.85); border: 1px solid var(--border-hairline);
+  border-radius: 6px; display: flex; flex-direction: column; overflow: hidden;
+}
+.term-log-stream {
+  flex: 1; min-height: 0; padding: 6px 8px; font-family: var(--font-mono); font-size: 9px;
+  line-height: 1.45; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;
+}
+.term-line { display: flex; align-items: flex-start; gap: 6px; word-break: break-word; }
+.term-line .term-ts { color: var(--text-mute); flex-shrink: 0; }
+.term-line .term-tag {
+  font-size: 7.5px; font-weight: 700; padding: 0 4px; border-radius: 2px;
+  text-transform: uppercase; flex-shrink: 0; line-height: 1.4;
+}
+.term-tag-sys { background: rgba(216, 212, 199, 0.1); color: var(--accent-bone); border: 1px solid rgba(216, 212, 199, 0.2); }
+.term-tag-alarm { background: rgba(244, 63, 94, 0.2); color: var(--accent-rose); border: 1px solid rgba(244, 63, 94, 0.4); }
+.term-tag-hitl { background: rgba(245, 158, 11, 0.2); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.4); }
+.term-tag-serial { background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); border: 1px solid rgba(56, 189, 248, 0.3); }
+.term-tag-cmd { background: rgba(16, 185, 129, 0.18); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+
+.term-msg { flex: 1; color: var(--text-dim); white-space: pre-wrap; }
+.term-msg-alarm { color: var(--accent-rose); font-weight: 500; }
+.term-msg-cmd { color: var(--accent-emerald); }
+.term-msg-info { color: var(--accent-bone); }
+
+/* Interactive CLI Prompt Bar */
+.term-cli-bar {
+  height: 28px; flex-shrink: 0; display: flex; align-items: center; gap: 6px;
+  background: rgba(0, 0, 0, 0.7); border-top: 1px solid var(--border-hairline); padding: 0 8px;
+}
+.cli-prompt { font-family: var(--font-mono); font-size: 9px; font-weight: 700; color: var(--accent-emerald); user-select: none; }
+.term-cli-input {
+  flex: 1; background: transparent; border: none; outline: none; min-width: 0;
+  font-family: var(--font-mono); font-size: 9.5px; color: var(--accent-bone);
+}
+.term-cli-input::placeholder { color: var(--text-mute); }
+
+/* Laptop Header Fit (1200px - 1720px) */
+@media (max-width: 1720px) {
+  .brand sub { display: none; }
+}
+@media (max-width: 1400px) {
+  .brand h1 span { display: none; }
+}
+
+/* Tablet Responsive (768px - 1199px) */
+@media (max-width: 1199px) {
+  header { flex-direction: column; align-items: stretch; padding: 10px 16px; gap: 8px; }
+  .header-status { justify-content: flex-start; max-width: 100%; }
+  .brand sub { display: none; }
+  .brand h1 span { display: inline; }
+  .sample-group { border-left: none; padding-left: 0; }
+  .main-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto;
+    padding: 12px 16px 28px; gap: 12px; min-height: auto;
+  }
+  .panel-q1 { grid-column: 1 / 2; grid-row: auto; min-height: 360px; }
+  .panel-q2 { grid-column: 2 / 3; grid-row: auto; min-height: 360px; }
+  .panel-q3 { grid-column: 1 / 3; grid-row: auto; min-height: 320px; }
+  .panel-q4 { grid-column: 1 / 3; grid-row: auto; min-height: 240px; }
+  .panel-q5 { grid-column: 1 / 3; grid-row: auto; min-height: 340px; }
+  .viewport-3d { min-height: 360px; }
+}
+
+/* Mobile Responsive (< 768px — iPhone / Android / Small Screens) */
+@media (max-width: 767px) {
+  header { padding: 10px 12px; }
+  .brand h1 { font-size: 12px; }
+  .ws-input { width: 145px; }
+  .main-grid {
+    display: flex; flex-direction: column; padding: 10px 12px 24px; gap: 12px; min-height: auto;
+  }
+  .panel { padding: 12px; min-height: auto; }
+  .panel-q1 { min-height: 340px; }
+  .panel-q2 { min-height: 340px; padding: 0; }
+  .viewport-3d { min-height: 340px; }
+  .axis-3d-labels { top: 82px; left: 10px; }
+  .q3-split { grid-template-columns: 1fr; gap: 8px; }
+  .chart-box { min-height: 205px; }
+  .perturbation-grid { grid-template-columns: repeat(2, 1fr); }
+  .perturbation-grid .p-card:last-child { grid-column: 1 / -1; }
+  .hw-strip { grid-template-columns: repeat(2, 1fr); }
+  .terminal-shell { min-height: 200px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>Monarch ORCA Titan <span>· Industrial Bioacoustic HUD</span></h1>
+    <sub>IEEE 80-DSP · Three.js WebGL · Posterior Bayesian Engine</sub>
+  </div>
+  <div class="header-status">
+    <input type="text" id="wsHost" class="ws-input" placeholder="ws://127.0.0.1:5000" spellcheck="false" title="Raspberry Pi WebSocket Host (saved locally)" />
+    <select id="muxSelect" class="select-ctl" title="Audio Ingestion MUX Channel">
+      <option value="auto">MUX: Auto (Proximity)</option>
+      <option value="force_pi">MUX: Mic 1 (Pi USB)</option>
+      <option value="force_node1">MUX: Mic 2 (ESP-1 I2S)</option>
+      <option value="force_node2">MUX: Mic 3 (ESP-2 COM3)</option>
+    </select>
+    <div class="badge" id="wsBadge" title="Click to reconnect"><span class="dot"></span><span id="wsText">WS: STANDBY</span></div>
+    <button class="btn-ctrl" id="btnUsb1">USB 1</button>
+    <button class="btn-ctrl" id="btnUsb2">USB 2 (COM3)</button>
+
+    <!-- Offline WAV DSP & Custom Upload -->
+    <div class="sample-group">
+      <button class="btn-ctrl active" data-sample="healthy" id="sampleHealthy">Healthy</button>
+      <button class="btn-ctrl" data-sample="sick" id="sampleSick">Sick</button>
+      <button class="btn-ctrl" data-sample="noise" id="sampleNoise">Noise</button>
+      <button class="btn-ctrl" id="btnUploadWav" title="Upload WAV/MP3/OGG/FLAC for real browser IEEE DSP" style="border-color:rgba(56,189,248,0.4); color:#38bdf8;">+ Upload WAV</button>
+      <input type="file" id="audioFileInput" accept=".wav,.mp3,.ogg,.flac,audio/*" style="display:none;" />
+      <button class="btn-play" id="btnAudioPlay">▶ Play (16 kHz)</button>
+    </div>
+    <span id="clock">--:--:--</span>
+  </div>
+</header>
+
+<div class="main-grid">
+  <!-- QUADRANT 1: HIGH-RESOLUTION BIOACOUSTIC VISUALIZER -->
+  <div class="panel panel-q1">
+    <div class="panel-head">
+      <h2>High-Resolution Bioacoustic Visualizer</h2>
+      <div class="badges-row">
+        <span class="metric-pill mode-dsp" id="badgeSourceMode">CLIENT DSP</span>
+        <span class="metric-pill" id="badgeRms">RMS -- dB</span>
+        <span class="metric-pill" id="badgeSnr">SNR -- dB</span>
+      </div>
+    </div>
+    <div class="q1-content">
+      <div class="waveform-box" id="waveformDropZone" title="Drop WAV/MP3 file here to run browser IEEE DSP">
+        <canvas id="waveformCanvas"></canvas>
+        <div class="q1-mode-tag" id="q1WaveTag">PCM ENVELOPE</div>
+        <div class="drop-hint" id="dropHint">Drop WAV / MP3 to Run IEEE DSP</div>
+      </div>
+      <div class="spectrogram-box">
+        <div class="freq-scale" id="freqScale">
+          <span>8 kHz</span><span>7 kHz</span><span>6 kHz</span><span>5 kHz</span>
+          <span>4 kHz</span><span>3 kHz</span><span>2 kHz</span><span>1 kHz</span><span>0 Hz</span>
+        </div>
+        <div class="spec-canvas-wrap">
+          <canvas id="spectrogramCanvas"></canvas>
+          <div class="q1-mode-tag" id="q1SpecTag">0–8 kHz STFT (HANN)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUADRANT 2: 3D BIOACOUSTIC VIEWPORT -->
+  <div class="panel panel-q2">
+    <div class="panel-head">
+      <h2>3D Bioacoustic Viewport</h2>
+      <div class="q2-controls-right">
+        <button class="orbit-lock-btn" id="btnOrbitLock" title="Enable/disable touch 3D orbit so page scroll stays free">Orbit: OFF</button>
+        <div class="mode-tabs">
+          <button class="mode-tab active" data-mode="waterfall">3D Waterfall</button>
+          <button class="mode-tab" data-mode="manifold">Manifold Clusters</button>
+          <button class="mode-tab" data-mode="hardware">Spatial Hardware</button>
+        </div>
+      </div>
+    </div>
+    <div class="viewport-3d" id="viewport3D">
+      <canvas id="threeCanvas"></canvas>
+      <canvas id="fallback2DCanvas"></canvas>
+      <div class="axis-3d-labels" id="axis3DLabels">
+        <span class="axis-3d x">X: Temporal Window (0–40 frames)</span>
+        <span class="axis-3d y">Y: Cepstral Energy (dB)</span>
+        <span class="axis-3d z">Z: Cepstral Bin (MFCC 1–13)</span>
+      </div>
+      <div class="viewport-reticle">
+        <span id="reticleLeft">X: TEMPORAL FRAME · Y: ENERGY · Z: MFCC 1–13 · 6-DOF ORBIT</span>
+        <span id="reticleRight">WEBGL STANDBY</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUADRANT 3: STATISTICAL INFERENCE & DUAL ARBITRATION -->
+  <div class="panel panel-q3">
+    <div class="panel-head">
+      <h2>Statistical Inference &amp; Dual Arbitration</h2>
+      <span class="panel-meta" id="q3MetaBadge">Kaggle Empirical N=6,692 (Healthy vs Sick) · Pi Bayes Ready</span>
+    </div>
+    <div class="q3-split">
+      <div class="chart-box">
+        <div class="chart-title">
+          <span>Empirical Prior vs Posterior Distribution</span>
+          <span id="lblThreshold">Visual Cutoff λ = 0.85</span>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="gaussianCanvas"></canvas>
+          <div class="axis-lbl-y">p(z) Density</div>
+          <div class="axis-lbl-x">Standardized Score (z / σ)</div>
+          <div class="chart-inspect-badge" id="inspectGaussian">Hover / drag to inspect Bayes density</div>
+        </div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">
+          <span>Empirical ROC Curve</span>
+          <strong id="lblAuc" style="color:var(--accent-bone)">ROC AUC: --</strong>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="rocCanvas"></canvas>
+          <div class="axis-lbl-y">Sensitivity (TPR)</div>
+          <div class="axis-lbl-x">1 - Specificity (FPR)</div>
+          <div class="chart-inspect-badge" id="inspectRoc">Hover / drag to inspect ROC point</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUADRANT 4: IEEE BIOACOUSTIC PERTURBATION TELEMETRY -->
+  <div class="panel panel-q4">
+    <div class="panel-head">
+      <h2>IEEE Bioacoustic Perturbation Telemetry</h2>
+      <span class="panel-meta" id="q4MetaBadge">Inline Worker DSP · 200–3000 Hz Avian</span>
+    </div>
+    <div class="perturbation-grid">
+      <div class="p-card">
+        <span class="p-name">F0 Fundamental</span>
+        <span class="p-val" id="valF0">-- Hz</span>
+        <span class="p-sub" id="subVoiced">Voiced: --%</span>
+        <div class="p-sparkline-wrap"><canvas id="sparkF0"></canvas></div>
+      </div>
+      <div class="p-card">
+        <span class="p-name">Pitch Jitter</span>
+        <span class="p-val" id="valJitter">--%</span>
+        <span class="p-sub">RAP Cycle-to-Cycle</span>
+        <div class="p-sparkline-wrap"><canvas id="sparkJitter"></canvas></div>
+      </div>
+      <div class="p-card">
+        <span class="p-name">Shimmer</span>
+        <span class="p-val" id="valShimmer">-- dB</span>
+        <span class="p-sub" id="subShimmer">20·log10 Amplitude</span>
+        <div class="p-sparkline-wrap"><canvas id="sparkShimmer"></canvas></div>
+      </div>
+      <div class="p-card">
+        <span class="p-name">Glottal HNR</span>
+        <span class="p-val" id="valHnr">-- dB</span>
+        <span class="p-sub">Autocorr Boersma</span>
+        <div class="p-sparkline-wrap"><canvas id="sparkHnr"></canvas></div>
+      </div>
+      <div class="p-card">
+        <span class="p-name">Shannon Entropy</span>
+        <span class="p-val" id="valEntropy">-- bits</span>
+        <span class="p-sub" id="subEntropy">Spectral Complexity</span>
+        <div class="p-sparkline-wrap"><canvas id="sparkEntropy"></canvas></div>
+      </div>
+    </div>
+    <div class="screening-strip" id="screeningStrip">
+      <span id="screeningLeft">MODE: <strong>CLIENT DSP</strong> · Acoustic Screening Only (ML Verdict Requires Live Pi)</span>
+      <span id="screeningRight">Deviation vs Healthy: --</span>
+    </div>
+  </div>
+
+  <!-- QUADRANT 5: HARDWARE TELEMETRY & AUTOMATION SHELL -->
+  <div class="panel panel-q5">
+    <div class="panel-head">
+      <h2>Hardware &amp; Automation Shell</h2>
+      <div class="badges-row">
+        <span class="metric-pill" id="termPktRate">0.0 pkt/s</span>
+        <button class="macro-btn" id="btnAutoRec" style="background:rgba(16,185,129,0.15); color:var(--accent-emerald); border-color:rgba(16,185,129,0.3);">AUTO-REC: ON</button>
+      </div>
+    </div>
+    <div class="q5-stack">
+      <div class="hw-strip">
+        <div class="hw-card">
+          <div class="hw-lbl">Node 1 (ESP-S3)</div>
+          <div class="hw-val" id="hwNode1">STANDBY</div>
+        </div>
+        <div class="hw-card">
+          <div class="hw-lbl">Node 2 (COM3)</div>
+          <div class="hw-val" id="hwNode2">STANDBY</div>
+        </div>
+        <div class="hw-card">
+          <div class="hw-lbl">Pi Host Load</div>
+          <div class="hw-val" id="hwPiLoad">--°C · --%</div>
+        </div>
+        <div class="hw-card">
+          <div class="hw-lbl">Sentry Engine</div>
+          <div class="hw-val" id="hwUptime">OFFLINE</div>
+        </div>
+      </div>
+
+      <!-- Dual HITL Active Learning Bar (visible only when Pi requests verification) -->
+      <div class="hitl-banner" id="hitlBanner">
+        <span id="hitlText">HITL VERIFY · -- (10s)</span>
+        <div class="hitl-actions">
+          <button class="hitl-btn h" data-hitl="HEALTHY">H · Healthy</button>
+          <button class="hitl-btn s" data-hitl="SICK">S · Sick</button>
+          <button class="hitl-btn n" data-hitl="NOISE">N · Noise</button>
+        </div>
+      </div>
+
+      <div class="term-controls-strip">
+        <div class="term-tab-row">
+          <button class="term-tab active" data-filter="all">ALL</button>
+          <button class="term-tab" data-filter="alerts">ALERTS</button>
+          <button class="term-tab" data-filter="hitl">HITL</button>
+          <button class="term-tab" data-filter="serial">SERIAL</button>
+        </div>
+        <div class="term-macro-row">
+          <button class="macro-btn" id="macroRec">▶ REC 10s</button>
+          <button class="macro-btn" id="macroThresh">λ 0.85</button>
+          <button class="macro-btn" id="macroTestMics">TEST MICS</button>
+          <button class="macro-btn" id="macroExport">💾 CSV</button>
+          <button class="macro-btn" id="macroClear">CLEAR</button>
+        </div>
+      </div>
+      <div class="terminal-shell">
+        <div class="term-log-stream" id="termStream"></div>
+        <div class="term-cli-bar">
+          <span class="cli-prompt">titan-sh#</span>
+          <input type="text" class="term-cli-input" id="termCliInput" placeholder="rec 10s | thresh 0.85 | mux node1 | testmics | hitl h | export csv | help" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// =============================================================================
+// 1. STATE & DEVICE CAPABILITY DETECTION
+// =============================================================================
+const IS_COARSE_POINTER = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+if (IS_COARSE_POINTER) document.body.classList.add('is-coarse');
+
+const WAV_SAMPLE_PATHS = {
+  healthy: 'data/audio_healthy.wav',
+  sick: 'data/audio_sick.wav',
+  noise: 'data/audio_noise.wav'
+};
+
+const state = {
+  ws: null,
+  wsConnected: false,
+  wsReconnectTimer: null,
+  liveMode: false,
+  activeSampleKey: 'healthy',
+  active3DMode: 'waterfall',
+  orbitTouchUnlocked: !IS_COARSE_POINTER,
+  webglActive: false,
+  viewportVisible: true,
+  tabVisible: !document.hidden,
+  hardwareLoaded: false,
+  hardwareLoading: false,
+
+  // Cached real datasets & browser-computed DSP per WAV
+  manifoldPoints: [],
+  empiricalData: null,
+  empiricalCdf: null,
+  dspCache: {},           // key -> real IEEE DSP result computed in-browser from PCM
+  healthyBaseline: null,  // reference physical metrics from data/audio_healthy.wav
+  audioContext: null,
+  audioBuffers: {},
+  audioSource: null,
+  isAudioPlaying: false,
+  playbackProgress: 0.0,
+
+  // Live Pi telemetry state
+  decisionThreshold: 0.85,
+  liveScoreZ: null,
+  liveScoreLabel: '',
+  lastLoggedPred: null,
+  lastLoggedSource: null,
+  lastHeartbeatLog: 0,
+  lastAutoRecTime: 0,
+  autoRecEnabled: true,
+  activeRecTimer: null,
+  activeCapturePackets: [],
+  wsRingBuffer: [],       // rolling 100-packet (~10s @ 10Hz) live ring buffer
+  liveRawWaveform: null,
+  liveMelHistory: Array.from({ length: 120 }, () => new Float32Array(64).fill(-65)),
+  waterfallFIFO: Array.from({ length: 40 }, () => new Float32Array(13).fill(-55)),
+  sparkHistory: { f0: [], jitter: [], shimmer: [], hnr: [], entropy: [] },
+
+  // Terminal & hover state
+  terminalFilter: 'all',
+  terminalLogs: [],
+  cliHistory: [],
+  cliHistoryIdx: -1,
+  pktTimestamps: [],
+  hoverGaussian: null,
+  hoverRoc: null
+};
+
+// Clock
+setInterval(() => {
+  const el = document.getElementById('clock');
+  if (el) el.textContent = new Date().toLocaleTimeString('en-GB');
+}, 1000);
+
+// =============================================================================
+// 2. INLINE IEEE BIOACOUSTIC DSP WORKER (ZERO EXTERNAL JS / ZERO PYTHON)
+//    - Hann-windowed Cooley-Tukey Radix-2 FFT (N=512 / N=1024)
+//    - 26-Band Mel Filterbank + Orthonormal DCT-II -> True 13 MFCCs (40 frames)
+//    - YIN F0 (200-3000 Hz Avian Band, Parabolic Sub-Sample Interpolation)
+//    - True Cycle-to-Cycle RAP Jitter (%) & 20*log10 Amplitude Shimmer (dB)
+//    - Autocorrelation HNR (Boersma 1993, dB) & Shannon Spectral Entropy (bits)
+//    - Percentile Noise-Floor SNR (10th percentile floor, exact Pi parity)
+// =============================================================================
+const DSP_WORKER_SOURCE = `
+'use strict';
+
+function fftRadix2(re, im) {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) {
+      const tr = re[i]; re[i] = re[j]; re[j] = tr;
+      const ti = im[i]; im[i] = im[j]; im[j] = ti;
+    }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len;
+    const wLenRe = Math.cos(ang);
+    const wLenIm = Math.sin(ang);
+    const half = len >> 1;
+    for (let i = 0; i < n; i += len) {
+      let wRe = 1.0, wIm = 0.0;
+      for (let j = 0; j < half; j++) {
+        const uRe = re[i + j], uIm = im[i + j];
+        const vRe = re[i + j + half] * wRe - im[i + j + half] * wIm;
+        const vIm = re[i + j + half] * wIm + im[i + j + half] * wRe;
+        re[i + j] = uRe + vRe;
+        im[i + j] = uIm + vIm;
+        re[i + j + half] = uRe - vRe;
+        im[i + j + half] = uIm - vIm;
+        const nextRe = wRe * wLenRe - wIm * wLenIm;
+        wIm = wRe * wLenIm + wIm * wLenRe;
+        wRe = nextRe;
+      }
+    }
+  }
+}
+
+function makeHann(n) {
+  const w = new Float32Array(n);
+  const denom = Math.max(1, n - 1);
+  for (let i = 0; i < n; i++) w[i] = 0.5 * (1.0 - Math.cos((2.0 * Math.PI * i) / denom));
+  return w;
+}
+
+function hzToMel(hz) { return 2595.0 * Math.log10(1.0 + hz / 700.0); }
+function melToHz(mel) { return 700.0 * (Math.pow(10.0, mel / 2595.0) - 1.0); }
+
+function buildMelFilterbank(nFft, sr, nMels, fMin, fMax) {
+  const nBins = (nFft >> 1) + 1;
+  const melMin = hzToMel(fMin);
+  const melMax = hzToMel(Math.min(fMax, sr * 0.5));
+  const melPts = new Float32Array(nMels + 2);
+  for (let i = 0; i < nMels + 2; i++) {
+    melPts[i] = melMin + (i / (nMels + 1)) * (melMax - melMin);
+  }
+  const binPts = new Float32Array(nMels + 2);
+  for (let i = 0; i < nMels + 2; i++) {
+    binPts[i] = Math.floor(((nFft + 1) * melToHz(melPts[i])) / sr);
+  }
+  const filters = [];
+  for (let m = 1; m <= nMels; m++) {
+    const fLeft = binPts[m - 1];
+    const fCenter = binPts[m];
+    const fRight = binPts[m + 1];
+    const weights = new Float32Array(nBins);
+    for (let k = Math.max(0, fLeft); k < Math.min(nBins, fCenter); k++) {
+      weights[k] = (k - fLeft) / Math.max(1, fCenter - fLeft);
+    }
+    for (let k = Math.max(0, fCenter); k <= Math.min(nBins - 1, fRight); k++) {
+      weights[k] = (fRight - k) / Math.max(1, fRight - fCenter);
+    }
+    filters.push(weights);
+  }
+  return filters;
+}
+
+// True YIN (de Cheveigne & Kawahara, 2002) with parabolic interpolation
+function yinPitch(frame, sr, fMin, fMax) {
+  const len = frame.length;
+  const tauMin = Math.max(2, Math.floor(sr / fMax));
+  const tauMax = Math.min(Math.floor(len * 0.5) - 1, Math.ceil(sr / fMin));
+  if (tauMax <= tauMin + 2) return { f0: 0, period: 0, cmndf: 1.0, voiced: false };
+
+  const W = len - tauMax;
+  const diff = new Float32Array(tauMax + 1);
+  for (let tau = 1; tau <= tauMax; tau++) {
+    let s = 0;
+    for (let j = 0; j < W; j++) {
+      const d = frame[j] - frame[j + tau];
+      s += d * d;
+    }
+    diff[tau] = s;
+  }
+
+  const cmndf = new Float32Array(tauMax + 1);
+  cmndf[0] = 1.0;
+  let runningSum = 0;
+  for (let tau = 1; tau <= tauMax; tau++) {
+    runningSum += diff[tau];
+    cmndf[tau] = runningSum > 1e-12 ? (diff[tau] * tau) / runningSum : 1.0;
+  }
+
+  // First local dip below 0.18, else global minimum in [tauMin, tauMax]
+  let bestTau = -1;
+  for (let tau = tauMin; tau < tauMax; tau++) {
+    if (cmndf[tau] < 0.18) {
+      while (tau + 1 < tauMax && cmndf[tau + 1] < cmndf[tau]) tau++;
+      bestTau = tau;
+      break;
+    }
+  }
+  if (bestTau < 0) {
+    let minVal = Infinity;
+    bestTau = tauMin;
+    for (let tau = tauMin; tau <= tauMax; tau++) {
+      if (cmndf[tau] < minVal) { minVal = cmndf[tau]; bestTau = tau; }
+    }
+  }
+
+  // Parabolic interpolation
+  let refinedTau = bestTau;
+  if (bestTau > tauMin && bestTau < tauMax) {
+    const s0 = cmndf[bestTau - 1], s1 = cmndf[bestTau], s2 = cmndf[bestTau + 1];
+    const denom = 2.0 * (2.0 * s1 - s2 - s0);
+    if (Math.abs(denom) > 1e-12) {
+      const shift = (s2 - s0) / denom;
+      if (Math.abs(shift) < 1.0) refinedTau = bestTau + shift;
+    }
+  }
+
+  const minCmndf = cmndf[bestTau];
+  const f0 = sr / Math.max(1.0, refinedTau);
+  return { f0, period: refinedTau, cmndf: minCmndf, voiced: minCmndf < 0.35 };
+}
+
+// Boersma (1993) Autocorrelation HNR in dB
+function autocorrHnr(frame, sr, fMin, fMax) {
+  const n = frame.length;
+  let mean = 0;
+  for (let i = 0; i < n; i++) mean += frame[i];
+  mean /= n;
+
+  let r0 = 0;
+  const centered = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const v = frame[i] - mean;
+    centered[i] = v;
+    r0 += v * v;
+  }
+  if (r0 < 1e-10) return 0.0;
+
+  const tauMin = Math.max(2, Math.floor(sr / fMax));
+  const tauMax = Math.min(n - 2, Math.ceil(sr / fMin));
+  let bestRatio = 1e-4;
+  for (let tau = tauMin; tau <= tauMax; tau++) {
+    let s = 0;
+    const lim = n - tau;
+    for (let i = 0; i < lim; i++) s += centered[i] * centered[i + tau];
+    const norm = s / r0;
+    if (norm > bestRatio) bestRatio = norm;
+  }
+  const r = Math.max(1e-4, Math.min(0.9999, bestRatio));
+  return 10.0 * Math.log10(r / (1.0 - r));
+}
+
+function analyzePCM(pcm, sr) {
+  const maxSamples = Math.min(pcm.length, Math.floor(sr * 5.0));
+  const sig = pcm.subarray(0, maxSamples);
+  const totalLen = sig.length;
+
+  // 1. Waveform Envelope (300 peaks)
+  const waveBins = 300;
+  const waveHop = Math.max(1, Math.floor(totalLen / waveBins));
+  const waveform = new Float32Array(waveBins);
+  for (let i = 0; i < waveBins; i++) {
+    const start = i * waveHop;
+    const end = Math.min(totalLen, start + waveHop);
+    let pk = 0;
+    for (let j = start; j < end; j++) {
+      const a = Math.abs(sig[j]);
+      if (a > pk) pk = a;
+    }
+    waveform[i] = pk;
+  }
+
+  // 2. True RMS (dB) & 10th-Percentile Noise-Floor SNR (dB) (Matches Pi Sentry math)
+  const energyWin = Math.max(128, Math.floor(sr * 0.025));
+  const energyStep = Math.max(64, Math.floor(energyWin / 2));
+  const frameEnergies = [];
+  for (let s = 0; s + energyWin <= totalLen; s += energyStep) {
+    let sumSq = 0;
+    for (let i = 0; i < energyWin; i++) {
+      const v = sig[s + i];
+      sumSq += v * v;
+    }
+    frameEnergies.push(sumSq / energyWin);
+  }
+  let meanPower = 1e-10;
+  let noiseFloor = 1e-10;
+  if (frameEnergies.length > 0) {
+    meanPower = frameEnergies.reduce((a, b) => a + b, 0) / frameEnergies.length;
+    const sorted = frameEnergies.slice().sort((a, b) => a - b);
+    noiseFloor = Math.max(1e-10, sorted[Math.floor(sorted.length * 0.10)] || 1e-10);
+  }
+  const rmsDb = 10.0 * Math.log10(meanPower + 1e-10);
+  const snrDb = Math.max(-20.0, Math.min(80.0, 10.0 * Math.log10((meanPower + 1e-10) / noiseFloor)));
+
+  // 3. True STFT Spectrogram strictly across Avian 0 - min(8 kHz, sr/2) Band (Hann FFT)
+  //    Uses sr-adaptive FFT size so 48 kHz OS-decoded 16 kHz WAVs still fill 100% of 0-8 kHz height
+  const specFft = sr >= 32000 ? 2048 : (sr >= 16000 ? 1024 : 512);
+  const displayMaxHz = Math.min(8000, sr * 0.5);
+  const maxBinIdx = Math.min((specFft >> 1), Math.max(8, Math.round((displayMaxHz * specFft) / sr)));
+  const specBins = 128;
+  const specSteps = 200;
+  const specHann = makeHann(specFft);
+  const specRe = new Float32Array(specFft);
+  const specIm = new Float32Array(specFft);
+  const specGrid = new Uint8Array(specBins * specSteps);
+  const specDbRaw = new Float32Array(specBins * specSteps);
+  let maxDb = -120.0;
+  const specHop = Math.max(1, Math.floor(Math.max(1, totalLen - specFft) / Math.max(1, specSteps - 1)));
+
+  for (let t = 0; t < specSteps; t++) {
+    const start = Math.min(Math.max(0, totalLen - specFft), t * specHop);
+    specRe.fill(0); specIm.fill(0);
+    for (let i = 0; i < specFft && start + i < totalLen; i++) {
+      specRe[i] = sig[start + i] * specHann[i];
+    }
+    fftRadix2(specRe, specIm);
+    for (let b = 0; b < specBins; b++) {
+      const kF = (b / (specBins - 1)) * maxBinIdx;
+      const k0 = Math.floor(kF);
+      const k1 = Math.min(maxBinIdx, k0 + 1);
+      const frac = kF - k0;
+      const p0 = specRe[k0] * specRe[k0] + specIm[k0] * specIm[k0];
+      const p1 = specRe[k1] * specRe[k1] + specIm[k1] * specIm[k1];
+      const db = 10.0 * Math.log10((p0 * (1 - frac) + p1 * frac) + 1e-12);
+      specDbRaw[b * specSteps + t] = db;
+      if (db > maxDb) maxDb = db;
+    }
+  }
+  const minDb = maxDb - 62.0;
+  const dbSpan = Math.max(1.0, maxDb - minDb);
+  for (let i = 0; i < specDbRaw.length; i++) {
+    const norm = Math.max(0.0, Math.min(1.0, (specDbRaw[i] - minDb) / dbSpan));
+    specGrid[i] = Math.round(norm * 255);
+  }
+
+  // 4. Real 40-Frame 13-MFCC Matrix (26-Band Mel Filterbank + DCT-II, sr-adaptive Hann FFT)
+  const mfccFft = sr >= 32000 ? 2048 : 1024;
+  const nMels = 26;
+  const nMfcc = 13;
+  const nWaterfall = 40;
+  const melFilters = buildMelFilterbank(mfccFft, sr, nMels, 80, displayMaxHz);
+  const mfccHann = makeHann(mfccFft);
+  const mRe = new Float32Array(mfccFft);
+  const mIm = new Float32Array(mfccFft);
+  const mfccFrames = [];
+  const wfHop = Math.max(1, Math.floor(Math.max(1, totalLen - mfccFft) / Math.max(1, nWaterfall - 1)));
+  const nPosBins = (mfccFft >> 1) + 1;
+
+  for (let f = 0; f < nWaterfall; f++) {
+    const start = Math.min(Math.max(0, totalLen - mfccFft), f * wfHop);
+    mRe.fill(0); mIm.fill(0);
+    for (let i = 0; i < mfccFft && start + i < totalLen; i++) {
+      mRe[i] = sig[start + i] * mfccHann[i];
+    }
+    fftRadix2(mRe, mIm);
+    const logMel = new Float32Array(nMels);
+    for (let m = 0; m < nMels; m++) {
+      const filt = melFilters[m];
+      let e = 0;
+      for (let k = 0; k < nPosBins; k++) {
+        if (filt[k] > 0) e += filt[k] * (mRe[k] * mRe[k] + mIm[k] * mIm[k]);
+      }
+      logMel[m] = Math.log(e + 1e-10);
+    }
+    const coeffs = new Float32Array(nMfcc);
+    for (let c = 0; c < nMfcc; c++) {
+      let sum = 0;
+      for (let m = 0; m < nMels; m++) {
+        sum += logMel[m] * Math.cos((Math.PI * c * (m + 0.5)) / nMels);
+      }
+      const scale = c === 0 ? Math.sqrt(1.0 / nMels) : Math.sqrt(2.0 / nMels);
+      coeffs[c] = sum * scale;
+    }
+    mfccFrames.push(Array.from(coeffs));
+  }
+
+  // 5. Real 30-Frame IEEE Perturbation Trajectories (sr-adaptive ms windows)
+  const numFrames = 30;
+  const fMin = 200, fMax = 3000;
+  const macroHop = Math.max(256, Math.floor(totalLen / numFrames));
+  const macroLen = Math.min(totalLen, Math.max(macroHop, Math.round(sr * 0.080)));
+  const yinWinLen = Math.min(macroLen, Math.max(512, Math.round(sr * 0.040)));
+  const subWinLen = Math.min(macroLen, Math.max(384, Math.round(sr * 0.028)));
+
+  const f0Arr = [], jitArr = [], shimArr = [], hnrArr = [], entArr = [];
+  const validF0s = [];
+  let voicedCount = 0;
+  const entFft = sr >= 32000 ? 2048 : 512;
+  const entMaxBin = Math.min((entFft >> 1), Math.max(16, Math.round((displayMaxHz * entFft) / sr)));
+  const entHann = makeHann(entFft);
+  const eRe = new Float32Array(entFft);
+  const eIm = new Float32Array(entFft);
+
+  for (let f = 0; f < numFrames; f++) {
+    const start = Math.min(Math.max(0, totalLen - macroLen), f * macroHop);
+    const frame = sig.subarray(start, Math.min(totalLen, start + macroLen));
+
+    let rms = 0;
+    for (let i = 0; i < frame.length; i++) rms += frame[i] * frame[i];
+    rms = Math.sqrt(rms / Math.max(1, frame.length));
+
+    // Sub-frame YIN periods & RMS amplitudes (7 overlapping 28ms windows)
+    const subCount = 7;
+    const subHop = Math.max(16, Math.floor(Math.max(1, frame.length - subWinLen) / Math.max(1, subCount - 1)));
+    const rawPeriods = [];
+    const amps = [];
+
+    for (let sIdx = 0; sIdx < subCount; sIdx++) {
+      const sStart = Math.min(Math.max(0, frame.length - subWinLen), sIdx * subHop);
+      const sub = frame.subarray(sStart, Math.min(frame.length, sStart + subWinLen));
+      let sSq = 0;
+      for (let i = 0; i < sub.length; i++) sSq += sub[i] * sub[i];
+      amps.push(Math.sqrt(sSq / Math.max(1, sub.length)) + 1e-6);
+      const yp = yinPitch(sub, sr, fMin, fMax);
+      if (yp.voiced && yp.period > 0) rawPeriods.push(yp.period);
+    }
+
+    const mainYin = yinPitch(frame.subarray(0, Math.min(frame.length, yinWinLen)), sr, fMin, fMax);
+    const isVoiced = mainYin.voiced && rms > 0.0015;
+    if (isVoiced) {
+      voicedCount++;
+      validF0s.push(mainYin.f0);
+    }
+    f0Arr.push(Number(mainYin.f0.toFixed(1)));
+
+    // True RAP Jitter (%): filter out octave-jump outliers (>30% from median period)
+    let jitPct = 0;
+    if (rawPeriods.length >= 3) {
+      const sortedP = rawPeriods.slice().sort((a, b) => a - b);
+      const medT = sortedP[Math.floor(sortedP.length / 2)];
+      const cleanP = rawPeriods.filter(p => Math.abs(p - medT) <= 0.30 * medT);
+      if (cleanP.length >= 3) {
+        const meanT = cleanP.reduce((a, b) => a + b, 0) / cleanP.length;
+        let rapSum = 0;
+        for (let k = 1; k < cleanP.length - 1; k++) {
+          const avg3 = (cleanP[k - 1] + cleanP[k] + cleanP[k + 1]) / 3.0;
+          rapSum += Math.abs(cleanP[k] - avg3);
+        }
+        jitPct = ((rapSum / (cleanP.length - 2)) / Math.max(1e-6, meanT)) * 100.0;
+      }
+    }
+    jitArr.push(Number(Math.min(15.0, Math.max(0.0, jitPct)).toFixed(2)));
+
+    // True Shimmer (dB): mean |20 * log10(A_{k+1} / A_k)|
+    let shimDb = 0;
+    if (amps.length >= 2) {
+      let sSum = 0;
+      for (let k = 0; k < amps.length - 1; k++) {
+        sSum += Math.abs(20.0 * Math.log10(amps[k + 1] / amps[k]));
+      }
+      shimDb = sSum / (amps.length - 1);
+    }
+    shimArr.push(Number(Math.min(18.0, Math.max(0.0, shimDb)).toFixed(2)));
+
+    // True Autocorrelation HNR (Boersma 1993) on 40ms window
+    const hnrVal = autocorrHnr(frame.subarray(0, Math.min(frame.length, yinWinLen)), sr, fMin, fMax);
+    hnrArr.push(Number(Math.max(-10.0, Math.min(40.0, hnrVal)).toFixed(1)));
+
+    // True Shannon Spectral Entropy (bits) across avian 0 - displayMaxHz band
+    eRe.fill(0); eIm.fill(0);
+    for (let i = 0; i < entFft && i < frame.length; i++) eRe[i] = frame[i] * entHann[i];
+    fftRadix2(eRe, eIm);
+    let pSum = 0;
+    const psd = new Float32Array(entMaxBin + 1);
+    for (let k = 0; k <= entMaxBin; k++) {
+      const p = eRe[k] * eRe[k] + eIm[k] * eIm[k];
+      psd[k] = p;
+      pSum += p;
+    }
+    let entBits = 0;
+    if (pSum > 1e-12) {
+      for (let k = 0; k <= entMaxBin; k++) {
+        const pn = psd[k] / pSum;
+        if (pn > 1e-12) entBits -= pn * Math.log2(pn);
+      }
+    }
+    entArr.push(Number(entBits.toFixed(2)));
+  }
+
+  const mean = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+  const nonZeroJit = jitArr.filter(v => v > 0);
+  const f0Mean = validF0s.length > 0 ? mean(validF0s) : mean(f0Arr);
+
+  return {
+    sampleRate: sr,
+    durationSec: pcm.length / sr,
+    nyquistHz: displayMaxHz,
+    waveform: Array.from(waveform),
+    specGrid: specGrid,
+    specBins,
+    specSteps,
+    mfccFrames,
+    rmsDb: Number(rmsDb.toFixed(1)),
+    snrDb: Number(snrDb.toFixed(1)),
+    series: { f0: f0Arr, jitter: jitArr, shimmer: shimArr, hnr: hnrArr, entropy: entArr },
+    summary: {
+      f0_mean: Number(f0Mean.toFixed(1)),
+      voiced_ratio: Number((voicedCount / numFrames).toFixed(3)),
+      jitter: Number((nonZeroJit.length ? mean(nonZeroJit) : 0).toFixed(2)),
+      shimmer: Number(mean(shimArr).toFixed(2)),
+      hnr_db: Number(mean(hnrArr).toFixed(1)),
+      spectral_entropy: Number(mean(entArr).toFixed(2))
+    }
+  };
+}
+
+self.onmessage = function(e) {
+  const { id, pcm, sr } = e.data;
+  try {
+    const res = analyzePCM(pcm, sr);
+    self.postMessage({ id, ok: true, result: res }, [res.specGrid.buffer]);
+  } catch (err) {
+    self.postMessage({ id, ok: false, error: String(err && err.message || err) });
+  }
+};
+`;
+
+let dspWorker = null;
+let dspReqId = 0;
+const dspPending = new Map();
+
+function initDspWorker() {
+  try {
+    const blob = new Blob([DSP_WORKER_SOURCE], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    dspWorker = new Worker(url);
+    dspWorker.onmessage = e => {
+      const { id, ok, result, error } = e.data;
+      const entry = dspPending.get(id);
+      if (!entry) return;
+      dspPending.delete(id);
+      if (ok) entry.resolve(result);
+      else entry.reject(new Error(error || 'DSP Worker failed'));
+    };
+    dspWorker.onerror = err => {
+      dspWorker = null;
+      logTerminal(`Inline DSP Worker fallback (${err.message || 'init'}).`, 'SYS', 'info');
+    };
+  } catch (e) {
+    dspWorker = null;
+  }
+}
+
+function runBrowserDsp(pcmFloat32, sr) {
+  if (!dspWorker) initDspWorker();
+  if (dspWorker) {
+    return new Promise((resolve, reject) => {
+      const id = ++dspReqId;
+      dspPending.set(id, { resolve, reject });
+      const copy = new Float32Array(pcmFloat32);
+      dspWorker.postMessage({ id, pcm: copy, sr }, [copy.buffer]);
+    });
+  }
+  return Promise.reject(new Error('Web Worker unavailable in this browser context.'));
+}
+
+// Inverse DCT-II (13 MFCCs -> 64 Log-Mel Envelope Bins for Live Pi WS Spectrogram)
+function idct13ToMel64(mfcc13) {
+  const out = new Float32Array(64);
+  const N = 64;
+  for (let m = 0; m < N; m++) {
+    let val = 0;
+    for (let c = 0; c < Math.min(13, mfcc13.length); c++) {
+      const scale = c === 0 ? Math.sqrt(1.0 / N) : Math.sqrt(2.0 / N);
+      val += scale * Number(mfcc13[c] || 0) * Math.cos((Math.PI * c * (m + 0.5)) / N);
+    }
+    out[m] = val;
+  }
+  return out;
+}
+
+// Real 16-bit PCM RIFF WAV Encoder (Zero fake CRC strings; downloads genuine playable .wav)
+function encodeWav16Bit(pcmFloat32, sampleRate) {
+  const numSamples = pcmFloat32.length;
+  const buffer = new ArrayBuffer(44 + numSamples * 2);
+  const view = new DataView(buffer);
+  const writeStr = (off, str) => { for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i)); };
+
+  writeStr(0, 'RIFF');
+  view.setUint32(4, 36 + numSamples * 2, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  view.setUint32(16, 16, true);            // PCM chunk size
+  view.setUint16(20, 1, true);             // PCM format
+  view.setUint16(22, 1, true);             // Mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeStr(36, 'data');
+  view.setUint32(40, numSamples * 2, true);
+
+  let offset = 44;
+  for (let i = 0; i < numSamples; i++, offset += 2) {
+    const s = Math.max(-1, Math.min(1, pcmFloat32[i]));
+    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+  }
+  return new Blob([buffer], { type: 'audio/wav' });
+}
+
+// =============================================================================
+// 3. AUDIT TRAIL & REAL AUTOMATION TERMINAL SHELL
+// =============================================================================
+const termStreamEl = document.getElementById('termStream');
+const termCliInput = document.getElementById('termCliInput');
+const btnAutoRec = document.getElementById('btnAutoRec');
+const termPktRateEl = document.getElementById('termPktRate');
+
+function recordRealPacketTick() {
+  state.pktTimestamps.push(performance.now());
+}
+
+function updatePacketRateDisplay() {
+  const now = performance.now();
+  while (state.pktTimestamps.length > 0 && now - state.pktTimestamps[0] > 1000) {
+    state.pktTimestamps.shift();
+  }
+  const rate = state.pktTimestamps.length;
+  if (termPktRateEl) {
+    termPktRateEl.textContent = `${rate.toFixed(1)} pkt/s`;
+    termPktRateEl.classList.toggle('mode-live', rate > 0);
+  }
+}
+setInterval(updatePacketRateDisplay, 500);
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function logTerminal(msg, tag = 'SYS', type = 'info', meta = null) {
+  if (tag === 'term-sick') { tag = 'ALARM'; type = 'alarm'; }
+  else if (tag === 'term-ok') { tag = 'SYS'; type = 'ok'; }
+  else if (tag === 'term-info') { tag = 'SYS'; type = 'info'; }
+  else if (tag === 'term-cmd') { tag = 'CMD'; type = 'cmd'; }
+
+  const cleanTag = String(tag).toUpperCase();
+  const cat = (cleanTag === 'ALARM' || type === 'alarm') ? 'alerts' :
+              (cleanTag === 'HITL') ? 'hitl' :
+              (cleanTag === 'SERIAL' || cleanTag === 'UART') ? 'serial' : 'sys';
+
+  const ts = new Date().toLocaleTimeString('en-GB');
+  const record = { ts, tag: cleanTag, cat, type, msg, meta, time: Date.now() };
+  state.terminalLogs.push(record);
+  if (state.terminalLogs.length > 300) state.terminalLogs.shift();
+
+  const line = document.createElement('div');
+  line.className = 'term-line';
+  line.dataset.cat = cat;
+  line.dataset.tag = cleanTag;
+
+  if (state.terminalFilter !== 'all' && state.terminalFilter !== cat) {
+    line.style.display = 'none';
+  }
+
+  const tagClass = cleanTag === 'ALARM' ? 'term-tag-alarm' :
+                   cleanTag === 'HITL' ? 'term-tag-hitl' :
+                   (cleanTag === 'SERIAL' || cleanTag === 'UART') ? 'term-tag-serial' :
+                   cleanTag === 'CMD' ? 'term-tag-cmd' : 'term-tag-sys';
+
+  const msgClass = type === 'alarm' ? 'term-msg-alarm' :
+                   type === 'cmd' ? 'term-msg-cmd' :
+                   type === 'info' ? 'term-msg-info' : 'term-msg';
+
+  line.innerHTML = `<span class="term-ts">[${ts}]</span><span class="term-tag ${tagClass}">[${cleanTag}]</span><span class="term-msg ${msgClass}">${escapeHtml(msg)}</span>`;
+
+  if (termStreamEl) {
+    termStreamEl.appendChild(line);
+    while (termStreamEl.childNodes.length > 180) termStreamEl.removeChild(termStreamEl.firstChild);
+    termStreamEl.scrollTop = termStreamEl.scrollHeight;
+  }
+}
+
+function downloadBlob(blobOrContent, filename, mimeType) {
+  const blob = blobOrContent instanceof Blob ? blobOrContent : new Blob([blobOrContent], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function triggerLiveAutoRec(reasonLabel) {
+  if (!state.autoRecEnabled) return;
+  const now = Date.now();
+  if (now - state.lastAutoRecTime < 30000) return; // 30s cooldown matching Pi Telegram alert cooldown
+  state.lastAutoRecTime = now;
+
+  if (!state.wsConnected || state.wsRingBuffer.length === 0) {
+    logTerminal(`AUTO-REC idle: no live Pi ring-buffer packets (${reasonLabel}).`, 'SYS', 'info');
+    return;
+  }
+
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const fname = `titan_sick_incident_${stamp}.json`;
+  const payload = {
+    captured_at: new Date().toISOString(),
+    trigger: reasonLabel,
+    note: 'Live 10Hz Pi telemetry ring buffer (~10s). Full 16kHz WAV archived by Pi in correction_vault/sick/.',
+    frame_count: state.wsRingBuffer.length,
+    frames: state.wsRingBuffer.slice()
+  };
+  downloadBlob(JSON.stringify(payload, null, 2), fname, 'application/json');
+  logTerminal(`AUTO-REC saved ${payload.frame_count} live frames -> ${fname} (30s cooldown; Pi vaults 16kHz WAV).`, 'SYS', 'ok');
+}
+
+function startManualCapture(sec) {
+  const durSec = Math.max(1, Math.min(60, parseInt(sec, 10) || 10));
+
+  // Case A: Live Pi WS -> collect real 10Hz WS telemetry packets for durSec seconds
+  if (state.wsConnected) {
+    if (state.activeRecTimer) {
+      logTerminal('Live capture already in progress.', 'SYS', 'info');
+      return;
+    }
+    state.activeCapturePackets = [];
+    logTerminal(`Capturing live Pi telemetry burst for ${durSec}s...`, 'SYS', 'info');
+    if (btnAutoRec) {
+      btnAutoRec.textContent = `CAPTURING (${durSec}s)`;
+      btnAutoRec.style.background = 'rgba(244, 63, 94, 0.25)';
+      btnAutoRec.style.color = 'var(--accent-rose)';
+    }
+    state.activeRecTimer = setTimeout(() => {
+      state.activeRecTimer = null;
+      refreshAutoRecButton();
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const fname = `titan_live_burst_${durSec}s_${stamp}.json`;
+      const payload = {
+        captured_at: new Date().toISOString(),
+        duration_sec: durSec,
+        frame_count: state.activeCapturePackets.length,
+        frames: state.activeCapturePackets.slice()
+      };
+      downloadBlob(JSON.stringify(payload, null, 2), fname, 'application/json');
+      logTerminal(`Live capture saved: ${fname} (${payload.frame_count} real WS frames).`, 'SYS', 'ok');
+      state.activeCapturePackets = [];
+    }, durSec * 1000);
+    return;
+  }
+
+  // Case B: Offline / Uploaded AudioBuffer -> export real 16-bit RIFF WAV PCM slice
+  const buf = state.audioBuffers[state.activeSampleKey];
+  if (buf) {
+    const sr = buf.sampleRate;
+    const ch0 = buf.getChannelData(0);
+    const sliceLen = Math.min(ch0.length, Math.floor(sr * durSec));
+    const wavBlob = encodeWav16Bit(ch0.subarray(0, sliceLen), sr);
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const fname = `titan_pcm_${state.activeSampleKey}_${(sliceLen / sr).toFixed(1)}s_${stamp}.wav`;
+    downloadBlob(wavBlob, fname, 'audio/wav');
+    logTerminal(`Exported real 16-bit PCM WAV: ${fname} (${(sliceLen / sr).toFixed(2)}s @ ${sr} Hz).`, 'SYS', 'ok');
+  } else {
+    logTerminal('Capture skipped: no live Pi WS and no decoded WAV buffer loaded.', 'SYS', 'alarm');
+  }
+}
+
+function refreshAutoRecButton() {
+  if (!btnAutoRec || state.activeRecTimer) return;
+  btnAutoRec.textContent = state.autoRecEnabled ? 'AUTO-REC: ON' : 'AUTO-REC: OFF';
+  btnAutoRec.style.background = state.autoRecEnabled ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)';
+  btnAutoRec.style.color = state.autoRecEnabled ? 'var(--accent-emerald)' : 'var(--text-dim)';
+  btnAutoRec.style.borderColor = state.autoRecEnabled ? 'rgba(16,185,129,0.3)' : 'var(--border-hairline)';
+}
+
+function dispatchHitlLabel(label) {
+  const clean = String(label || '').toUpperCase();
+  if (!['HEALTHY', 'SICK', 'NOISE'].includes(clean)) return;
+  if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+    state.ws.send(JSON.stringify({ action: 'confirm_label', label: clean }));
+    logTerminal(`HITL confirmation sent to Pi -> ${clean}`, 'HITL', 'ok');
+    const banner = document.getElementById('hitlBanner');
+    if (banner) banner.classList.remove('active');
+  } else {
+    logTerminal(`HITL skipped: Pi WebSocket offline (cannot send ${clean}).`, 'HITL', 'alarm');
+  }
+}
+
+function mapMuxAlias(raw) {
+  const k = String(raw || '').toLowerCase();
+  if (k === 'auto') return 'auto';
+  if (k === 'pi' || k === 'pi_queen' || k === 'mic1' || k === 'force_pi') return 'force_pi';
+  if (k === 'node1' || k === 'esp1' || k === 'mic2' || k === 'force_node1') return 'force_node1';
+  if (k === 'node2' || k === 'esp2' || k === 'com3' || k === 'mic3' || k === 'force_node2') return 'force_node2';
+  return null;
+}
+
+function executeCliCommand(rawCmd) {
+  const trimmed = String(rawCmd || '').trim();
+  if (!trimmed) return;
+
+  state.cliHistory.push(trimmed);
+  state.cliHistoryIdx = state.cliHistory.length;
+  logTerminal(`titan-sh# ${trimmed}`, 'CMD', 'cmd');
+
+  const parts = trimmed.split(/\s+/);
+  const cmd = parts[0].toLowerCase();
+  const arg1 = parts[1] || '';
+
+  switch (cmd) {
+    case 'help':
+      logTerminal(`AUTOMATION SHELL COMMANDS:
+  rec [sec]         · Live WS: capture real 10Hz telemetry JSON | Offline: export real 16-bit WAV
+  thresh [0.01-0.99]· Move HUD visual Bayes cutoff λ (does not alter Pi cascade threshold)
+  mux [auto|pi|node1|node2] · Dispatch set_mux to Raspberry Pi
+  testmics          · Trigger Pi 3-Mic Hardware Self-Test (action: test_mics)
+  hitl [h|s|n]      · Send Dual HITL confirmation to Pi (action: confirm_label)
+  sample [healthy|sick|noise] · Switch offline WAV DSP preview
+  autorec [on|off]  · Toggle 10s live ring-buffer dump on Pi SICK alarm (30s cooldown)
+  export [csv|json] · Download audit trail log
+  clear             · Clear terminal viewport`, 'SYS', 'info');
+      break;
+
+    case 'rec':
+      startManualCapture(arg1);
+      break;
+
+    case 'thresh': {
+      const val = parseFloat(arg1);
+      if (isNaN(val) || val <= 0.005 || val >= 0.995) {
+        logTerminal(`Error: λ must be between 0.01 and 0.99 (got "${arg1}").`, 'SYS', 'alarm');
+      } else {
+        state.decisionThreshold = val;
+        const lbl = document.getElementById('lblThreshold');
+        if (lbl) lbl.textContent = `Visual Cutoff λ = ${val.toFixed(2)}`;
+        drawGaussianCurve();
+        const logit = Math.log(val / (1 - val));
+        logTerminal(`HUD visual cutoff λ = ${val.toFixed(2)} (logit ${logit >= 0 ? '+' : ''}${logit.toFixed(2)}σ). Pi cascade threshold unchanged.`, 'SYS', 'ok');
+      }
+      break;
+    }
+
+    case 'sample':
+    case 'inject': {
+      const key = arg1.toLowerCase();
+      if (['healthy', 'sick', 'noise'].includes(key)) {
+        state.liveMode = false;
+        selectOfflineSample(key);
+      } else {
+        logTerminal(`Unknown sample "${arg1}". Use: healthy | sick | noise.`, 'SYS', 'alarm');
+      }
+      break;
+    }
+
+    case 'mux': {
+      const mapped = mapMuxAlias(arg1);
+      if (!mapped) {
+        logTerminal(`Invalid MUX "${arg1}". Use: auto | pi | node1 | node2.`, 'SYS', 'alarm');
+        break;
+      }
+      const muxEl = document.getElementById('muxSelect');
+      if (muxEl) muxEl.value = mapped;
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.send(JSON.stringify({ action: 'set_mux', target: mapped }));
+        logTerminal(`Dispatched Pi set_mux -> ${mapped}`, 'SYS', 'ok');
+      } else {
+        logTerminal(`MUX set locally to ${mapped} (Pi WS offline; will apply when connected).`, 'SYS', 'info');
+      }
+      break;
+    }
+
+    case 'testmics':
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.send(JSON.stringify({ action: 'test_mics' }));
+        logTerminal('Dispatched action: test_mics -> check Raspberry Pi console for 3-mic self-test.', 'SYS', 'ok');
+      } else {
+        logTerminal('Cannot run testmics: Pi WebSocket offline.', 'SYS', 'alarm');
+      }
+      break;
+
+    case 'hitl': {
+      const map = { h: 'HEALTHY', healthy: 'HEALTHY', s: 'SICK', sick: 'SICK', n: 'NOISE', noise: 'NOISE' };
+      const lbl = map[arg1.toLowerCase()];
+      if (!lbl) logTerminal('Use: hitl h | hitl s | hitl n', 'HITL', 'alarm');
+      else dispatchHitlLabel(lbl);
+      break;
+    }
+
+    case 'export':
+      exportAuditTrail((arg1 || 'csv').toLowerCase());
+      break;
+
+    case 'autorec':
+      if (arg1 === 'off' || arg1 === '0') state.autoRecEnabled = false;
+      else if (arg1 === 'on' || arg1 === '1') state.autoRecEnabled = true;
+      else state.autoRecEnabled = !state.autoRecEnabled;
+      refreshAutoRecButton();
+      logTerminal(`Live SICK auto-capture: ${state.autoRecEnabled ? 'ENABLED' : 'DISABLED'}`, 'SYS', 'info');
+      break;
+
+    case 'clear':
+      if (termStreamEl) termStreamEl.innerHTML = '';
+      logTerminal('Terminal viewport cleared.', 'SYS', 'info');
+      break;
+
+    default:
+      logTerminal(`Unknown command "${cmd}". Type "help".`, 'SYS', 'alarm');
+  }
+}
+
+function exportAuditTrail(format = 'csv') {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  if (format === 'json') {
+    downloadBlob(JSON.stringify(state.terminalLogs, null, 2), `titan_audit_${stamp}.json`, 'application/json');
+    logTerminal(`Exported ${state.terminalLogs.length} records to titan_audit_${stamp}.json`, 'SYS', 'ok');
+  } else {
+    let csv = 'Timestamp,Tag,Category,Type,Message\n';
+    state.terminalLogs.forEach(r => {
+      const escaped = String(r.msg || '').replace(/"/g, '""');
+      csv += `"${r.ts}","${r.tag}","${r.cat}","${r.type}","${escaped}"\n`;
+    });
+    downloadBlob(csv, `titan_audit_${stamp}.csv`, 'text/csv');
+    logTerminal(`Exported ${state.terminalLogs.length} records to titan_audit_${stamp}.csv`, 'SYS', 'ok');
+  }
+}
+
+// =============================================================================
+// 4. LOAD STATIC EMPIRICAL KAGGLE DISTRIBUTIONS + MANIFOLD + REAL WAV DSP
+// =============================================================================
+function buildEmpiricalTailCdf(emp) {
+  if (!emp?.centers?.length || !emp?.healthy_density?.length || !emp?.sick_density?.length) return null;
+  const c = emp.centers;
+  const h = emp.healthy_density;
+  const s = emp.sick_density;
+  const n = c.length;
+  const hTail = new Float64Array(n);
+  const sTail = new Float64Array(n);
+  let hSum = 0, sSum = 0;
+  for (let i = n - 1; i >= 0; i--) {
+    const dx = i < n - 1 ? (c[i + 1] - c[i]) : (c[i] - c[i - 1]);
+    hSum += h[i] * dx;
+    sSum += s[i] * dx;
+    hTail[i] = hSum;
+    sTail[i] = sSum;
+  }
+  const hTot = hSum || 1.0;
+  const sTot = sSum || 1.0;
+  for (let i = 0; i < n; i++) {
+    hTail[i] /= hTot;
+    sTail[i] /= sTot;
+  }
+  return { centers: c, hDens: h, sDens: s, hTail, sTail };
+}
+
+async function initTelemetry() {
+  initDspWorker();
+
+  // Load real Kaggle empirical densities/ROC and 3D t-SNE manifold coordinates
+  try {
+    const [eRes, tRes] = await Promise.all([
+      fetch('data/empirical_distributions.json').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('data/showcase_telemetry.json').then(r => r.ok ? r.json() : null).catch(() => null)
+    ]);
+    if (eRes) {
+      state.empiricalData = eRes;
+      state.empiricalCdf = buildEmpiricalTailCdf(eRes);
+    }
+    if (tRes?.manifold_points) {
+      state.manifoldPoints = tRes.manifold_points;
+    }
+    if (eRes) {
+      logTerminal(`Loaded Kaggle empirical distributions (ROC AUC ${Number(eRes.auc || 0).toFixed(3)}) & ${state.manifoldPoints.length} t-SNE manifold points.`, 'SYS', 'info');
+    } else if (location.protocol === 'file:') {
+      logTerminal('Opened via file:// — browser blocks fetch() of local JSON/WAVs. Drop a WAV file or connect Pi WS, or serve via HTTP.', 'SYS', 'alarm');
+    }
+  } catch (err) {
+    logTerminal(`Static telemetry load warning: ${err.message}`, 'SYS', 'info');
+  }
+
+  init3DScene();
+  drawGaussianCurve();
+  drawRocCurve();
+
+  // Compute genuine inline IEEE DSP on data/audio_healthy.wav directly in browser
+  if (location.protocol !== 'file:') {
+    await selectOfflineSample('healthy');
+  }
+}
+
+async function ensureAudioContext() {
+  if (!state.audioContext) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) throw new Error('Web Audio API unavailable');
+    state.audioContext = new AC();
+  }
+  if (state.audioContext.state === 'suspended') {
+    await state.audioContext.resume();
+  }
+  return state.audioContext;
+}
+
+async function decodeWavUrl(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
+  const arrBuf = await res.arrayBuffer();
+  // Use OfflineAudioContext or AudioContext to decode exact native PCM
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ctx = state.audioContext || new AC();
+  state.audioContext = ctx;
+  return await ctx.decodeAudioData(arrBuf);
+}
+
+async function selectOfflineSample(sampleKey) {
+  state.activeSampleKey = sampleKey;
+  state.liveMode = false;
+  document.querySelectorAll('.sample-group .btn-ctrl').forEach(b => {
+    b.classList.toggle('active', b.dataset.sample === sampleKey);
+  });
+
+  if (state.dspCache[sampleKey]) {
+    applyBrowserDspResult(sampleKey, state.dspCache[sampleKey], WAV_SAMPLE_PATHS[sampleKey] || sampleKey);
+    return;
+  }
+
+  const url = WAV_SAMPLE_PATHS[sampleKey];
+  if (!url) return;
+
+  try {
+    logTerminal(`Decoding ${url} & running inline IEEE DSP worker...`, 'SYS', 'info');
+    const audioBuf = await decodeWavUrl(url);
+    state.audioBuffers[sampleKey] = audioBuf;
+    const pcm = audioBuf.getChannelData(0);
+    const dsp = await runBrowserDsp(pcm, audioBuf.sampleRate);
+    state.dspCache[sampleKey] = dsp;
+    if (sampleKey === 'healthy') state.healthyBaseline = dsp.summary;
+    applyBrowserDspResult(sampleKey, dsp, url);
+  } catch (err) {
+    logTerminal(`WAV DSP load error (${sampleKey}): ${err.message}`, 'SYS', 'alarm');
+  }
+}
+
+function updateFreqScaleLabels(nyquistHz, isLiveMel = false) {
+  const el = document.getElementById('freqScale');
+  if (!el) return;
+  if (isLiveMel) {
+    el.innerHTML = '<span>M13</span><span>M11</span><span>M9</span><span>M7</span><span>M5</span><span>M3</span><span>M1</span>';
+    return;
+  }
+  const maxKhz = nyquistHz / 1000.0;
+  const steps = 8;
+  let html = '';
+  for (let i = steps; i >= 0; i--) {
+    const v = (maxKhz * i) / steps;
+    html += `<span>${i === 0 ? '0 Hz' : (v >= 10 ? v.toFixed(0) : v.toFixed(1)) + ' kHz'}</span>`;
+  }
+  el.innerHTML = html;
+}
+
+function computeAcousticScreening(summary) {
+  const base = state.healthyBaseline;
+  if (!base) {
+    return {
+      text: `Voiced ${(summary.voiced_ratio * 100).toFixed(0)}% · HNR ${summary.hnr_db.toFixed(1)} dB · Entropy ${summary.spectral_entropy.toFixed(2)} bits`,
+      level: 'neutral'
+    };
+  }
+  const dHnr = summary.hnr_db - base.hnr_db;
+  const dEnt = summary.spectral_entropy - base.spectral_entropy;
+  const dJit = summary.jitter - base.jitter;
+  const isAmbient = summary.voiced_ratio < 0.25 && summary.hnr_db < 4.0;
+  const elevated = !isAmbient && (dHnr < -3.0 || dJit > 1.5 || dEnt > 0.6);
+  const tag = isAmbient ? 'LOW PERIODICITY (AMBIENT)' : (elevated ? 'ELEVATED PERTURBATION' : 'NEAR BASELINE');
+  return {
+    text: `${tag} (ΔHNR ${dHnr >= 0 ? '+' : ''}${dHnr.toFixed(1)} dB · ΔH ${dEnt >= 0 ? '+' : ''}${dEnt.toFixed(2)} bits)`,
+    level: elevated ? 'alarm' : 'neutral'
+  };
+}
+
+function applyBrowserDspResult(key, dsp, sourceName) {
+  const srKhz = (dsp.sampleRate / 1000).toFixed(dsp.sampleRate % 1000 === 0 ? 0 : 1);
+  const btnPlay = document.getElementById('btnAudioPlay');
+  if (btnPlay && !state.isAudioPlaying) btnPlay.textContent = `▶ Play (${srKhz} kHz)`;
+
+  const modePill = document.getElementById('badgeSourceMode');
+  if (modePill) { modePill.textContent = 'CLIENT DSP'; modePill.className = 'metric-pill mode-dsp'; }
+  document.getElementById('badgeRms').textContent = `RMS ${dsp.rmsDb.toFixed(1)} dB`;
+  document.getElementById('badgeSnr').textContent = `SNR ${dsp.snrDb.toFixed(1)} dB`;
+  document.getElementById('q1WaveTag').textContent = `PCM ENVELOPE · ${dsp.durationSec.toFixed(2)}s`;
+  document.getElementById('q1SpecTag').textContent = `0–${(dsp.nyquistHz / 1000).toFixed(1)} kHz STFT (HANN)`;
+  document.getElementById('q4MetaBadge').textContent = `Inline Worker DSP · ${srKhz} kHz PCM`;
+  updateFreqScaleLabels(dsp.nyquistHz, false);
+
+  // Q1 Waveform & Full STFT Spectrogram
+  drawWaveformFromArray(dsp.waveform, 0, true);
+  renderSpectrogramGrid(dsp.specGrid, dsp.specSteps, dsp.specBins, 0);
+
+  // Q2 Real 40-Frame 13-MFCC Waterfall
+  for (let i = 0; i < 40; i++) {
+    const f = dsp.mfccFrames[i] || dsp.mfccFrames[dsp.mfccFrames.length - 1];
+    state.waterfallFIFO[i] = Float32Array.from(f);
+  }
+  updateWaterfallGeometry(state.waterfallFIFO);
+  if (!state.webglActive) draw2DWaterfallFallback();
+
+  // Q4 Real Perturbation Sparklines & Values
+  state.sparkHistory.f0 = [...dsp.series.f0];
+  state.sparkHistory.jitter = [...dsp.series.jitter];
+  state.sparkHistory.shimmer = [...dsp.series.shimmer];
+  state.sparkHistory.hnr = [...dsp.series.hnr];
+  state.sparkHistory.entropy = [...dsp.series.entropy];
+
+  document.getElementById('valF0').textContent = `${dsp.summary.f0_mean.toFixed(1)} Hz`;
+  document.getElementById('subVoiced').textContent = `Voiced: ${(dsp.summary.voiced_ratio * 100).toFixed(1)}%`;
+  document.getElementById('valJitter').textContent = `${dsp.summary.jitter.toFixed(2)}%`;
+  document.getElementById('valShimmer').textContent = `${dsp.summary.shimmer.toFixed(2)} dB`;
+  document.getElementById('valHnr').textContent = `${dsp.summary.hnr_db.toFixed(1)} dB`;
+  document.getElementById('valEntropy').textContent = `${dsp.summary.spectral_entropy.toFixed(2)} bits`;
+  initSparklines();
+
+  // Honest Offline Screening Strip (Zero fake ML Queen claims)
+  const screen = computeAcousticScreening(dsp.summary);
+  const strip = document.getElementById('screeningStrip');
+  const sLeft = document.getElementById('screeningLeft');
+  const sRight = document.getElementById('screeningRight');
+  if (strip && sLeft && sRight) {
+    strip.className = 'screening-strip' + (screen.level === 'alarm' ? ' alarm' : '');
+    sLeft.innerHTML = `MODE: <strong>CLIENT DSP</strong> · Acoustic Screening Only (ML Verdict Requires Live Pi)`;
+    sRight.textContent = screen.text;
+  }
+
+  logTerminal(`[CLIENT DSP] ${sourceName} (${dsp.durationSec.toFixed(2)}s @ ${dsp.sampleRate}Hz) · F0=${dsp.summary.f0_mean}Hz · Jitter=${dsp.summary.jitter}% · Shimmer=${dsp.summary.shimmer}dB · HNR=${dsp.summary.hnr_db}dB · H=${dsp.summary.spectral_entropy}b`, 'SYS', 'ok');
+}
+
+// =============================================================================
+// 5. Q1: WAVEFORM & WARM AMBER SPECTROGRAM RENDERERS (OFFLINE STFT + LIVE MEL)
+// =============================================================================
+const waveCanvas = document.getElementById('waveformCanvas');
+const waveCtx = waveCanvas.getContext('2d');
+const specCanvas = document.getElementById('spectrogramCanvas');
+const specCtx = specCanvas.getContext('2d');
+
+function drawWaveformFromArray(samples, progress = 0, isEnvelope = true) {
+  if (!samples || samples.length === 0) return;
+  const w = waveCanvas.clientWidth;
+  const h = waveCanvas.clientHeight;
+  if (w < 2 || h < 2) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  waveCanvas.width = Math.round(w * dpr);
+  waveCanvas.height = Math.round(h * dpr);
+  waveCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  waveCtx.clearRect(0, 0, w, h);
+
+  // Subtle center reference line
+  waveCtx.strokeStyle = 'rgba(255,255,255,0.06)';
+  waveCtx.lineWidth = 1;
+  waveCtx.beginPath();
+  waveCtx.moveTo(0, h / 2); waveCtx.lineTo(w, h / 2);
+  waveCtx.stroke();
+
+  const n = samples.length;
+  const centerY = h / 2;
+  const step = w / Math.max(1, n - 1);
+
+  let maxAbs = 1e-4;
+  for (let i = 0; i < n; i++) {
+    const a = Math.abs(samples[i]);
+    if (a > maxAbs) maxAbs = a;
+  }
+
+  if (isEnvelope) {
+    // Solid Ivory / Bone Audio Waveform Fill (Exact Locked-in Snap 1 Vibe)
+    waveCtx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const x = i * step;
+      const amp = (Math.abs(samples[i]) / maxAbs) * (h * 0.44);
+      const y = centerY - amp;
+      if (i === 0) waveCtx.moveTo(x, y); else waveCtx.lineTo(x, y);
+    }
+    for (let i = n - 1; i >= 0; i--) {
+      const x = i * step;
+      const amp = (Math.abs(samples[i]) / maxAbs) * (h * 0.44);
+      const y = centerY + amp;
+      waveCtx.lineTo(x, y);
+    }
+    waveCtx.closePath();
+    waveCtx.fillStyle = '#d8d4c7';
+    waveCtx.fill();
+  } else {
+    // Live signed oscilloscope trace from Pi pi_mic.raw[400]
+    waveCtx.beginPath();
+    waveCtx.strokeStyle = '#d8d4c7';
+    waveCtx.lineWidth = 1.3;
+    for (let i = 0; i < n; i++) {
+      const x = i * step;
+      const y = centerY - (samples[i] / maxAbs) * (h * 0.43);
+      if (i === 0) waveCtx.moveTo(x, y); else waveCtx.lineTo(x, y);
+    }
+    waveCtx.stroke();
+  }
+
+  if (progress > 0) {
+    const px = progress * w;
+    waveCtx.strokeStyle = '#ffffff';
+    waveCtx.lineWidth = 1.5;
+    waveCtx.beginPath();
+    waveCtx.moveTo(px, 0); waveCtx.lineTo(px, h);
+    waveCtx.stroke();
+  }
+}
+
+function amberColorLUT(norm) {
+  // Exact warm amber/gold colormap (#07080a -> #3c1e0a -> #d97706 -> #fef08a)
+  if (norm < 0.25) {
+    const k = norm * 4;
+    return [Math.round(7 + k * 53), Math.round(8 + k * 22), Math.round(10)];
+  } else if (norm < 0.65) {
+    const k = (norm - 0.25) / 0.40;
+    return [Math.round(60 + k * 157), Math.round(30 + k * 89), Math.round(10 - k * 4)];
+  } else {
+    const k = (norm - 0.65) / 0.35;
+    return [Math.round(217 + k * 37), Math.round(119 + k * 121), Math.round(6 + k * 132)];
+  }
+}
+
+function renderSpectrogramGrid(gridBytes, timeSteps, bins, progress = 0) {
+  if (!specCtx || !gridBytes) return;
+  const w = specCanvas.clientWidth;
+  const h = specCanvas.clientHeight;
+  if (w < 2 || h < 2) return;
+
+  const off = document.createElement('canvas');
+  off.width = timeSteps; off.height = bins;
+  const offCtx = off.getContext('2d');
+  const imgData = offCtx.createImageData(timeSteps, bins);
+  const data = imgData.data;
+
+  for (let f = 0; f < bins; f++) {
+    const row = bins - 1 - f;
+    for (let t = 0; t < timeSteps; t++) {
+      const val = gridBytes[f * timeSteps + t] / 255.0;
+      const [r, g, b] = amberColorLUT(val);
+      const idx = (row * timeSteps + t) * 4;
+      data[idx] = r; data[idx + 1] = g; data[idx + 2] = b; data[idx + 3] = 255;
+    }
+  }
+  offCtx.putImageData(imgData, 0, 0);
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  specCanvas.width = Math.round(w * dpr);
+  specCanvas.height = Math.round(h * dpr);
+  specCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  specCtx.imageSmoothingEnabled = true;
+  specCtx.drawImage(off, 0, 0, w, h);
+
+  if (progress > 0) {
+    const px = progress * w;
+    specCtx.strokeStyle = '#ffffff';
+    specCtx.lineWidth = 1.5;
+    specCtx.beginPath();
+    specCtx.moveTo(px, 0); specCtx.lineTo(px, h);
+    specCtx.stroke();
+  }
+}
+
+function renderLiveMelSpectrogram() {
+  const cols = state.liveMelHistory.length;
+  const bins = 64;
+  const grid = new Uint8Array(bins * cols);
+  let minV = Infinity, maxV = -Infinity;
+  for (let t = 0; t < cols; t++) {
+    const col = state.liveMelHistory[t];
+    for (let b = 0; b < bins; b++) {
+      const v = col[b];
+      if (v < minV) minV = v;
+      if (v > maxV) maxV = v;
+    }
+  }
+  const span = Math.max(8.0, maxV - minV);
+  for (let t = 0; t < cols; t++) {
+    const col = state.liveMelHistory[t];
+    for (let b = 0; b < bins; b++) {
+      const norm = Math.max(0, Math.min(1, (col[b] - minV) / span));
+      grid[b * cols + t] = Math.round(norm * 255);
+    }
+  }
+  renderSpectrogramGrid(grid, cols, bins, 0);
+}
+
+// =============================================================================
+// 6. Q2: THREE.JS 3D BIOACOUSTIC VIEWPORT (LAZY DRACO + RAF GUARD + 2D FALLBACK)
+// =============================================================================
+let stageScene, stageCamera, stageRenderer, stageControls;
+let ribbonMesh, manifoldGroup, hardwareGroup, wireframeBox, gridHelper;
+let rafId = null;
+const viewportContainer = document.getElementById('viewport3D');
+const threeCanvas = document.getElementById('threeCanvas');
+const fallback2DCanvas = document.getElementById('fallback2DCanvas');
+
+function enable2DViewportFallback(reason) {
+  state.webglActive = false;
+  if (threeCanvas) threeCanvas.style.display = 'none';
+  if (fallback2DCanvas) fallback2DCanvas.style.display = 'block';
+  const rr = document.getElementById('reticleRight');
+  if (rr) rr.textContent = `2D FALLBACK (${reason})`;
+  draw2DWaterfallFallback();
+}
+
+function draw2DWaterfallFallback() {
+  if (!fallback2DCanvas) return;
+  const ctx = fallback2DCanvas.getContext('2d');
+  const w = viewportContainer.clientWidth;
+  const h = viewportContainer.clientHeight;
+  if (w < 2 || h < 2) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  fallback2DCanvas.width = Math.round(w * dpr);
+  fallback2DCanvas.height = Math.round(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = '#07080a';
+  ctx.fillRect(0, 0, w, h);
+
+  const fifo = state.waterfallFIFO;
+  const rows = fifo.length;
+  const cols = 13;
+  for (let z = 0; z < rows; z++) {
+    const yBase = 80 + (z / rows) * (h - 120);
+    ctx.beginPath();
+    ctx.strokeStyle = `rgba(56, 189, 248, ${0.18 + 0.72 * (z / rows)})`;
+    ctx.lineWidth = 1.1;
+    for (let x = 0; x < cols; x++) {
+      const px = 40 + (x / (cols - 1)) * (w - 80);
+      const norm = Math.max(0, Math.min(1, (fifo[z][x] + 60) / 80));
+      const py = yBase - norm * 42;
+      if (x === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+}
+
+function startRenderLoop() {
+  if (!state.webglActive || rafId !== null) return;
+  if (!state.viewportVisible || !state.tabVisible) return;
+  function animate() {
+    if (!state.webglActive || !state.viewportVisible || !state.tabVisible) {
+      rafId = null;
+      return;
+    }
+    rafId = requestAnimationFrame(animate);
+    if (stageControls) stageControls.update();
+    if (stageRenderer && stageScene && stageCamera) {
+      stageRenderer.render(stageScene, stageCamera);
+    }
+  }
+  rafId = requestAnimationFrame(animate);
+}
+
+function stopRenderLoop() {
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+}
+
+function init3DScene() {
+  if (typeof THREE === 'undefined') {
+    enable2DViewportFallback('NO THREE.JS');
+    return;
+  }
+  const w = Math.max(100, viewportContainer.clientWidth);
+  const h = Math.max(100, viewportContainer.clientHeight);
+
+  try {
+    stageRenderer = new THREE.WebGLRenderer({
+      canvas: threeCanvas,
+      antialias: !IS_COARSE_POINTER,
+      alpha: false,
+      powerPreference: IS_COARSE_POINTER ? 'low-power' : 'high-performance'
+    });
+  } catch (err) {
+    enable2DViewportFallback('NO WEBGL');
+    return;
+  }
+
+  state.webglActive = true;
+  stageRenderer.setSize(w, h);
+  stageRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, IS_COARSE_POINTER ? 1.5 : 2));
+
+  threeCanvas.addEventListener('webglcontextlost', e => {
+    e.preventDefault();
+    stopRenderLoop();
+    enable2DViewportFallback('CONTEXT LOST');
+  }, false);
+
+  stageScene = new THREE.Scene();
+  stageScene.background = new THREE.Color(0x07080a);
+
+  stageCamera = new THREE.PerspectiveCamera(38, w / h, 0.1, 100);
+  stageCamera.position.set(0, 3.2, 5.8);
+
+  stageControls = new THREE.OrbitControls(stageCamera, stageRenderer.domElement);
+  stageControls.enableDamping = true;
+  stageControls.dampingFactor = 0.05;
+  stageControls.target.set(0, 0.1, 0);
+
+  if (IS_COARSE_POINTER) {
+    stageControls.enabled = false;
+    threeCanvas.classList.add('scroll-safe');
+  }
+
+  stageScene.add(new THREE.AmbientLight(0xffffff, 0.9));
+  const dirLight = new THREE.DirectionalLight(0xfffaf0, 1.4);
+  dirLight.position.set(4, 8, 4);
+  stageScene.add(dirLight);
+
+  buildWireframeBox();
+  buildWaterfallMesh();
+  buildManifoldClusters();
+
+  hardwareGroup = new THREE.Group();
+  hardwareGroup.visible = false;
+  stageScene.add(hardwareGroup);
+
+  const rr = document.getElementById('reticleRight');
+  if (rr) rr.textContent = IS_COARSE_POINTER ? 'WEBGL · TOUCH SAFE' : 'WEBGL · 60 FPS';
+
+  // Auto-pause RAF when Q2 scrolls off-screen or browser tab hides
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      state.viewportVisible = entries.some(en => en.isIntersecting);
+      if (state.viewportVisible && state.tabVisible) startRenderLoop();
+      else stopRenderLoop();
+    }, { threshold: 0.05 });
+    io.observe(viewportContainer);
+  }
+  document.addEventListener('visibilitychange', () => {
+    state.tabVisible = !document.hidden;
+    if (state.viewportVisible && state.tabVisible) startRenderLoop();
+    else stopRenderLoop();
+  });
+
+  startRenderLoop();
+}
+
+function buildWireframeBox() {
+  const boxGeo = new THREE.BoxGeometry(3.6, 2.2, 2.8);
+  const wireMat = new THREE.MeshBasicMaterial({ color: 0x222630, wireframe: true });
+  wireframeBox = new THREE.Mesh(boxGeo, wireMat);
+  wireframeBox.position.set(0, 0.1, 0);
+  stageScene.add(wireframeBox);
+
+  gridHelper = new THREE.GridHelper(3.6, 12, 0x3e4250, 0x1f2128);
+  gridHelper.position.y = -1.0;
+  stageScene.add(gridHelper);
+}
+
+function buildWaterfallMesh() {
+  const N_BINS = 13, N_HIST = 40;
+  const geom = new THREE.PlaneGeometry(3.0, 2.4, N_BINS - 1, N_HIST - 1);
+  geom.rotateX(-Math.PI / 2.3);
+
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0x38bdf8,
+    wireframe: true,
+    roughness: 0.4,
+    metalness: 0.6,
+    emissive: 0x06283d
+  });
+  ribbonMesh = new THREE.Mesh(geom, mat);
+  ribbonMesh.position.set(0, 0.1, 0);
+  stageScene.add(ribbonMesh);
+  updateWaterfallGeometry(state.waterfallFIFO);
+}
+
+function updateWaterfallGeometry(fifo) {
+  if (!ribbonMesh) return;
+  const pos = ribbonMesh.geometry.attributes.position;
+  const N_BINS = 13, N_HIST = 40;
+
+  // Per-bin z-normalized range so c[0] (DC log energy) does not dwarf c[1..12] cepstral relief
+  const binMin = new Float32Array(N_BINS).fill(Infinity);
+  const binMax = new Float32Array(N_BINS).fill(-Infinity);
+  for (let z = 0; z < N_HIST; z++) {
+    const fr = fifo[z];
+    for (let x = 0; x < N_BINS; x++) {
+      const v = fr[x];
+      if (v < binMin[x]) binMin[x] = v;
+      if (v > binMax[x]) binMax[x] = v;
+    }
+  }
+  let idx = 0;
+  for (let z = 0; z < N_HIST; z++) {
+    const frame = fifo[z];
+    for (let x = 0; x < N_BINS; x++) {
+      const span = Math.max(2.0, binMax[x] - binMin[x]);
+      const norm = Math.max(0, Math.min(1, (frame[x] - binMin[x]) / span));
+      pos.setZ(idx, norm * 0.82);
+      idx++;
+    }
+  }
+  pos.needsUpdate = true;
+}
+
+function buildManifoldClusters() {
+  manifoldGroup = new THREE.Group();
+  manifoldGroup.visible = false;
+
+  const pts = state.manifoldPoints || [];
+  if (pts.length > 0) {
+    const sphereGeo = new THREE.SphereGeometry(0.042, 10, 10);
+    const matHealthy = new THREE.MeshBasicMaterial({ color: 0xe2ded4 });
+    const matSick = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
+    const matNoise = new THREE.MeshBasicMaterial({ color: 0x64748b });
+
+    pts.forEach(p => {
+      const m = p.c === 1 ? matSick : (p.c === 2 ? matNoise : matHealthy);
+      const mesh = new THREE.Mesh(sphereGeo, m);
+      mesh.position.set(p.x * 0.9, p.y * 0.9, p.z * 0.9);
+      manifoldGroup.add(mesh);
+    });
+  }
+  stageScene.add(manifoldGroup);
+}
+
+// Lazy-Load Authentic 6 Draco GLB Models ONLY When User Clicks Spatial Hardware
+function loadHardwareModelsOnce() {
+  if (state.hardwareLoaded || state.hardwareLoading || !state.webglActive) return;
+  state.hardwareLoading = true;
+  const rr = document.getElementById('reticleRight');
+
+  const diskGeo = new THREE.CylinderGeometry(4.6, 4.8, 0.08, 64);
+  const diskMat = new THREE.MeshStandardMaterial({ color: 0x14171f, metalness: 0.8, roughness: 0.3 });
+  const disk = new THREE.Mesh(diskGeo, diskMat);
+  disk.position.y = -0.04;
+  hardwareGroup.add(disk);
+
+  const gltfLoader = new THREE.GLTFLoader();
+  if (THREE.DRACOLoader) {
+    const dracoLoader = new THREE.DRACOLoader();
+    dracoLoader.setDecoderPath('vendor/draco/');
+    gltfLoader.setDRACOLoader(dracoLoader);
+  }
+
+  const modelConfigs = [
+    { path: 'models/raspberry_pi.glb', pos: [-3.25, 0.06, -0.25], rot: [0, 0, 0], scale: 0.95 },
+    { path: 'models/usb_mic.glb', pos: [-1.95, 0.06, 0.30], rot: [0, -0.6, 0], scale: 0.65 },
+    { path: 'models/esp32_s3.glb', pos: [-0.75, 0.06, -0.25], rot: [0, 0, 0], scale: 0.85 },
+    { path: 'models/inmp441_mic.glb', pos: [0.55, 0.06, 0.30], rot: [0, 0, 0], scale: 0.45 },
+    { path: 'models/esp32_devkit_v1.glb', pos: [1.85, 0.06, -0.25], rot: [0, 0, 0], scale: 0.85 },
+    { path: 'models/elechouse_vr3.glb', pos: [3.25, 0.06, 0.30], rot: [0, 0, 0], scale: 0.65 }
+  ];
+
+  let doneCount = 0;
+  if (rr) rr.textContent = `LOADING CAD 0/${modelConfigs.length}...`;
+
+  modelConfigs.forEach(cfg => {
+    gltfLoader.load(cfg.path, gltf => {
+      const obj = gltf.scene;
+      const box = new THREE.Box3().setFromObject(obj);
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const normFactor = 1.4 / (maxDim || 1);
+      obj.scale.setScalar(normFactor * cfg.scale);
+
+      const newBox = new THREE.Box3().setFromObject(obj);
+      const center = newBox.getCenter(new THREE.Vector3());
+      obj.position.x = cfg.pos[0] - center.x;
+      obj.position.y = cfg.pos[1] - newBox.min.y + 0.02;
+      obj.position.z = cfg.pos[2] - center.z;
+      obj.rotation.set(cfg.rot[0], cfg.rot[1], cfg.rot[2]);
+
+      obj.traverse(child => {
+        if (child.isMesh && child.material) {
+          child.material.side = THREE.DoubleSide;
+          child.material.needsUpdate = true;
+        }
+      });
+      hardwareGroup.add(obj);
+      doneCount++;
+      if (rr) rr.textContent = doneCount < modelConfigs.length ? `LOADING CAD ${doneCount}/${modelConfigs.length}...` : 'CAD STAGE READY (6/6)';
+      if (doneCount === modelConfigs.length) { state.hardwareLoaded = true; state.hardwareLoading = false; }
+    }, undefined, () => {
+      doneCount++;
+      if (doneCount === modelConfigs.length) {
+        state.hardwareLoaded = true;
+        state.hardwareLoading = false;
+        if (rr) rr.textContent = 'CAD STAGE PARTIAL';
+      }
+    });
+  });
+}
+
+// 3D Mode Tabs & Mobile Touch Orbit Lock
+document.querySelectorAll('.mode-tab[data-mode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-tab[data-mode]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.active3DMode = btn.dataset.mode;
+
+    if (state.active3DMode === 'hardware') loadHardwareModelsOnce();
+
+    if (ribbonMesh) ribbonMesh.visible = (state.active3DMode === 'waterfall');
+    if (manifoldGroup) manifoldGroup.visible = (state.active3DMode === 'manifold');
+    if (hardwareGroup) hardwareGroup.visible = (state.active3DMode === 'hardware');
+    if (wireframeBox) wireframeBox.visible = (state.active3DMode !== 'hardware');
+    if (gridHelper) gridHelper.visible = (state.active3DMode !== 'hardware');
+
+    const axisLabels = document.getElementById('axis3DLabels');
+    if (axisLabels) {
+      if (state.active3DMode === 'waterfall') {
+        axisLabels.style.display = 'flex';
+        axisLabels.innerHTML = '<span class="axis-3d x">X: Temporal Window (0–40 frames)</span><span class="axis-3d y">Y: Cepstral Energy</span><span class="axis-3d z">Z: Cepstral Bin (MFCC 1–13)</span>';
+      } else if (state.active3DMode === 'manifold') {
+        axisLabels.style.display = 'flex';
+        axisLabels.innerHTML = '<span class="axis-3d x">X: t-SNE Dim 1 (80-DSP)</span><span class="axis-3d y">Y: t-SNE Dim 2</span><span class="axis-3d z">Z: t-SNE Dim 3 (Healthy/Sick/Noise)</span>';
+      } else {
+        axisLabels.style.display = 'none';
+      }
+    }
+  });
+});
+
+document.getElementById('btnOrbitLock')?.addEventListener('click', () => {
+  state.orbitTouchUnlocked = !state.orbitTouchUnlocked;
+  const btn = document.getElementById('btnOrbitLock');
+  if (btn) {
+    btn.textContent = state.orbitTouchUnlocked ? 'Orbit: ON' : 'Orbit: OFF';
+    btn.classList.toggle('unlocked', state.orbitTouchUnlocked);
+  }
+  if (stageControls) stageControls.enabled = state.orbitTouchUnlocked;
+  threeCanvas.classList.toggle('scroll-safe', !state.orbitTouchUnlocked);
+});
+
+// =============================================================================
+// 7. Q3: STATISTICAL INFERENCE & EMPIRICAL ROC (TRUE BAYES TAIL INTEGRALS)
+// =============================================================================
+function drawGaussianCurve() {
+  const canvas = document.getElementById('gaussianCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (w < 2 || h < 2) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let y = 15; y < h; y += 18) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+  for (let x = 20; x < w; x += 30) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+  ctx.stroke();
+
+  const centers = state.empiricalData?.centers || [];
+  const hDens = state.empiricalData?.healthy_density || [];
+  const sDens = state.empiricalData?.sick_density || [];
+  if (centers.length === 0 || hDens.length === 0) return;
+
+  const xMin = centers[0], xMax = centers[centers.length - 1];
+  const maxDensity = Math.max(...hDens, ...sDens) || 0.45;
+  const toScreenX = val => ((val - xMin) / (xMax - xMin)) * w;
+  const toScreenY = val => h - 14 - (val / (maxDensity * 1.18)) * (h - 28);
+
+  // Shaded Bayesian overlap right of z = 0
+  const thX = toScreenX(0.0);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(thX, 0, w - thX, h - 14);
+  ctx.clip();
+  ctx.beginPath();
+  for (let i = 0; i < centers.length; i++) {
+    const px = toScreenX(centers[i]);
+    const py = toScreenY(hDens[i]);
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.lineTo(w, h - 14); ctx.lineTo(thX, h - 14);
+  ctx.fillStyle = 'rgba(216, 212, 199, 0.12)';
+  ctx.fill();
+  ctx.restore();
+
+  // Healthy empirical density (Bone-White #d8d4c7)
+  ctx.beginPath();
+  ctx.strokeStyle = '#d8d4c7';
+  ctx.lineWidth = 1.6;
+  for (let i = 0; i < centers.length; i++) {
+    const px = toScreenX(centers[i]), py = toScreenY(hDens[i]);
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  // Sick empirical density (Amber #f59e0b)
+  ctx.beginPath();
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 1.6;
+  for (let i = 0; i < centers.length; i++) {
+    const px = toScreenX(centers[i]), py = toScreenY(sDens[i]);
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  // Decision threshold cursor bound to state.decisionThreshold (λ)
+  const pCut = state.decisionThreshold;
+  const logitVal = Math.max(xMin, Math.min(xMax, Math.log(pCut / (1.0 - pCut))));
+  const cursorX = toScreenX(logitVal);
+  ctx.beginPath();
+  ctx.strokeStyle = '#f43f5e';
+  ctx.lineWidth = 1.3;
+  ctx.setLineDash([4, 4]);
+  ctx.moveTo(cursorX, 4); ctx.lineTo(cursorX, h - 14);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Live Pi score indicator when Pi WS is streaming
+  if (state.liveMode && state.liveScoreZ !== null) {
+    const liveX = toScreenX(Math.max(xMin, Math.min(xMax, state.liveScoreZ)));
+    ctx.beginPath();
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 1.5;
+    ctx.moveTo(liveX, 16); ctx.lineTo(liveX, h - 14);
+    ctx.stroke();
+    ctx.fillStyle = '#10b981';
+    ctx.beginPath(); ctx.arc(liveX, 18, 3.2, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Pointer / Touch Crosshair Inspection
+  if (state.hoverGaussian) {
+    const mx = Math.max(0, Math.min(w, state.hoverGaussian.mx));
+    const zScore = xMin + (mx / w) * (xMax - xMin);
+
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 2]);
+    ctx.moveTo(mx, 4); ctx.lineTo(mx, h - 14);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    let closestIdx = 0, minDist = Infinity;
+    for (let i = 0; i < centers.length; i++) {
+      const dist = Math.abs(centers[i] - zScore);
+      if (dist < minDist) { minDist = dist; closestIdx = i; }
+    }
+    const hVal = hDens[closestIdx] || 0;
+    const sVal = sDens[closestIdx] || 0;
+
+    ctx.fillStyle = '#d8d4c7';
+    ctx.beginPath(); ctx.arc(mx, toScreenY(hVal), 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath(); ctx.arc(mx, toScreenY(sVal), 3, 0, Math.PI * 2); ctx.fill();
+
+    const pPostSick = (sVal / (sVal + hVal + 1e-9)) * 100;
+    const badge = document.getElementById('inspectGaussian');
+    if (badge) {
+      badge.textContent = `z: ${zScore >= 0 ? '+' : ''}${zScore.toFixed(2)}σ · P(Sick|z): ${pPostSick.toFixed(1)}% · P(Healthy|z): ${(100 - pPostSick).toFixed(1)}%`;
+      badge.style.color = pPostSick >= (pCut * 100) ? 'var(--accent-rose)' : 'var(--accent-bone)';
+    }
+  }
+}
+
+function deriveBayesCutoffFromFpr(fpr) {
+  const cdf = state.empiricalCdf;
+  if (!cdf) return null;
+  let bestIdx = 0, minDiff = Infinity;
+  for (let i = 0; i < cdf.hTail.length; i++) {
+    const d = Math.abs(cdf.hTail[i] - fpr);
+    if (d < minDiff) { minDiff = d; bestIdx = i; }
+  }
+  const z = cdf.centers[bestIdx];
+  const s = cdf.sDens[bestIdx];
+  const h = cdf.hDens[bestIdx];
+  const lambda = s / (s + h + 1e-9);
+  return { z, lambda };
+}
+
+function drawRocCurve() {
+  const canvas = document.getElementById('rocCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (w < 2 || h < 2) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let i = 1; i <= 4; i++) {
+    const y = (i / 5) * h; ctx.moveTo(0, y); ctx.lineTo(w, y);
+    const x = (i / 5) * w; ctx.moveTo(x, 0); ctx.lineTo(x, h);
+  }
+  ctx.stroke();
+
+  // Chance Diagonal
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.setLineDash([3, 3]);
+  ctx.moveTo(0, h); ctx.lineTo(w, 0);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const pts = state.empiricalData?.roc_points || [];
+  if (pts.length === 0) return;
+
+  ctx.beginPath();
+  ctx.strokeStyle = '#d8d4c7';
+  ctx.lineWidth = 1.6;
+  for (let i = 0; i < pts.length; i++) {
+    const px = pts[i].fpr * w;
+    const py = (1.0 - pts[i].tpr) * h;
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  if (state.empiricalData?.auc) {
+    document.getElementById('lblAuc').textContent = `ROC AUC: ${Number(state.empiricalData.auc).toFixed(3)}`;
+  }
+
+  // Pointer / Touch Inspection with True Tail-Integral Bayes λ (Zero hardcoded 0.85)
+  if (state.hoverRoc) {
+    const targetFpr = Math.max(0, Math.min(1, state.hoverRoc.mx / w));
+    let closestPt = pts[0], minDist = Infinity;
+    for (let i = 0; i < pts.length; i++) {
+      const d = Math.abs(pts[i].fpr - targetFpr);
+      if (d < minDist) { minDist = d; closestPt = pts[i]; }
+    }
+
+    const px = closestPt.fpr * w;
+    const py = (1.0 - closestPt.tpr) * h;
+
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 2]);
+    ctx.moveTo(px, 0); ctx.lineTo(px, h);
+    ctx.moveTo(0, py); ctx.lineTo(w, py);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#10b981';
+    ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
+
+    const youdenJ = closestPt.tpr - closestPt.fpr;
+    const derived = deriveBayesCutoffFromFpr(closestPt.fpr);
+    const badge = document.getElementById('inspectRoc');
+    if (badge) {
+      const cutStr = derived ? `λ*: ${derived.lambda.toFixed(2)} (z ${derived.z >= 0 ? '+' : ''}${derived.z.toFixed(1)}σ)` : `FPR ${(closestPt.fpr * 100).toFixed(1)}%`;
+      badge.textContent = `${cutStr} · TPR: ${(closestPt.tpr * 100).toFixed(1)}% · FPR: ${(closestPt.fpr * 100).toFixed(1)}% · J: ${youdenJ.toFixed(3)}`;
+    }
+  }
+}
+
+// =============================================================================
+// 8. Q4: IEEE PERTURBATION SPARKLINES (PURE CRISP 1.3px OSCILLOSCOPE, ZERO GLOW)
+// =============================================================================
+function initSparklines() {
+  ['f0', 'jitter', 'shimmer', 'hnr', 'entropy'].forEach(drawSparkline);
+}
+
+function pushSpark(key, value) {
+  const arr = state.sparkHistory[key];
+  arr.push(value);
+  while (arr.length > 30) arr.shift();
+  drawSparkline(key);
+}
+
+function drawSparkline(key) {
+  const canvasId = 'spark' + key.charAt(0).toUpperCase() + key.slice(1);
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (w < 2 || h < 2) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2);
+  ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h);
+  ctx.stroke();
+
+  const data = state.sparkHistory[key];
+  if (!data || data.length < 2) return;
+
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const span = max - min;
+
+  ctx.beginPath();
+  ctx.strokeStyle = key === 'f0' ? '#f59e0b' : (key === 'entropy' ? '#f43f5e' : '#10b981');
+  ctx.lineWidth = 1.3;
+  ctx.shadowBlur = 0;
+
+  for (let i = 0; i < data.length; i++) {
+    const x = (i / (data.length - 1)) * w;
+    const norm = span > 1e-4 ? (data[i] - min) / span : 0.5;
+    const y = h - 6 - norm * (h - 12);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+// =============================================================================
+// 9. REAL-TIME PI & ESP32 TELEMETRY INGESTION (EXACT SENTRY V14 PARITY)
+// =============================================================================
+const LOG2_1025 = Math.log2(1025); // librosa.stft default n_fft=2048 -> 1025 freq bins
+
+function ingestLivePacket(pkt, source = 'WS') {
+  if (!pkt || typeof pkt !== 'object') return;
+  recordRealPacketTick();
+  state.liveMode = true;
+
+  // Store in 10s rolling ring buffer & manual capture buffer
+  if (source === 'WS') {
+    state.wsRingBuffer.push({ t: Date.now(), pkt });
+    while (state.wsRingBuffer.length > 100) state.wsRingBuffer.shift();
+    if (state.activeRecTimer) state.activeCapturePackets.push({ t: Date.now(), pkt });
+  }
+
+  const modePill = document.getElementById('badgeSourceMode');
+  if (modePill) { modePill.textContent = source === 'WS' ? 'PI LIVE WS' : source; modePill.className = 'metric-pill mode-live'; }
+
+  const selectedMic = pkt.selected_mic || 'pi_mic';
+  const piMic = pkt.pi_mic || {};
+  const n1 = pkt.node1_esp || {};
+  const n2 = pkt.node2_esp || {};
+  const bio = pkt.bioacoustics || {};
+
+  // 1. Q1 Live Waveform from Pi pi_mic.raw[400]
+  if (Array.isArray(piMic.raw) && piMic.raw.length > 8) {
+    state.liveRawWaveform = piMic.raw;
+    document.getElementById('q1WaveTag').textContent = `PI LIVE WAVE (${selectedMic.toUpperCase()})`;
+    drawWaveformFromArray(piMic.raw, 0, false);
+  }
+
+  // 2. Active 13-MFCC -> Q2 3D Waterfall + Q1 Live IDCT Log-Mel Spectrogram
+  let mfcc = null;
+  if (selectedMic === 'node1_esp' && Array.isArray(n1.mfcc) && n1.mfcc.length >= 13) mfcc = n1.mfcc;
+  else if (selectedMic === 'node2_esp' && Array.isArray(n2.mfcc) && n2.mfcc.length >= 13) mfcc = n2.mfcc;
+  else if (Array.isArray(piMic.proc) && piMic.proc.length >= 13) mfcc = piMic.proc;
+  else if (Array.isArray(n1.mfcc) && n1.mfcc.length >= 13) mfcc = n1.mfcc;
+  else if (Array.isArray(pkt.mfcc) && pkt.mfcc.length >= 13) mfcc = pkt.mfcc;
+
+  if (mfcc) {
+    const f13 = Float32Array.from(mfcc.slice(0, 13).map(Number));
+    state.waterfallFIFO.shift();
+    state.waterfallFIFO.push(f13);
+    updateWaterfallGeometry(state.waterfallFIFO);
+    if (!state.webglActive) draw2DWaterfallFallback();
+
+    // Reconstruct 64 Mel bands via IDCT-II for rolling Q1 live spectrogram
+    const mel64 = idct13ToMel64(f13);
+    state.liveMelHistory.shift();
+    state.liveMelHistory.push(mel64);
+    document.getElementById('q1SpecTag').textContent = 'LIVE MEL-CEPSTRAL (13-MFCC IDCT)';
+    updateFreqScaleLabels(8000, true);
+    renderLiveMelSpectrogram();
+  }
+
+  // 3. Q1 RMS & SNR Badges
+  const rawRms = (selectedMic === 'node1_esp' && n1.rms) ? n1.rms :
+                 (selectedMic === 'node2_esp' && n2.rms) ? n2.rms :
+                 (piMic.rms !== undefined ? piMic.rms : pkt.rms);
+  if (rawRms !== undefined && rawRms !== null) {
+    const rmsDb = rawRms > 0 ? (10.0 * Math.log10(Number(rawRms) + 1e-10)) : -90.0;
+    document.getElementById('badgeRms').textContent = `RMS ${rmsDb.toFixed(1)} dB`;
+  }
+  const snrVal = bio.snr_db !== undefined ? bio.snr_db :
+                 (selectedMic === 'node1_esp' ? n1.snr : (selectedMic === 'node2_esp' ? n2.snr : undefined));
+  if (snrVal !== undefined && snrVal !== null) {
+    document.getElementById('badgeSnr').textContent = `SNR ${Number(snrVal).toFixed(1)} dB`;
+  }
+
+  // 4. Q4 IEEE Perturbation Cards (Exact Pi -> dB / bits Unit Conversion)
+  document.getElementById('q4MetaBadge').textContent = 'Pi 80-DSP Live Stream (Unit-Converted)';
+  if (bio.f0_mean !== undefined) {
+    const f0 = Number(bio.f0_mean);
+    document.getElementById('valF0').textContent = `${f0.toFixed(1)} Hz`;
+    pushSpark('f0', f0);
+  }
+  if (bio.voiced_ratio !== undefined) {
+    document.getElementById('subVoiced').textContent = `Voiced: ${(Number(bio.voiced_ratio) * 100).toFixed(1)}%`;
+  }
+  if (bio.jitter !== undefined) {
+    const rawJ = Number(bio.jitter);
+    const jitPct = rawJ <= 1.0 ? rawJ * 100.0 : rawJ;
+    document.getElementById('valJitter').textContent = `${jitPct.toFixed(2)}%`;
+    pushSpark('jitter', jitPct);
+  }
+  if (bio.shimmer !== undefined) {
+    const rawS = Math.max(0, Number(bio.shimmer));
+    // Pi computes ratio mean(|diff(rms)|)/rms_mean -> exact dB conversion: 20*log10(1 + ratio)
+    const shimDb = 20.0 * Math.log10(1.0 + rawS);
+    document.getElementById('valShimmer').textContent = `${shimDb.toFixed(2)} dB`;
+    pushSpark('shimmer', shimDb);
+  }
+  if (bio.hnr_db !== undefined) {
+    const hnr = Number(bio.hnr_db);
+    document.getElementById('valHnr').textContent = `${hnr.toFixed(1)} dB`;
+    pushSpark('hnr', hnr);
+  }
+  if (bio.spectral_entropy !== undefined) {
+    const rawH = Number(bio.spectral_entropy);
+    // Pi normalizes entropy by log2(1025) -> recover true Shannon bits
+    const entBits = rawH <= 1.05 ? rawH * LOG2_1025 : rawH;
+    document.getElementById('valEntropy').textContent = `${entBits.toFixed(2)} bits`;
+    pushSpark('entropy', entBits);
+  }
+
+  // 5. Q5 Hardware Telemetry (Fixes hwNode2 & Syncs MUX Dropdown)
+  if (pkt.hardware) {
+    const tC = pkt.hardware.cpu_temp_c !== null && pkt.hardware.cpu_temp_c !== undefined ? `${pkt.hardware.cpu_temp_c}°C` : '--°C';
+    const ram = pkt.hardware.ram_percent !== null && pkt.hardware.ram_percent !== undefined ? `${pkt.hardware.ram_percent}%` : '--%';
+    document.getElementById('hwPiLoad').textContent = `${tC} · ${ram}`;
+  }
+  if (n1.status) document.getElementById('hwNode1').textContent = n1.status;
+  if (n2.status) document.getElementById('hwNode2').textContent = n2.status;
+  if (pkt.uptime) document.getElementById('hwUptime').textContent = `UP: ${pkt.uptime}`;
+  if (pkt.active_mux) {
+    const muxEl = document.getElementById('muxSelect');
+    if (muxEl && document.activeElement !== muxEl) muxEl.value = pkt.active_mux;
+  }
+
+  // 6. Dual HITL Active Learning Banner (Exact Pi hitl Schema)
+  const hitl = pkt.hitl;
+  const hitlBanner = document.getElementById('hitlBanner');
+  if (hitlBanner && hitl) {
+    if (hitl.active) {
+      hitlBanner.classList.add('active');
+      const confPct = (Number(hitl.confidence || 0) * 100).toFixed(1);
+      document.getElementById('hitlText').textContent = `HITL VERIFY: ${hitl.suggested_class || '?'} (${confPct}%) · ${hitl.timeout_remaining || 0}s`;
+    } else {
+      hitlBanner.classList.remove('active');
+    }
+  }
+
+  // 7. Real Pi Verdict, Avian Bayesian Indicator & Live Q3 Score Marker
+  const predStr = String(
+    piMic.pred ||
+    (pkt.pred === 1 ? 'SICK' : (pkt.pred === 0 ? 'HEALTHY' : (pkt.pred === 2 ? 'NOISE' : ''))) ||
+    pkt.class ||
+    'LISTENING'
+  ).toUpperCase();
+  const confRaw = Number(piMic.conf !== undefined ? piMic.conf : (pkt.conf || 0));
+  const confProb = confRaw > 1.0 ? confRaw / 100.0 : confRaw;
+  const diagSource = piMic.diag_source || source;
+  const isSick = predStr === 'SICK';
+
+  // Update Q3 live score cursor
+  if (predStr === 'SICK' || predStr === 'HEALTHY') {
+    const pSick = isSick ? Math.min(0.995, Math.max(0.5, confProb)) : Math.max(0.005, 1.0 - Math.max(0.5, confProb));
+    state.liveScoreZ = Math.log(pSick / (1.0 - pSick));
+    state.liveScoreLabel = `${predStr} (${(confProb * 100).toFixed(1)}%)`;
+    drawGaussianCurve();
+  }
+
+  const q3Meta = document.getElementById('q3MetaBadge');
+  if (q3Meta && diagSource) {
+    q3Meta.textContent = `LIVE ENGINE: ${diagSource}`;
+  }
+
+  const strip = document.getElementById('screeningStrip');
+  const sLeft = document.getElementById('screeningLeft');
+  const sRight = document.getElementById('screeningRight');
+  if (strip && sLeft && sRight) {
+    strip.className = 'screening-strip ' + (isSick ? 'alarm' : 'live-ok');
+    sLeft.innerHTML = `LIVE PI VERDICT: <strong>${escapeHtml(predStr)} (${(confProb * 100).toFixed(1)}%)</strong>`;
+    sRight.textContent = `${diagSource} · Active: ${selectedMic}`;
+  }
+
+  // Smart Deduplicated Terminal Logging (No 10 Hz Flood!)
+  const nowMs = Date.now();
+  const stateChanged = (predStr !== state.lastLoggedPred) || (diagSource !== state.lastLoggedSource);
+  if (stateChanged || (isSick && nowMs - state.lastHeartbeatLog > 2000) || (nowMs - state.lastHeartbeatLog > 4000)) {
+    state.lastLoggedPred = predStr;
+    state.lastLoggedSource = diagSource;
+    state.lastHeartbeatLog = nowMs;
+    const tag = isSick ? 'ALARM' : (source.startsWith('USB') ? 'SERIAL' : 'SYS');
+    const type = isSick ? 'alarm' : 'ok';
+    logTerminal(`[${source}] ${predStr} (${(confProb * 100).toFixed(1)}%) · ${diagSource} · F0=${Number(bio.f0_mean || 0).toFixed(1)}Hz`, tag, type);
+    if (isSick) triggerLiveAutoRec(`${predStr} via ${diagSource}`);
+  }
+}
+
+// =============================================================================
+// 10. CUSTOM WAV / MP3 UPLOAD & AUDIO PLAYBACK
+// =============================================================================
+const fileInput = document.getElementById('audioFileInput');
+const btnUploadWav = document.getElementById('btnUploadWav');
+const dropZone = document.getElementById('waveformDropZone');
+
+btnUploadWav?.addEventListener('click', () => fileInput?.click());
+fileInput?.addEventListener('change', e => {
+  if (e.target.files?.[0]) processCustomAudioFile(e.target.files[0]);
+  e.target.value = '';
+});
+
+if (dropZone) {
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files?.[0]) processCustomAudioFile(e.dataTransfer.files[0]);
+  });
+}
+
+async function processCustomAudioFile(file) {
+  if (!file) return;
+  logTerminal(`Decoding uploaded audio "${file.name}" (${(file.size / 1024).toFixed(1)} KB)...`, 'SYS', 'info');
+  try {
+    const ctx = await ensureAudioContext();
+    const arrBuf = await file.arrayBuffer();
+    const audioBuf = await ctx.decodeAudioData(arrBuf);
+    state.audioBuffers['custom'] = audioBuf;
+
+    const pcm = audioBuf.getChannelData(0);
+    const dsp = await runBrowserDsp(pcm, audioBuf.sampleRate);
+    state.dspCache['custom'] = dsp;
+    state.activeSampleKey = 'custom';
+    state.liveMode = false;
+
+    document.querySelectorAll('.sample-group .btn-ctrl').forEach(b => b.classList.remove('active'));
+    btnUploadWav?.classList.add('active');
+    applyBrowserDspResult('custom', dsp, file.name);
+  } catch (err) {
+    logTerminal(`Upload DSP error: ${err.message}`, 'SYS', 'alarm');
+  }
+}
+
+document.querySelectorAll('.sample-group .btn-ctrl[data-sample]').forEach(btn => {
+  btn.addEventListener('click', () => selectOfflineSample(btn.dataset.sample));
+});
+
+const btnPlay = document.getElementById('btnAudioPlay');
+btnPlay?.addEventListener('click', async () => {
+  try {
+    const ctx = await ensureAudioContext();
+    if (state.isAudioPlaying) {
+      if (state.audioSource) { try { state.audioSource.stop(); } catch (e) {} }
+      state.isAudioPlaying = false;
+      const curSr = state.dspCache[state.activeSampleKey]?.sampleRate || 16000;
+      btnPlay.textContent = `▶ Play (${(curSr / 1000).toFixed(0)} kHz)`;
+      return;
+    }
+
+    if (!state.audioBuffers[state.activeSampleKey] && WAV_SAMPLE_PATHS[state.activeSampleKey]) {
+      await selectOfflineSample(state.activeSampleKey);
+    }
+    const buf = state.audioBuffers[state.activeSampleKey];
+    const dsp = state.dspCache[state.activeSampleKey];
+    if (!buf || !dsp) {
+      logTerminal('No decoded WAV buffer loaded for playback.', 'SYS', 'alarm');
+      return;
+    }
+
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    const startT = ctx.currentTime;
+    const dur = buf.duration;
+    state.audioSource = src;
+    state.isAudioPlaying = true;
+    btnPlay.textContent = '⏹ Stop Audio';
+
+    src.onended = () => {
+      state.isAudioPlaying = false;
+      state.playbackProgress = 0;
+      btnPlay.textContent = `▶ Play (${(buf.sampleRate / 1000).toFixed(0)} kHz)`;
+      if (!state.liveMode) {
+        drawWaveformFromArray(dsp.waveform, 0, true);
+        renderSpectrogramGrid(dsp.specGrid, dsp.specSteps, dsp.specBins, 0);
+      }
+    };
+    src.start();
+
+    function trackProgress() {
+      if (!state.isAudioPlaying) return;
+      const prog = Math.min(1.0, (ctx.currentTime - startT) / Math.max(0.01, dur));
+      state.playbackProgress = prog;
+      if (!state.liveMode) {
+        drawWaveformFromArray(dsp.waveform, prog, true);
+        renderSpectrogramGrid(dsp.specGrid, dsp.specSteps, dsp.specBins, prog);
+      }
+      if (prog < 1.0) requestAnimationFrame(trackProgress);
+    }
+    requestAnimationFrame(trackProgress);
+  } catch (err) {
+    logTerminal(`Audio playback error: ${err.message}`, 'SYS', 'alarm');
+  }
+});
+
+// =============================================================================
+// 11. SMART LAN WEBSOCKET AUTOCONNECT & WEB SERIAL (COM3 -> PI RELAY)
+// =============================================================================
+function getDefaultWsHost() {
+  try {
+    const saved = localStorage.getItem('titan_ws_host');
+    if (saved) return saved;
+  } catch (e) {}
+  const host = location.hostname;
+  if (host && host !== 'localhost' && host !== '127.0.0.1') {
+    return `ws://${host}:5000`;
+  }
+  return 'ws://127.0.0.1:5000';
+}
+
+function connectWs(manualTrigger = false) {
+  if (state.wsReconnectTimer) { clearTimeout(state.wsReconnectTimer); state.wsReconnectTimer = null; }
+  if (state.ws && (state.ws.readyState === WebSocket.OPEN || state.ws.readyState === WebSocket.CONNECTING)) {
+    try { state.ws.close(); } catch (e) {}
+  }
+
+  const input = document.getElementById('wsHost');
+  let url = (input?.value || '').trim() || getDefaultWsHost();
+  if (!url.startsWith('ws://') && !url.startsWith('wss://')) url = `ws://${url}`;
+  if (input && !input.value.trim()) input.value = url;
+  try { localStorage.setItem('titan_ws_host', url); } catch (e) {}
+
+  const badge = document.getElementById('wsBadge');
+  const txt = document.getElementById('wsText');
+  badge.className = 'badge warn';
+  txt.textContent = 'WS: CONNECTING';
+
+  try {
+    const ws = new WebSocket(url);
+    state.ws = ws;
+
+    ws.onopen = () => {
+      state.wsConnected = true;
+      badge.className = 'badge live';
+      txt.textContent = 'PI WS: LIVE';
+      logTerminal(`Connected to Raspberry Pi Sentry -> ${url}`, 'SYS', 'ok');
+    };
+    ws.onmessage = evt => {
+      try {
+        const data = JSON.parse(evt.data);
+        ingestLivePacket(data, 'WS');
+      } catch (e) {}
+    };
+    ws.onerror = () => {
+      state.wsConnected = false;
+    };
+    ws.onclose = () => {
+      const wasConnected = state.wsConnected;
+      state.wsConnected = false;
+      badge.className = 'badge';
+      txt.textContent = 'WS: STANDBY';
+      if (wasConnected || manualTrigger) {
+        logTerminal(`Pi WS disconnected (${url}). Retrying in 5s...`, 'SYS', 'info');
+      }
+      state.wsReconnectTimer = setTimeout(() => connectWs(false), 5000);
+    };
+  } catch (e) {
+    state.wsConnected = false;
+    badge.className = 'badge warn';
+    txt.textContent = 'WS: OFFLINE';
+  }
+}
+
+document.getElementById('wsHost')?.addEventListener('change', () => connectWs(true));
+document.getElementById('wsBadge')?.addEventListener('click', () => connectWs(true));
+
+document.getElementById('muxSelect')?.addEventListener('change', e => {
+  const target = e.target.value;
+  if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+    state.ws.send(JSON.stringify({ action: 'set_mux', target }));
+    logTerminal(`MUX dispatched -> ${target}`, 'SYS', 'ok');
+  } else {
+    logTerminal(`MUX selected (${target}); connect Pi WS to dispatch.`, 'SYS', 'info');
+  }
+});
+
+// Web Serial API (Graceful Safari / Firefox / Mobile Handling + COM3 -> Pi Relay)
+const HAS_WEB_SERIAL = ('serial' in navigator);
+if (!HAS_WEB_SERIAL) {
+  ['btnUsb1', 'btnUsb2'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) {
+      b.classList.add('unsupported');
+      b.title = 'Web Serial requires Desktop Chrome or Edge (use Pi WebSocket on Safari/Mobile)';
+    }
+  });
+}
+
+async function initSerial(portNum) {
+  if (!HAS_WEB_SERIAL) {
+    logTerminal(`USB ${portNum} unavailable on this browser (Web Serial requires Desktop Chrome/Edge; use Pi WS on Safari/Mobile).`, 'SERIAL', 'info');
+    return;
+  }
+  try {
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+    const btn = document.getElementById(portNum === 1 ? 'btnUsb1' : 'btnUsb2');
+    btn.classList.add('active');
+    btn.textContent = `USB ${portNum} (LIVE)`;
+    if (portNum === 2) document.getElementById('hwNode2').textContent = 'COM3 LIVE';
+    logTerminal(`Serial USB ${portNum} opened at 115200 baud${portNum === 2 ? ' (Pi WS relay armed)' : ''}.`, 'SERIAL', 'ok');
+
+    const decoder = new TextDecoderStream();
+    const reader = port.readable.pipeThrough(decoder).getReader();
+    let buffer = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += value;
+      const lines = buffer.split(/\r?\n/);
+      buffer = lines.pop();
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line) continue;
+        if (line.startsWith('{')) {
+          // Relay Laptop COM3 (Node 2) directly to Raspberry Pi WS per monitor_v14_titan_sentry.py:1415
+          if (portNum === 2 && state.ws && state.ws.readyState === WebSocket.OPEN) {
+            state.ws.send(JSON.stringify({ action: 'laptop_node2_packet', raw: line }));
+          }
+          try {
+            const pkt = JSON.parse(line);
+            ingestLivePacket(pkt, `USB${portNum}`);
+          } catch (e) {}
+        }
+      }
+    }
+  } catch (e) {
+    logTerminal(`Serial USB ${portNum} closed: ${e.message || 'cancelled'}`, 'SERIAL', 'info');
+  }
+}
+
+document.getElementById('btnUsb1')?.addEventListener('click', () => initSerial(1));
+document.getElementById('btnUsb2')?.addEventListener('click', () => initSerial(2));
+
+// =============================================================================
+// 12. POINTER/TOUCH INTERACTION, CLI, MACROS & RESIZE
+// =============================================================================
+function bindCanvasInspector(canvasId, stateKey, drawFn, defaultBadgeId, defaultText) {
+  const el = document.getElementById(canvasId);
+  if (!el) return;
+  const updatePos = clientX => {
+    const rect = el.getBoundingClientRect();
+    state[stateKey] = { mx: clientX - rect.left, w: rect.width, h: rect.height };
+    drawFn();
+  };
+  el.addEventListener('pointermove', e => updatePos(e.clientX));
+  el.addEventListener('pointerdown', e => updatePos(e.clientX));
+  el.addEventListener('pointerleave', () => {
+    state[stateKey] = null;
+    drawFn();
+    const badge = document.getElementById(defaultBadgeId);
+    if (badge) { badge.textContent = defaultText; badge.style.color = 'var(--accent-bone)'; }
+  });
+}
+
+bindCanvasInspector('gaussianCanvas', 'hoverGaussian', drawGaussianCurve, 'inspectGaussian', 'Hover / drag to inspect Bayes density');
+bindCanvasInspector('rocCanvas', 'hoverRoc', drawRocCurve, 'inspectRoc', 'Hover / drag to inspect ROC point');
+
+// Dual HITL Buttons
+document.querySelectorAll('.hitl-btn[data-hitl]').forEach(btn => {
+  btn.addEventListener('click', () => dispatchHitlLabel(btn.dataset.hitl));
+});
+
+// CLI Prompt Listeners
+termCliInput?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const val = termCliInput.value;
+    termCliInput.value = '';
+    executeCliCommand(val);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (state.cliHistory.length > 0 && state.cliHistoryIdx > 0) {
+      state.cliHistoryIdx--;
+      termCliInput.value = state.cliHistory[state.cliHistoryIdx] || '';
+    }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (state.cliHistoryIdx < state.cliHistory.length - 1) {
+      state.cliHistoryIdx++;
+      termCliInput.value = state.cliHistory[state.cliHistoryIdx] || '';
+    } else {
+      state.cliHistoryIdx = state.cliHistory.length;
+      termCliInput.value = '';
+    }
+  }
+});
+
+// Filter Tabs
+document.querySelectorAll('.term-tab[data-filter]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.term-tab[data-filter]').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    state.terminalFilter = tab.dataset.filter;
+    if (termStreamEl) {
+      termStreamEl.querySelectorAll('.term-line').forEach(l => {
+        l.style.display = (state.terminalFilter === 'all' || l.dataset.cat === state.terminalFilter) ? 'flex' : 'none';
+      });
+      termStreamEl.scrollTop = termStreamEl.scrollHeight;
+    }
+  });
+});
+
+// Macro Buttons
+document.getElementById('macroRec')?.addEventListener('click', () => executeCliCommand('rec 10s'));
+const threshCycle = [0.85, 0.90, 0.75, 0.80];
+let threshIdx = 0;
+document.getElementById('macroThresh')?.addEventListener('click', () => {
+  threshIdx = (threshIdx + 1) % threshCycle.length;
+  executeCliCommand(`thresh ${threshCycle[threshIdx]}`);
+  const btn = document.getElementById('macroThresh');
+  if (btn) btn.textContent = `λ ${threshCycle[threshIdx].toFixed(2)}`;
+});
+document.getElementById('macroTestMics')?.addEventListener('click', () => executeCliCommand('testmics'));
+document.getElementById('macroExport')?.addEventListener('click', () => executeCliCommand('export csv'));
+document.getElementById('macroClear')?.addEventListener('click', () => executeCliCommand('clear'));
+btnAutoRec?.addEventListener('click', () => executeCliCommand('autorec'));
+
+// Responsive Resize Handler
+window.addEventListener('resize', () => {
+  if (state.webglActive && stageRenderer && stageCamera) {
+    const w = Math.max(100, viewportContainer.clientWidth);
+    const h = Math.max(100, viewportContainer.clientHeight);
+    stageCamera.aspect = w / h;
+    stageCamera.updateProjectionMatrix();
+    stageRenderer.setSize(w, h);
+  } else if (!state.webglActive) {
+    draw2DWaterfallFallback();
+  }
+  if (state.liveMode && state.liveRawWaveform) {
+    drawWaveformFromArray(state.liveRawWaveform, 0, false);
+    renderLiveMelSpectrogram();
+  } else if (state.dspCache[state.activeSampleKey]) {
+    const d = state.dspCache[state.activeSampleKey];
+    drawWaveformFromArray(d.waveform, state.playbackProgress, true);
+    renderSpectrogramGrid(d.specGrid, d.specSteps, d.specBins, state.playbackProgress);
+  }
+  drawGaussianCurve();
+  drawRocCurve();
+  initSparklines();
+});
+
+// Boot
+window.addEventListener('DOMContentLoaded', () => {
+  const wsInput = document.getElementById('wsHost');
+  if (wsInput) wsInput.value = getDefaultWsHost();
+  initTelemetry();
+  connectWs(false);
+});
+</script>
+</body>
+</html>

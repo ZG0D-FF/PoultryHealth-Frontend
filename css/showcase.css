@@ -1,0 +1,1117 @@
+/* ==========================================================================
+   MONARCH ORCA V14 TITAN SENTRY — AWARDS-GRADE SHOWCASE STYLESHEET
+   Design System: Apple Obsidian Minimalism (5000K Neutral Studio, Zero Cyberpunk)
+   ========================================================================== */
+
+:root {
+  --bg-deep: #07080a;
+  --bg-surface: #0d0e12;
+  --bg-surface-elevated: #13151a;
+  --bg-hover: #191b22;
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-focus: rgba(216, 212, 199, 0.4);
+  
+  --text-primary: #f5f5f7;
+  --text-secondary: #9a9aa0;
+  --text-tertiary: #5a5c66;
+  --text-bone: #d8d4c7;
+  --text-white: #ffffff;
+  
+  --accent-bone: #d8d4c7;
+  --accent-titanium: #a1a1a6;
+  --status-live: #30d158;
+  --status-alert: #ff453a;
+  
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Helvetica Neue", sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  
+  --transition-fast: 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--bg-deep);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: #1c1e24;
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a2d36;
+}
+
+/* --------------------------------------------------------------------------
+   NAVIGATION / APP BAR
+   -------------------------------------------------------------------------- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 32px;
+  background: rgba(7, 8, 10, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent-titanium);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+}
+
+.nav-node-tabs {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  padding: 3px;
+  gap: 2px;
+}
+
+.nav-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.nav-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-tab-btn.active {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--status-live);
+  box-shadow: 0 0 8px rgba(48, 209, 88, 0.5);
+  animation: pulse-live 2s infinite ease-in-out;
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+.repo-link {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 5px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+}
+
+.repo-link:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* --------------------------------------------------------------------------
+   LAYOUT CONTAINER
+   -------------------------------------------------------------------------- */
+.main-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 32px 80px;
+}
+
+/* --------------------------------------------------------------------------
+   HERO / 3D STAGE SECTION (DARK OBSIDIAN PEDESTAL)
+   -------------------------------------------------------------------------- */
+.stage-section {
+  position: relative;
+  width: 100%;
+  height: 640px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+
+#three-canvas-container {
+  width: 100%;
+  height: 100%;
+  outline: none;
+  cursor: grab;
+}
+
+#three-canvas-container:active {
+  cursor: grabbing;
+}
+
+.stage-overlay {
+  position: absolute;
+  top: 24px;
+  left: 28px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.stage-tagline {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-titanium);
+  margin-bottom: 4px;
+}
+
+.stage-title {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.stage-controls-overlay {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(13, 14, 18, 0.88);
+  backdrop-filter: blur(16px);
+  padding: 6px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  z-index: 10;
+}
+
+.stage-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition-fast);
+}
+
+.stage-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.stage-btn.active {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.stage-info-pill {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: rgba(13, 14, 18, 0.88);
+  backdrop-filter: blur(16px);
+  padding: 10px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  z-index: 10;
+}
+
+.info-pill-title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.info-pill-desc {
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.stage-loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 15;
+}
+
+.spinner-ring {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--accent-bone);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --------------------------------------------------------------------------
+   EXACT SNAP 1 & 2: LIVE BIOACOUSTIC VISUALIZER & SPECTROGRAM ANALYZER
+   -------------------------------------------------------------------------- */
+.bioacoustic-suite {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.exact-snap1-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 18px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.card-title-snap {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+/* Audio Source Selector Tabs */
+.audio-selector-tabs {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  padding: 3px;
+  gap: 4px;
+}
+
+.audio-sel-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition-fast);
+}
+
+.audio-sel-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.audio-sel-btn.active {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.sel-icon-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  transition: transform 0.15s ease;
+}
+.sel-icon-dot.healthy {
+  background: #30d158;
+  box-shadow: 0 0 5px rgba(48, 209, 88, 0.4);
+}
+.sel-icon-dot.sick {
+  background: #ff453a;
+  box-shadow: 0 0 5px rgba(255, 69, 58, 0.4);
+}
+.sel-icon-dot.noise {
+  background: #8e8e93;
+}
+
+/* Industrial Lab Instrument Interactions: Clean, subtle, zero decorative fluff */
+.stage-btn svg, .nav-tab-btn svg {
+  opacity: 0.75;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.stage-btn:hover svg, .nav-tab-btn:hover svg,
+.stage-btn.active svg, .nav-tab-btn.active svg {
+  opacity: 1;
+}
+
+.stage-btn:active, .nav-tab-btn:active, .audio-sel-btn:active, .audio-play-btn:active {
+  transform: scale(0.97);
+}
+
+/* Precision calibration reticles on corner cards */
+.exact-card, .exact-snap1-card {
+  position: relative;
+}
+.exact-card::after, .exact-snap1-card::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 7px;
+  height: 7px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+}
+.exact-card::before, .exact-snap1-card::before {
+  content: "";
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  width: 7px;
+  height: 7px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+}
+
+.audio-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.audio-play-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition-fast);
+}
+
+.audio-play-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--border-strong);
+}
+
+.card-metrics-snap {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.card-metrics-snap span {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Top Card: Waveform */
+.waveform-container {
+  width: 100%;
+  height: 110px;
+  position: relative;
+}
+
+#waveform-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Bottom Card: Spectrogram */
+.spectrogram-body-row {
+  display: flex;
+  align-items: stretch;
+  height: 170px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: #090a0d;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.spectrogram-y-axis {
+  width: 54px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 8px 8px 12px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: #727582;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  user-select: none;
+}
+
+.spectrogram-canvas-wrap {
+  flex: 1;
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+#spectrogram-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.spectrogram-grid-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.grid-line-h {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.spectrogram-scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1.5px;
+  height: 100%;
+  background: rgba(216, 212, 199, 0.9);
+  box-shadow: 0 0 8px rgba(216, 212, 199, 0.7);
+  pointer-events: none;
+  display: none;
+}
+
+.spectrogram-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 36px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding-left: 54px;
+}
+
+.spectrogram-footer-row span {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   EXACT SNAPS 1 & 2: DUAL DEEP DIVE (3D MANIFOLDS + BAYESIAN CONDITIONING)
+   -------------------------------------------------------------------------- */
+.deep-dive-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 960px) {
+  .deep-dive-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.exact-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Snap 2: 02 3D Manifolds Card */
+.manifold-card-header {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.manifold-viewport-wrap {
+  width: 100%;
+  height: 380px;
+  position: relative;
+  background: #090a0d;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+#manifold-canvas-container {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+#manifold-canvas-container:active {
+  cursor: grabbing;
+}
+
+.manifold-legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 14px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.legend-dot-healthy {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e2ded4;
+  margin-right: 5px;
+}
+.legend-dot-sick {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffffff;
+  margin-right: 5px;
+}
+.legend-dot-noise {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #737682;
+  margin-right: 5px;
+}
+
+/* Snap 1 / 3: Avian Bayesian Conditioning Card */
+.bayesian-card-header {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+}
+
+.bayesian-latex-box {
+  width: 100%;
+  text-align: center;
+  padding: 8px 0 20px;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.bayesian-interactive-body {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 20px;
+  align-items: center;
+  margin-top: auto;
+}
+
+.gaussian-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#gaussian-canvas {
+  width: 100%;
+  height: 170px;
+  display: block;
+}
+
+.gaussian-caption {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 10px;
+}
+
+.controls-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.gauge-wrap {
+  width: 150px;
+  height: 90px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+#gauge-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.gauge-readout-center {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.gauge-val-text {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.gauge-label-text {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.slider-group {
+  width: 100%;
+  max-width: 190px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.custom-range-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: #252831;
+  outline: none;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.custom-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-bone);
+  border: 2px solid var(--bg-surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.custom-range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.slider-caption-title {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.slider-caption-sub {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   FOOTER & ACADEMIC ATTRIBUTION
+   -------------------------------------------------------------------------- */
+.app-footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 32px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-align: center;
+}
+
+.faculty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-primary);
+}
+
+.faculty-badge strong {
+  color: var(--accent-bone);
+}
+
+/* --------------------------------------------------------------------------
+   MULTI-DEVICE RESPONSIVE SUITE (IPHONE / ANDROID / IPAD / MAC RETINA 4K)
+   -------------------------------------------------------------------------- */
+
+/* 1. Mac Retina / High-DPI Desktop */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  canvas {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+
+/* 2. Tablet / Small Laptop (1024px and below) */
+@media (max-width: 1024px) {
+  .main-wrapper {
+    padding: 20px 24px 60px;
+  }
+  .stage-section {
+    height: 520px;
+  }
+  .app-header {
+    padding: 12px 24px;
+  }
+  .deep-dive-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* 3. Mobile / Tablet Portrait (768px and below) */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand-badge {
+    display: none;
+  }
+  .nav-node-tabs {
+    display: none; /* Hardware stage station buttons cover 3D navigation */
+  }
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .live-indicator span {
+    display: none;
+  }
+  .repo-link {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  .main-wrapper {
+    padding: 14px 12px 48px;
+  }
+
+  /* Compact 420px Hero Stage */
+  .stage-section {
+    height: 420px;
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+  }
+  .stage-overlay {
+    top: 14px;
+    left: 16px;
+  }
+  .stage-tagline {
+    font-size: 10px;
+  }
+  .stage-title {
+    font-size: 19px;
+  }
+  .stage-info-pill {
+    top: auto;
+    bottom: 64px;
+    right: 12px;
+    left: 12px;
+    align-items: center;
+    padding: 8px 12px;
+    text-align: center;
+  }
+  .stage-controls-overlay {
+    bottom: 12px;
+    width: calc(100% - 24px);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    scrollbar-width: none;
+    justify-content: flex-start;
+    padding: 6px 10px;
+    gap: 6px;
+  }
+  .stage-controls-overlay::-webkit-scrollbar {
+    display: none;
+  }
+  .stage-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  /* Bioacoustic Cards */
+  .exact-snap1-card {
+    padding: 14px 14px;
+    border-radius: var(--radius-md);
+  }
+  .card-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .audio-selector-tabs {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    scrollbar-width: none;
+    padding: 3px;
+  }
+  .audio-selector-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .audio-sel-btn {
+    flex-shrink: 0;
+    padding: 5px 10px;
+    font-size: 10.5px;
+  }
+  .audio-controls-row {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .audio-play-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 7px 14px;
+  }
+  .card-metrics-snap {
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: 11px;
+  }
+
+  .spectrogram-body-row {
+    height: 150px;
+  }
+  .spectrogram-y-axis {
+    width: 44px;
+    padding: 6px 4px 6px 6px;
+    font-size: 10px;
+  }
+  .spectrogram-footer-row {
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    padding-left: 0;
+    font-size: 11px;
+  }
+
+  /* Deep Dive Grid Stack */
+  .deep-dive-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .exact-card {
+    padding: 16px 14px;
+    border-radius: var(--radius-md);
+  }
+  .manifold-viewport-wrap {
+    height: 300px;
+  }
+  .manifold-legend-row {
+    flex-wrap: wrap;
+    gap: 10px 14px;
+  }
+
+  /* Avian Bayesian Mobile Stack */
+  .bayesian-latex-box {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: 12px;
+    padding: 4px 0 14px;
+  }
+  .bayesian-latex-box .katex {
+    font-size: 0.95em;
+  }
+  .bayesian-interactive-body {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  #gaussian-canvas {
+    height: 140px;
+  }
+
+  /* Footer */
+  .app-footer {
+    padding: 24px 16px 40px;
+    font-size: 11px;
+  }
+}
+
+/* 4. Small Mobile (420px and below) */
+@media (max-width: 420px) {
+  .stage-section {
+    height: 380px;
+  }
+  .stage-title {
+    font-size: 17px;
+  }
+  .brand-badge {
+    display: none;
+  }
+  .manifold-viewport-wrap {
+    height: 270px;
+  }
+}
