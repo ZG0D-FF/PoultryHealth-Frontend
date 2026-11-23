@@ -54,5 +54,24 @@ Because these are lightweight, client-side applications with no `node_modules` o
 - **Graphics/Charts:** Three.js, Chart.js, HTML5 Canvas API
 - **Networking:** Native WebSockets
 
+## 📜 License
+This project is open-source and dual-licensed under:
+- **Apache License, Version 2.0** (`Apache-2.0`)
+- **MIT License** (`MIT`)
+
+You may choose either license at your option. See [LICENSE](LICENSE) for details.
+
+## 📑 Citation
+If you use this frontend, telemetry data, or the Monarch ORCA architecture in academic research, please cite our team:
+
+```bibtex
+@software{monarch_orca_titan_sentry_2026,
+  author = {Ghosh, Dibyajyotee and Das, Ritam and Halder, Sutirtha and Sen, Sharmik and Das, Subhajit},
+  title = {Monarch ORCA V14 Titan Sentry: Distributed Multi-Node Bioacoustic Sensing \& Bayesian Avian Disease Detection},
+  year = {2026},
+  url = {https://github.com/ZG0D-FF/PoultryHealth-Frontend}
+}
+```
+
 ---
-*© 2026 SmartEars Team. Frontend open-sourced for the community.*
+*© 2026 SmartEars / Monarch ORCA Team. Open-sourced for the bioacoustic and agricultural IoT community.*

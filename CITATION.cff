@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "If you use this software or bioacoustic dataset, please cite it as below."
+title: "Monarch ORCA V14 Titan Sentry: Distributed Multi-Node Bioacoustic Sensing & Bayesian Avian Disease Detection"
+abstract: "Autonomous edge AI and bioacoustic surveillance system for real-time poultry respiratory anomaly detection."
+type: software
+authors:
+  - family-names: "Ghosh"
+    given-names: "Dibyajyotee"
+    affiliation: "Autonomous Systems & Software"
+    email: "zgodmr@gmail.com"
+  - family-names: "Das"
+    given-names: "Ritam"
+    affiliation: "Lead Systems Engineer"
+    email: "dasritam0609@gmail.com"
+  - family-names: "Halder"
+    given-names: "Sutirtha"
+    affiliation: "Avionics & AI Pipeline"
+    email: "haldersuti@gmail.com"
+  - family-names: "Sen"
+    given-names: "Sharmik"
+    affiliation: "Research & Sensors"
+    email: "sharmiksen21@gmail.com"
+  - family-names: "Das"
+    given-names: "Subhajit"
+    name-particle: "Dr."
+    affiliation: "Lead Faculty Mentor, Department of ECE, University of Engineering & Management (UEM) Kolkata"
+    email: "subhajit.das@uem.edu.in"
+repository-code: "https://github.com/ZG0D-FF/PoultryHealth-Frontend"
+keywords:
+  - bioacoustics
+  - edge-ai
+  - poultry-health
+  - tiny-ml
+  - digital-signal-processing
+license:
+  - MIT
+  - Apache-2.0
+version: "14.0.0"
+date-released: "2026-11-23"
