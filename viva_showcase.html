@@ -1,0 +1,3411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MONARCH ORCA V14 · Autonomous Edge Bioacoustics · Viva Showcase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  startup: { typeset: true }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+:root {
+  --bg: #060709;
+  --bg-elev: #0a0c10;
+  --bg-card: rgba(11, 13, 18, 0.72);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-bone: rgba(234, 230, 220, 0.28);
+  --bone: #eae6dc;
+  --bone-dim: #c9c3b6;
+  --slate: #8a93a2;
+  --mute: #586170;
+  --emerald: #10b981;
+  --emerald-soft: rgba(16, 185, 129, 0.14);
+  --amber: #f59e0b;
+  --amber-soft: rgba(245, 158, 11, 0.12);
+  --rose: #f43f5e;
+  --rose-soft: rgba(244, 63, 94, 0.12);
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  --max-w: 1320px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  background: var(--bg);
+  color: var(--bone);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+body {
+  background: var(--bg);
+  color: var(--bone);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* Subtle obsidian editorial grain */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.025;
+  background-image: radial-gradient(rgba(234, 230, 220, 0.45) 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+
+/* =========================================================================
+   1. EXACT OPTION 1 MINIMALIST TOP NAVIGATION
+   ========================================================================= */
+.site-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(6, 7, 9, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  height: 68px;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.brand-mark {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--bone);
+  white-space: nowrap;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  font-size: 13px;
+  color: var(--slate);
+}
+
+.nav-links a {
+  transition: color 0.25s var(--ease);
+  position: relative;
+}
+
+.nav-links a:hover,
+.nav-links a.active { color: var(--bone); }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.live-telemetry {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--slate);
+  white-space: nowrap;
+}
+
+.live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.75);
+  animation: pulseDot 2.6s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.85); }
+}
+
+.pill-cta {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bone);
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.25s var(--ease);
+  white-space: nowrap;
+}
+
+.pill-cta:hover {
+  border-color: var(--bone);
+  background: var(--bone);
+  color: var(--bg);
+}
+
+.scroll-progress {
+  position: absolute;
+  bottom: -1px; left: 0;
+  height: 1px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--bone), var(--emerald));
+  transition: width 0.08s linear;
+}
+
+/* =========================================================================
+   2. HERO SECTION (EXACT OPTION 1 OBSIDIAN ACOUSTIC EDITORIAL)
+   ========================================================================= */
+main { position: relative; z-index: 2; }
+
+.container {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.hero {
+  padding-top: 108px;
+  padding-bottom: 72px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 36px;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 0.96fr 1.14fr;
+  align-items: center;
+  gap: 32px;
+  min-height: 470px;
+}
+
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-right: 12px;
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--border-strong);
+}
+
+.hero-title {
+  font-size: clamp(46px, 5.5vw, 76px);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+  color: var(--bone);
+}
+
+.hero-sub {
+  font-size: clamp(16px, 1.4vw, 19px);
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--slate);
+  max-width: 470px;
+}
+
+.hero-meta-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 22px;
+  padding-top: 8px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--mute);
+}
+
+.hero-meta-strip strong {
+  color: var(--bone-dim);
+  font-weight: 500;
+}
+
+/* Babylon.js 3D Stage (Exact Option 1 Right Focal Composition) */
+.stage-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+}
+
+.babylon-wrap {
+  position: relative;
+  width: 100%;
+  height: 450px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: radial-gradient(circle at 55% 48%, rgba(28, 34, 44, 0.28) 0%, rgba(6, 7, 9, 0) 68%);
+}
+
+#babylon-stage {
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+#babylon-stage:active { cursor: grabbing; }
+
+.stage-hint {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+  pointer-events: none;
+}
+
+.stage-node-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: rgba(11, 13, 18, 0.85);
+  backdrop-filter: blur(14px);
+}
+
+.node-tab {
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--slate);
+  transition: all 0.25s var(--ease);
+  white-space: nowrap;
+}
+
+.node-tab:hover { color: var(--bone); }
+
+.node-tab.active {
+  color: var(--bone);
+  background: rgba(234, 230, 220, 0.1);
+  font-weight: 500;
+}
+
+.node-sep {
+  color: var(--mute);
+  font-size: 11px;
+  user-select: none;
+}
+
+.node-caption {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--slate);
+  text-align: center;
+  min-height: 18px;
+  transition: opacity 0.25s ease;
+}
+
+/* Exact Option 1 Bottom Bioacoustic Waveform Card */
+.waveform-card {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-card);
+  padding: 22px 28px 24px;
+  transition: border-color 0.3s var(--ease);
+}
+
+.waveform-card:hover { border-color: var(--border-strong); }
+
+.waveform-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.wf-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.wf-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--bone);
+  letter-spacing: -0.01em;
+}
+
+.wf-modes {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wf-mode-btn {
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--slate);
+  transition: all 0.2s ease;
+}
+
+.wf-mode-btn:hover { color: var(--bone); border-color: var(--border-strong); }
+
+.wf-mode-btn.active {
+  color: var(--bone);
+  border-color: var(--border-bone);
+  background: rgba(234, 230, 220, 0.08);
+}
+
+.wf-audio-btn {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--emerald);
+  background: rgba(16, 185, 129, 0.06);
+  transition: all 0.2s ease;
+}
+
+.wf-audio-btn:hover,
+.wf-audio-btn.playing {
+  background: var(--emerald);
+  color: var(--bg);
+}
+
+.wf-metrics {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--slate);
+  font-variant-numeric: tabular-nums;
+}
+
+.wf-metrics span strong {
+  color: var(--bone-dim);
+  font-weight: 500;
+}
+
+#waveform-canvas {
+  width: 100%;
+  height: 92px;
+  display: block;
+}
+
+/* =========================================================================
+   3. EDITORIAL SECTIONS (ZERO-CLUTTER SPACIOUS GRID)
+   ========================================================================= */
+.section {
+  padding: 112px 0;
+  border-top: 1px solid var(--border);
+}
+
+.section-header {
+  display: grid;
+  grid-template-columns: 0.42fr 0.58fr;
+  gap: 40px;
+  align-items: end;
+  margin-bottom: 56px;
+}
+
+.section-index {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  color: var(--bone);
+}
+
+.section-lead {
+  font-size: 15.5px;
+  color: var(--slate);
+  max-width: 580px;
+  line-height: 1.65;
+}
+
+/* Reveal Animations */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 60-Second Pitch + Key Numbers */
+.brief-grid {
+  display: grid;
+  grid-template-columns: 0.92fr 1.08fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.pitch-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-card);
+  padding: 32px;
+  position: sticky;
+  top: 96px;
+}
+
+.pitch-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.tag-mono {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--emerald);
+}
+
+.timer-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  color: var(--bone-dim);
+  transition: all 0.2s ease;
+}
+
+.timer-btn:hover { border-color: var(--bone); color: var(--bone); }
+.timer-btn.running { border-color: var(--emerald); color: var(--emerald); }
+
+.pitch-quote {
+  font-size: 16.5px;
+  line-height: 1.72;
+  color: var(--bone);
+  font-weight: 400;
+}
+
+.pitch-foot {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  color: var(--slate);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.numbers-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.num-cell {
+  padding: 22px 24px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: rgba(10, 12, 16, 0.55);
+  transition: background 0.25s ease;
+}
+
+.num-cell:hover { background: rgba(234, 230, 220, 0.03); }
+
+.num-val {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--bone);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.num-val.accent-emerald { color: var(--emerald); }
+.num-val.accent-amber { color: var(--amber); }
+
+.num-desc {
+  font-size: 12.5px;
+  color: var(--slate);
+  line-height: 1.5;
+}
+
+/* Pipeline Strip */
+.pipeline-track {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.pipe-step {
+  padding: 24px 20px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: background 0.25s ease;
+}
+
+.pipe-step:last-child { border-right: none; }
+.pipe-step:hover { background: rgba(234, 230, 220, 0.035); }
+
+.pipe-num {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--mute);
+}
+
+.pipe-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bone);
+  line-height: 1.3;
+}
+
+.pipe-detail {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--slate);
+  line-height: 1.55;
+}
+
+/* 3-Node Cards */
+.nodes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.hairline-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-card);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: border-color 0.3s var(--ease);
+}
+
+.hairline-card:hover { border-color: var(--border-strong); }
+
+.card-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mute);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.card-h3 {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--bone);
+  letter-spacing: -0.02em;
+}
+
+.spec-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.spec-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.045);
+}
+
+.spec-list li:last-child { border-bottom: none; padding-bottom: 0; }
+.spec-list span:first-child { color: var(--slate); }
+.spec-list span:last-child {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--bone-dim);
+  text-align: right;
+}
+
+/* Feature Inspector Tabs */
+.tab-bar {
+  display: inline-flex;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-elev);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--slate);
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover { color: var(--bone); }
+.tab-btn.active {
+  background: rgba(234, 230, 220, 0.1);
+  color: var(--bone);
+  font-weight: 500;
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.feature-chips {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.f-chip {
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(10, 12, 16, 0.65);
+}
+
+.f-chip-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--emerald);
+  margin-bottom: 4px;
+}
+
+.f-chip-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--bone);
+  margin-bottom: 4px;
+}
+
+.f-chip-sub {
+  font-size: 12px;
+  color: var(--slate);
+  line-height: 1.45;
+}
+
+/* =========================================================================
+   4. INTERACTIVE ACOUSTIC & BAYESIAN LAB
+   ========================================================================= */
+.lab-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.equation-box {
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(6, 7, 9, 0.7);
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--bone);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slider-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--slate);
+}
+
+.slider-meta strong {
+  font-family: var(--mono);
+  color: var(--bone);
+  font-weight: 500;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 99px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--bone);
+  border: 2px solid var(--bg);
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(234,230,220,0.4);
+}
+
+.prob-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.prob-row {
+  display: grid;
+  grid-template-columns: 82px 1fr 56px;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.prob-track {
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+
+.prob-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.2s ease;
+}
+
+.status-banner {
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-banner.healthy {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: var(--emerald-soft);
+  color: #a7f3d0;
+}
+
+.status-banner.hitl {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: var(--amber-soft);
+  color: #fde68a;
+}
+
+.status-banner.discard {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--slate);
+}
+
+.gl-chart-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.gl-toggle-group {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(6, 7, 9, 0.8);
+}
+
+.gl-toggle-btn {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--slate);
+  transition: all 0.2s ease;
+}
+
+.gl-toggle-btn:hover { color: var(--bone); }
+.gl-toggle-btn.active {
+  background: rgba(234, 230, 220, 0.12);
+  color: var(--bone);
+}
+
+.gl-chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 256px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: radial-gradient(circle at 50% 42%, rgba(22, 28, 36, 0.34) 0%, rgba(6, 7, 9, 0.92) 74%);
+  overflow: hidden;
+}
+
+.gl-chart-wrap canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.gl-chart-wrap canvas:active { cursor: grabbing; }
+
+.gl-chart-badge {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+  pointer-events: none;
+}
+
+.gl-legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.gl-legend-cell {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: rgba(6, 7, 9, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.gl-legend-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--bone-dim);
+}
+
+.gl-legend-top strong {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.gl-legend-sub {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--mute);
+}
+
+.formula-pills {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.formula-pill {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(6, 7, 9, 0.58);
+  overflow-x: auto;
+}
+
+.formula-pill .fp-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--mute);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.formula-pill .fp-eq {
+  font-size: 12.5px;
+  color: var(--bone);
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+}
+
+mjx-container {
+  color: var(--bone) !important;
+  font-size: 96% !important;
+}
+
+mjx-container[display="true"] {
+  margin: 4px 0 !important;
+  text-align: left !important;
+}
+
+.authors-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.author-card {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.author-role {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--emerald);
+}
+
+.author-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--bone);
+}
+
+.author-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--bone-dim);
+}
+
+.author-scope {
+  font-size: 12.5px;
+  color: var(--slate);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+/* =========================================================================
+   5. EVALUATION, PORTABILITY & CLAIMS TO CORRECT
+   ========================================================================= */
+.eval-grid {
+  display: grid;
+  grid-template-columns: 1.12fr 0.88fr;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 8px;
+}
+
+.bar-item-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 7px;
+}
+
+.bar-item-top span:first-child { color: var(--bone-dim); }
+.bar-item-top span:last-child {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--bone);
+}
+
+.bar-rail {
+  height: 8px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.bar-val {
+  height: 100%;
+  border-radius: 99px;
+}
+
+.bar-ci {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mute);
+  margin-top: 5px;
+}
+
+.gap-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gap-row {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.gap-row:last-child { border-bottom: none; padding-bottom: 0; }
+.gap-idx { font-family: var(--mono); font-size: 11px; color: var(--amber); padding-top: 2px; }
+.gap-row h4 { font-size: 13.5px; font-weight: 500; color: var(--bone); margin-bottom: 3px; }
+.gap-row p { font-size: 12.5px; color: var(--slate); line-height: 1.5; }
+
+/* Claims Audit Table */
+.audit-card {
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 14px;
+  background: rgba(16, 13, 8, 0.45);
+  padding: 28px;
+  margin-top: 28px;
+}
+
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 18px;
+  font-size: 13px;
+}
+
+.audit-table th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mute);
+  padding: 10px 14px 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.audit-table td {
+  padding: 14px 14px 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  vertical-align: top;
+  color: var(--slate);
+  line-height: 1.55;
+}
+
+.audit-table tr:last-child td { border-bottom: none; }
+.audit-table td:first-child { font-family: var(--mono); font-size: 11.5px; color: var(--amber); white-space: nowrap; }
+.audit-table td:last-child { color: var(--bone-dim); }
+
+.careful-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.careful-item {
+  font-size: 12px;
+  color: var(--slate);
+  line-height: 1.5;
+}
+
+.careful-item strong {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--bone-dim);
+  margin-bottom: 4px;
+}
+
+/* =========================================================================
+   6. INTERACTIVE VIVA DEFENSE BANK (PARTS A–F, ALL 61 QUESTIONS)
+   ========================================================================= */
+.viva-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.search-input {
+  background: var(--bg-elev);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 9px 18px;
+  color: var(--bone);
+  font-family: var(--mono);
+  font-size: 12px;
+  width: 300px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.search-input::placeholder { color: var(--mute); }
+.search-input:focus { border-color: var(--bone); }
+
+.qa-list {
+  border-top: 1px solid var(--border);
+}
+
+.qa-item {
+  border-bottom: 1px solid var(--border);
+}
+
+.qa-trigger {
+  width: 100%;
+  padding: 18px 8px;
+  display: grid;
+  grid-template-columns: 56px 1fr 24px;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  transition: background 0.2s ease;
+}
+
+.qa-trigger:hover { background: rgba(255,255,255,0.02); }
+
+.qa-code {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--mute);
+}
+
+.qa-code.hard { color: var(--amber); }
+
+.qa-q {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--bone);
+}
+
+.qa-plus {
+  font-family: var(--mono);
+  font-size: 16px;
+  color: var(--mute);
+  text-align: right;
+  transition: transform 0.25s var(--ease);
+}
+
+.qa-item.open .qa-plus { transform: rotate(45deg); color: var(--bone); }
+
+.qa-answer {
+  display: none;
+  padding: 0 32px 20px 80px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--slate);
+  max-width: 960px;
+}
+
+.qa-item.open .qa-answer { display: block; }
+
+/* =========================================================================
+   7. 15-MINUTE SPEECH TELEPROMPTER & SPEAKER SPLIT
+   ========================================================================= */
+.speakers-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.speaker-card {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.speaker-time {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--emerald);
+  margin-bottom: 6px;
+}
+
+.speaker-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--bone);
+  margin-bottom: 6px;
+}
+
+.speaker-parts {
+  font-size: 12.5px;
+  color: var(--slate);
+  margin-bottom: 10px;
+}
+
+.speaker-owns {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mute);
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.script-shell {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-card);
+  overflow: hidden;
+}
+
+.script-head {
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.script-body {
+  padding: 32px 36px;
+  max-width: 880px;
+}
+
+.slide-cue {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--bone-dim);
+  background: rgba(234, 230, 220, 0.07);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin: 18px 0 10px;
+}
+
+.slide-cue:first-child { margin-top: 0; }
+
+.script-body p {
+  font-size: 15.5px;
+  line-height: 1.8;
+  color: var(--slate);
+  margin-bottom: 14px;
+}
+
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 24px;
+}
+
+/* =========================================================================
+   8. FOOTER
+   ========================================================================= */
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 44px 0 56px;
+  color: var(--mute);
+  font-size: 12.5px;
+}
+
+.footer-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 40px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.footer-mono {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--slate);
+}
+
+/* =========================================================================
+   RESPONSIVE
+   ========================================================================= */
+@media (max-width: 1080px) {
+  .hero-grid, .brief-grid, .lab-grid, .eval-grid, .section-header { grid-template-columns: 1fr; }
+  .pipeline-track { grid-template-columns: repeat(2, 1fr); }
+  .nodes-grid, .tips-grid { grid-template-columns: 1fr; }
+  .authors-grid, .feature-chips, .careful-strip { grid-template-columns: repeat(2, 1fr); }
+  .pitch-card { position: static; }
+  .nav-links { display: none; }
+}
+
+@media (max-width: 640px) {
+  .container, .header-inner, .footer-inner { padding-left: 20px; padding-right: 20px; }
+  .numbers-grid, .authors-grid, .gl-legend-grid, .feature-chips, .careful-strip, .formula-pills { grid-template-columns: 1fr; }
+  .babylon-wrap { height: 340px; }
+  .qa-answer { padding: 0 12px 18px 16px; }
+  .search-input { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================================
+     1. TOP NAVIGATION (EXACT OPTION 1 OBSIDIAN HEADER)
+     ========================================================================= -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="#top" class="brand-mark">MONARCH ORCA V14</a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#brief">Brief</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#acoustics">Acoustics</a>
+      <a href="#evaluation">Evaluation</a>
+      <a href="#viva">Viva Defense</a>
+      <a href="#script">15m Script</a>
+    </nav>
+    <div class="header-right">
+      <div class="live-telemetry">
+        <span class="live-dot"></span>
+        <span>16 kHz · 300–4000 Hz LIVE</span>
+      </div>
+      <a href="index.html" class="pill-cta">3D Mesh</a>
+      <a href="#viva" class="pill-cta">Viva Deck</a>
+    </div>
+  </div>
+  <div class="scroll-progress" id="scroll-progress"></div>
+</header>
+
+<main id="top">
+
+<!-- =========================================================================
+     2. HERO SECTION (EXACT OPTION 1 COMPOSITION + BABYLON.JS 3D STAGE)
+     ========================================================================= -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <div class="eyebrow">B.Tech ECE · UEM Kolkata · Nov 26, 2026</div>
+        <h1 class="hero-title">Autonomous Edge<br>Bioacoustics.</h1>
+        <p class="hero-sub">
+          3-tier offline acoustic sensing mesh for early poultry respiratory screening — 80 features, five classical models, and an MLP meta-learner running locally without cloud fees.
+        </p>
+        <div class="hero-meta-strip">
+          <span><strong>90.8%</strong> Random Split</span>
+          <span><strong>65.4%</strong> Unseen Sessions</span>
+          <span><strong>Rs 1,000–1,350</strong> / Node</span>
+        </div>
+      </div>
+
+      <div class="stage-column">
+        <div class="babylon-wrap">
+          <canvas id="babylon-stage" aria-label="Interactive 3D Babylon.js Hardware Mesh"></canvas>
+          <div class="stage-hint">Babylon.js WebGL · Drag to Orbit</div>
+        </div>
+
+        <div class="stage-node-pill" role="tablist" aria-label="Hardware Node Focus">
+          <button class="node-tab active" data-focus="overview" role="tab">Overview</button>
+          <span class="node-sep">·</span>
+          <button class="node-tab" data-focus="node0" role="tab">Node 0</button>
+          <span class="node-sep">·</span>
+          <button class="node-tab" data-focus="node1" role="tab">Node 1</button>
+          <span class="node-sep">·</span>
+          <button class="node-tab" data-focus="node2" role="tab">Node 2</button>
+        </div>
+        <div class="node-caption" id="node-caption">
+          3-Tier Offline Mesh · ESP32-S3 DSP → ESP32 TinyML (52B ESP-NOW) → Raspberry Pi 3B Gateway
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exact Option 1 Full-Width Bioacoustic Waveform Ribbon -->
+  <div class="container">
+    <div class="waveform-card">
+      <div class="waveform-header">
+        <div class="wf-left">
+          <div class="wf-title">Bioacoustic Waveform</div>
+          <div class="wf-modes">
+            <button class="wf-mode-btn active" data-wf="healthy">Healthy Flock</button>
+            <button class="wf-mode-btn" data-wf="sick">Sick · Rales / Cough</button>
+            <button class="wf-mode-btn" data-wf="noise">Fan Rumble &lt;280 Hz</button>
+            <button class="wf-audio-btn" id="wf-audio-btn">Listen Synth</button>
+          </div>
+        </div>
+        <div class="wf-metrics">
+          <span>Band <strong>300–4000 Hz</strong></span>
+          <span>S_avian <strong id="wf-savian">2.48</strong></span>
+          <span>State <strong id="wf-state">Healthy · 0.94</strong></span>
+          <span>Compute <strong>≈1% Core</strong></span>
+        </div>
+      </div>
+      <canvas id="waveform-canvas"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================================
+     3. SECTION 01 — 60-SECOND VIVA PITCH & KEY NUMBERS
+     ========================================================================= -->
+<section class="section" id="brief">
+  <div class="container">
+    <div class="section-header reveal">
+      <div>
+        <div class="section-index">01 / Executive Brief</div>
+        <h2 class="section-title">60-Second Summary &amp; Rapid-Recall Numbers.</h2>
+      </div>
+      <p class="section-lead">
+        Examiners judge confidence by how cleanly you recall core metrics and state limitations upfront. Always report both the random split (90.8%) and session-isolated accuracy (65.4%) together.
+      </p>
+    </div>
+
+    <div class="brief-grid reveal">
+      <div class="pitch-card">
+        <div class="pitch-top">
+          <span class="tag-mono">60-Second Viva Pitch · Verbatim</span>
+          <button class="timer-btn" id="pitch-timer-btn">Start 60s Timer</button>
+        </div>
+        <p class="pitch-quote">
+          “Respiratory diseases spread fast in poultry sheds and are usually noticed only when birds look sick. We built a low-cost, offline system that listens to the flock. Audio is band-pass filtered to 300–4000 Hz, a pretrained YAMNet network discards non-bird sounds, and 80 acoustic features are classified by five classical models combined by an MLP meta-learner. MFCC extraction runs on an ESP32-S3, a 6.3 KB neural network on a second ESP32, and the full ensemble on a Raspberry Pi. We reach 90.8% on a random split, but 65.4% on recording sessions never seen in training, and we explain exactly why that gap exists and how to close it.”
+        </p>
+        <div class="pitch-foot">
+          <span>Scope: Classifies Healthy / Sick / Noise vocalisations — never named pathogens.</span>
+          <span>Field Basis: Haringhata Meat (WBLDC)</span>
+        </div>
+      </div>
+
+      <div class="numbers-grid">
+        <div class="num-cell">
+          <div class="num-val">80 features</div>
+          <div class="num-desc">27 base (13 MFCC, 13 delta, ZCR) + 53 extended (spectral, pitch, rhythm, Mel sub-bands, chroma, contrast, delta-delta).</div>
+        </div>
+        <div class="num-cell">
+          <div class="num-val">300–4000 Hz · 16 kHz</div>
+          <div class="num-desc">Band-pass range (10th-order zero-phase SOS) and sampling rate with 8 kHz Nyquist limit.</div>
+        </div>
+        <div class="num-cell">
+          <div class="num-val">0.05 / 0.08</div>
+          <div class="num-desc">YAMNet avian-score admission gate (0.05) and strong-evidence threshold for posterior masking &amp; outlier bypass (0.08).</div>
+        </div>
+        <div class="num-cell">
+          <div class="num-val accent-emerald">90.8%</div>
+          <div class="num-desc">MLP stack accuracy (95% Wilson CI 86.0–94.0%), random split, N = 206 (112 healthy, 94 sick).</div>
+        </div>
+        <div class="num-cell">
+          <div class="num-val accent-emerald">92.6% recall</div>
+          <div class="num-desc">Sick recall: only 7 of 94 sick recordings missed (baseline missed 10; top 3 models miss the same 7).</div>
+        </div>
+        <div class="num-cell">
+          <div class="num-val">92.7%</div>
+          <div class="num-desc">LightGBM best single model on N = 206 (4-recording gap, overlapping CI — not statistically significant).</div>
+        </div>
+        <div class="num-cell">
+          <div class="num-val accent-amber">65.4%</div>
+          <div class="num-desc">3-class accuracy (95% CI 63.1–67.7%) on 1,639 clips from 290 unseen recording sessions.</div>
+        </div>
+        <div class="num-cell">
+          <div class="num-val">0.71 / 0.71 / 0.01</div>
+          <div class="num-desc">F1 scores for Healthy / Sick / Noise on unseen sessions (Noise is gated upstream by silence + YAMNet).</div>
+        </div>
+        <div class="num-cell">
+          <div class="num-val">73.5 KB · 6.3 KB</div>
+          <div class="num-desc">Node 1 static SRAM footprint; Node 2 TFLite dynamic-range model size (4 KB tensor arena).</div>
+        </div>
+        <div class="num-cell">
+          <div class="num-val">≈2.6 MFLOP/s · ≈1%</div>
+          <div class="num-desc">MFCC compute per second of audio; estimated load share of a single ESP32-S3 core.</div>
+        </div>
+        <div class="num-cell">
+          <div class="num-val">Rs 1,000–1,350</div>
+          <div class="num-desc">Hardware cost per acoustic sensing node (ESP32-S3, INMP441 MEMS mic, enclosure, power).</div>
+        </div>
+        <div class="num-cell">
+          <div class="num-val">78 KB RAM</div>
+          <div class="num-desc">Portability threshold to run MFCC + neural network on one chip (ESP32, ESP32-S3, STM32F4/H7, nRF5340).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================================
+     4. SECTION 02 — ARCHITECTURE, HARDWARE NODES & 80-FEATURE TAXONOMY
+     ========================================================================= -->
+<section class="section" id="architecture">
+  <div class="container">
+    <div class="section-header reveal">
+      <div>
+        <div class="section-index">02 / System Architecture</div>
+        <h2 class="section-title">One-Breath Signal Pipeline &amp; 3-Tier Edge Mesh.</h2>
+      </div>
+      <p class="section-lead">
+        Engineered from field visits to Haringhata Meat (WBLDC): zero cloud fees, full offline autonomy, dust and fan-noise immunity, simple local alarms, and time-stamped biosecurity logs.
+      </p>
+    </div>
+
+    <div class="pipeline-track reveal">
+      <div class="pipe-step">
+        <span class="pipe-num">STAGE 01</span>
+        <div class="pipe-name">Digital Capture</div>
+        <div class="pipe-detail">INMP441 I²S MEMS · 16 kHz · 24-bit · 61 dB SNR · DMA 8×64 ring buffer</div>
+      </div>
+      <div class="pipe-step">
+        <span class="pipe-num">STAGE 02</span>
+        <div class="pipe-name">Band-Pass Filter</div>
+        <div class="pipe-detail">300–4000 Hz · N=5 Butterworth (10th-order) · Zero-phase sosfiltfilt</div>
+      </div>
+      <div class="pipe-step">
+        <span class="pipe-num">STAGE 03</span>
+        <div class="pipe-name">Silence &amp; Bird Gate</div>
+        <div class="pipe-detail">Energy gate → Pretrained YAMNet (20 avian classes) · S_avian ≥ 0.05</div>
+      </div>
+      <div class="pipe-step">
+        <span class="pipe-num">STAGE 04</span>
+        <div class="pipe-name">80 Features + Shield</div>
+        <div class="pipe-detail">27 Base + 53 Extended · Reject if &gt;6 spectral |z| &gt; 6 &amp; S_avian &lt; 0.08</div>
+      </div>
+      <div class="pipe-step">
+        <span class="pipe-num">STAGE 05</span>
+        <div class="pipe-name">Stacked Ensemble</div>
+        <div class="pipe-detail">LR, SVM, RF, XGBoost, k-NN → MLP Meta-Learner (32→16, cv=3 OOF)</div>
+      </div>
+      <div class="pipe-step">
+        <span class="pipe-num">STAGE 06</span>
+        <div class="pipe-name">Masking &amp; HITL</div>
+        <div class="pipe-detail">S_avian ≥ 0.08 zeroes P(Noise) · 10s human check if Sick or conf &lt; 0.85</div>
+      </div>
+    </div>
+
+    <div class="nodes-grid reveal">
+      <div class="hairline-card">
+        <div class="card-kicker"><span>Node 1 · Edge DSP</span><span>ESP32-S3</span></div>
+        <h3 class="card-h3">Digital I²S Acoustic Frontend</h3>
+        <ul class="spec-list">
+          <li><span>Microphone</span><span>INMP441 (4.72×3.76 mm, 61 dB SNR)</span></li>
+          <li><span>Window / Hop</span><span>1024 / 512 (32 ms, Hann, 50% overlap)</span></li>
+          <li><span>FFT Bin Spacing</span><span>fs/N = 15.625 Hz (≈100× DFT speedup)</span></li>
+          <li><span>Memory / Load</span><span>73.5 KB SRAM · ≈2.6 MFLOP/s (≈1% core)</span></li>
+          <li><span>Uplink</span><span>ESP-NOW 52B (13 floats) + 115,200 UART</span></li>
+        </ul>
+      </div>
+
+      <div class="hairline-card">
+        <div class="card-kicker"><span>Node 2 · TinyML</span><span>ESP32 DevKit</span></div>
+        <h3 class="card-h3">Fast First-Stage Indicator</h3>
+        <ul class="spec-list">
+          <li><span>Input Vector</span><span>13 averaged 1-second MFCCs</span></li>
+          <li><span>Quantisation</span><span>TFLite Dynamic-Range (8-bit weights)</span></li>
+          <li><span>Model Footprint</span><span>6.3 KB Flash · 4 KB Tensor Arena</span></li>
+          <li><span>Role</span><span>Autonomous fast first-stage local alert</span></li>
+          <li><span>Merge Option</span><span>Combinable onto Node 1 (78 KB total)</span></li>
+        </ul>
+      </div>
+
+      <div class="hairline-card">
+        <div class="card-kicker"><span>Node 0 · Gateway</span><span>Raspberry Pi 3B</span></div>
+        <h3 class="card-h3">Full Inference &amp; Biosecurity Hub</h3>
+        <ul class="spec-list">
+          <li><span>Compute</span><span>1.2 GHz Quad Cortex-A53 · 1 GB RAM</span></li>
+          <li><span>Avian Gate</span><span>YAMNet TFLite (16 kHz, 500+ classes)</span></li>
+          <li><span>Decision Cascade</span><span>MLP Stack → RF → SVM → LR → Vote</span></li>
+          <li><span>Dashboard Link</span><span>Offline WebSocket · 10 updates / sec</span></li>
+          <li><span>Optional Uplink</span><span>Telegram Alerts + Read-Only Groq Q&amp;A</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Clean 80-Feature Taxonomy Inspector -->
+    <div class="reveal">
+      <div class="tab-bar" role="tablist">
+        <button class="tab-btn active" data-tab="tier1">Level 1 · 27 Base Features</button>
+        <button class="tab-btn" data-tab="tier2">Level 2 · 53 Extended Features</button>
+        <button class="tab-btn" data-tab="mel">Corrected Mel Sub-Bands &amp; RF Importance</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-tier1">
+        <div class="feature-chips">
+          <div class="f-chip">
+            <div class="f-chip-count">13 FEATURES</div>
+            <div class="f-chip-name">MFCCs (1–13)</div>
+            <div class="f-chip-sub">Pre-emphasis (0.97) → Hann → FFT → Mel log-energy → DCT-II cepstral envelope.</div>
+          </div>
+          <div class="f-chip">
+            <div class="f-chip-count">13 FEATURES</div>
+            <div class="f-chip-name">First-Order Deltas</div>
+            <div class="f-chip-sub">Temporal rates of change capturing short cough transients (100–300 ms).</div>
+          </div>
+          <div class="f-chip">
+            <div class="f-chip-count">1 FEATURE</div>
+            <div class="f-chip-name">Zero-Crossing Rate</div>
+            <div class="f-chip-sub">Distinguishes periodic voiced clucks from unvoiced harsh breathy rales.</div>
+          </div>
+          <div class="f-chip">
+            <div class="f-chip-count">DASHBOARD ONLY</div>
+            <div class="f-chip-name">Jitter · Shimmer · HNR</div>
+            <div class="f-chip-sub">Clinical vocal-quality telemetry shown on HUD; excluded from classifier vector.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-tier2">
+        <div class="feature-chips">
+          <div class="f-chip">
+            <div class="f-chip-count">6 FEATURES</div>
+            <div class="f-chip-name">Spectral Shape &amp; Energy</div>
+            <div class="f-chip-sub">Centroid, roll-off, bandwidth, flatness, RMS mean and RMS std.</div>
+          </div>
+          <div class="f-chip">
+            <div class="f-chip-count">7 FEATURES</div>
+            <div class="f-chip-name">Pitch, Rhythm &amp; Contrast</div>
+            <div class="f-chip-sub">F0 mean/std, voiced ratio, tempo, onset rate, IOI std, clipped energy-contrast SNR.</div>
+          </div>
+          <div class="f-chip">
+            <div class="f-chip-count">27 FEATURES</div>
+            <div class="f-chip-name">Sub-Bands, Chroma &amp; Contrast</div>
+            <div class="f-chip-sub">8 Mel sub-bands (16 librosa bands each), 12 chroma bins, 7 spectral contrast bands.</div>
+          </div>
+          <div class="f-chip">
+            <div class="f-chip-count">13 FEATURES</div>
+            <div class="f-chip-name">Delta-Delta Acceleration</div>
+            <div class="f-chip-sub">Second-order cepstral curvature capturing abrupt sneeze and rattling bursts.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-mel">
+        <div class="feature-chips">
+          <div class="f-chip">
+            <div class="f-chip-count">MEL SUB-BAND 5</div>
+            <div class="f-chip-name">≈ 1.7 – 2.5 kHz</div>
+            <div class="f-chip-sub">Top-ranked Random Forest feature; captures upper avian formant harmonics.</div>
+          </div>
+          <div class="f-chip">
+            <div class="f-chip-count">MEL SUB-BAND 6</div>
+            <div class="f-chip-name">≈ 2.5 – 3.7 kHz</div>
+            <div class="f-chip-sub">#1 Random Forest importance alongside spectral-contrast band 5 and mean F0.</div>
+          </div>
+          <div class="f-chip">
+            <div class="f-chip-count">MEL SUB-BAND 7</div>
+            <div class="f-chip-name">≈ 3.6 – 5.4 kHz</div>
+            <div class="f-chip-sub">Residual broadband sneeze/rale energy surviving 4 kHz roll-off (+ session acoustic cue).</div>
+          </div>
+          <div class="f-chip">
+            <div class="f-chip-count">MEL SUB-BAND 8</div>
+            <div class="f-chip-name">≈ 5.3 – 8.0 kHz</div>
+            <div class="f-chip-sub">librosa default fmax = sr/2 = 8 kHz; honest caveat: partly captures recorder differences.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================================
+     5. SECTION 03 — INTERACTIVE BAYESIAN MASKING & FILTER PHYSICS LAB
+     ========================================================================= -->
+<section class="section" id="acoustics">
+  <div class="container">
+    <div class="section-header reveal">
+      <div>
+        <div class="section-index">03 / Mathematical Foundations</div>
+        <h2 class="section-title">Avian Posterior Masking &amp; Zero-Phase DSP.</h2>
+      </div>
+      <p class="section-lead">
+        Interactive viva demonstration of the two YAMNet thresholds (0.05 admission, 0.08 posterior masking), the 10th-order zero-phase Butterworth response, and the three equations to explain without notes.
+      </p>
+    </div>
+
+    <div class="lab-grid reveal">
+      <!-- Left: Interactive Bayesian Simulator -->
+      <div class="hairline-card">
+        <div class="card-kicker"><span>Interactive Simulator</span><span>Section C10–C12</span></div>
+        <h3 class="card-h3">Avian Posterior Masking &amp; HITL Gate</h3>
+
+        <div class="equation-box">
+          <span>\( S_{\text{avian}} \ge 0.08 \implies P(\text{Noise}) = 0,\quad P(\text{Sick} \mid \text{Avian}) = \dfrac{p_1}{p_0 + p_1} \)</span>
+          <span style="color:var(--emerald)" id="bay-ratio">p₁/p₀ = 0.25</span>
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-meta">
+            <span>YAMNet Avian Sum (\( S_{\text{avian}} \) · 20 bird classes, can exceed 1)</span>
+            <strong id="val-savian">0.42</strong>
+          </div>
+          <input type="range" id="sl-savian" min="0" max="3.04" step="0.01" value="0.42">
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-meta">
+            <span>Raw Classifier Sick Probability (\( p_1 \))</span>
+            <strong id="val-p1">0.20</strong>
+          </div>
+          <input type="range" id="sl-p1" min="0.01" max="0.90" step="0.01" value="0.20">
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-meta">
+            <span>Raw Classifier Noise Spillover (\( p_2 \))</span>
+            <strong id="val-p2">0.35</strong>
+          </div>
+          <input type="range" id="sl-p2" min="0.00" max="0.80" step="0.01" value="0.35">
+        </div>
+
+        <div class="prob-bars">
+          <div class="prob-row">
+            <span style="color:var(--emerald)">Healthy</span>
+            <div class="prob-track"><div class="prob-fill" id="bar-h" style="background:var(--emerald);width:69%"></div></div>
+            <span id="txt-h" style="text-align:right">69.2%</span>
+          </div>
+          <div class="prob-row">
+            <span style="color:var(--rose)">Sick</span>
+            <div class="prob-track"><div class="prob-fill" id="bar-s" style="background:var(--rose);width:31%"></div></div>
+            <span id="txt-s" style="text-align:right">30.8%</span>
+          </div>
+          <div class="prob-row">
+            <span style="color:var(--slate)">Noise</span>
+            <div class="prob-track"><div class="prob-fill" id="bar-n" style="background:var(--slate);width:0%"></div></div>
+            <span id="txt-n" style="text-align:right">0.0%</span>
+          </div>
+        </div>
+
+        <div class="status-banner hitl" id="bay-status">
+          <span id="bay-decision">MASKED · CONF &lt; 0.85 → 10s HUMAN CHECK</span>
+          <span id="bay-gate-tag">S_avian ≥ 0.08</span>
+        </div>
+
+        <div class="formula-pills" style="margin-top:6px;">
+          <div class="formula-pill">
+            <div class="fp-label">Wilson 95% CI (D2)</div>
+            <div class="fp-eq">\( \dfrac{\hat{p}+\frac{z^2}{2n}\pm z\sqrt{\frac{\hat{p}(1-\hat{p})}{n}+\frac{z^2}{4n^2}}}{1+z^2/n} \)</div>
+          </div>
+          <div class="formula-pill">
+            <div class="fp-label">Energy-Contrast SNR (C6)</div>
+            <div class="fp-eq">\( \operatorname{clip}\!\left(10\log_{10}\!\frac{P_{\text{sig}}}{P_{10}},\,-20,\,80\right) \)</div>
+          </div>
+          <div class="formula-pill">
+            <div class="fp-label">Harmonic HNR (C5)</div>
+            <div class="fp-eq">\( 10\log_{10}\!\left(\dfrac{r}{1-r}\right)\text{ dB} \)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Babylon.js 3D Time-Frequency-Magnitude Waterfall + MathJax Formula Vault -->
+      <div class="hairline-card">
+        <div class="card-kicker"><span>3D DSP Waterfall · Babylon.js</span><span>Section B1–B13</span></div>
+        <div class="gl-chart-toolbar">
+          <h3 class="card-h3">10th-Order Zero-Phase Butterworth (300–4000 Hz)</h3>
+          <div class="gl-toggle-group" id="dsp-mode-toggle">
+            <button class="gl-toggle-btn active" data-dsp="filtered">Filtered (sosfiltfilt)</button>
+            <button class="gl-toggle-btn" data-dsp="raw">Raw Shed</button>
+          </div>
+        </div>
+
+        <div class="gl-chart-wrap">
+          <canvas id="babylon-dsp" aria-label="Interactive 3D Babylon.js Butterworth Filter Surface"></canvas>
+          <div class="gl-chart-badge" id="dsp-badge">3D Time × Freq × dB · Drag Orbit</div>
+        </div>
+
+        <div class="formula-pills">
+          <div class="formula-pill">
+            <div class="fp-label">Mel Scale (F12)</div>
+            <div class="fp-eq">\( m = 2595\log_{10}\!\left(1 + \dfrac{f}{700}\right) \)</div>
+          </div>
+          <div class="formula-pill">
+            <div class="fp-label">24-Bit SQNR (B10)</div>
+            <div class="fp-eq">\( 6.02B + 1.76 \approx 146\text{ dB} \)</div>
+          </div>
+          <div class="formula-pill">
+            <div class="fp-label">RLC Notch &amp; Q (B6)</div>
+            <div class="fp-eq">\( f_r = \dfrac{1}{2\pi\sqrt{LC}},\; Q = \dfrac{1}{R}\sqrt{\dfrac{L}{C}} \)</div>
+          </div>
+        </div>
+        <p style="font-size:12.5px;color:var(--slate);line-height:1.55;">
+          <code>butter(N=5, btype="band")</code> yields a 10th-order response; forward–backward <code>sosfiltfilt</code> applies \( |H(j\omega)|^2 \) with zero phase shift, collapsing fan rumble (\(&lt;280\text{ Hz}\)) and electrical hiss (\(&gt;4\text{ kHz}\)).
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================================
+     6. SECTION 04 — HONEST EVALUATION, COST & CLAIMS TO CORRECT
+     ========================================================================= -->
+<section class="section" id="evaluation">
+  <div class="container">
+    <div class="section-header reveal">
+      <div>
+        <div class="section-index">04 / Evaluation &amp; Rigour</div>
+        <h2 class="section-title">Random Split vs. Unseen Shed Reality.</h2>
+      </div>
+      <p class="section-lead">
+        Published studies often report 90–99% on random splits. Reporting our 65.4% session-isolated benchmark alongside 90.8% demonstrates evaluation hygiene and identifies the exact engineering roadmap.
+      </p>
+    </div>
+
+    <div class="eval-grid reveal">
+      <div class="hairline-card">
+        <div class="card-kicker"><span>3D Benchmark Stage · Babylon.js</span><span>Wilson 95% CI</span></div>
+        <div class="gl-chart-toolbar">
+          <h3 class="card-h3">Model Accuracy &amp; Generalisation Gap</h3>
+          <div class="gl-toggle-group" id="eval-mode-toggle">
+            <button class="gl-toggle-btn active" data-eval="accuracy">Accuracy &amp; Recall</button>
+            <button class="gl-toggle-btn" data-eval="f1">Unseen F1</button>
+          </div>
+        </div>
+
+        <div class="gl-chart-wrap" style="height:268px;">
+          <canvas id="babylon-eval" aria-label="Interactive 3D Babylon.js Model Benchmark Pillars"></canvas>
+          <div class="gl-chart-badge">3D Pillars + Wilson CI Caps · Drag Orbit</div>
+        </div>
+
+        <div class="gl-legend-grid" id="eval-legend">
+          <div class="gl-legend-cell">
+            <div class="gl-legend-top"><span>LightGBM (Best Single · N=206)</span><strong style="color:var(--bone-dim)">92.7%</strong></div>
+            <div class="gl-legend-sub">+4 clips vs stack · overlapping CI</div>
+          </div>
+          <div class="gl-legend-cell">
+            <div class="gl-legend-top"><span>MLP Stack — Sick Recall (N=94)</span><strong style="color:var(--emerald)">92.6%</strong></div>
+            <div class="gl-legend-sub">7/94 sick missed (baseline missed 10)</div>
+          </div>
+          <div class="gl-legend-cell">
+            <div class="gl-legend-top"><span>MLP Stack (Random Split · N=206)</span><strong style="color:var(--bone)">90.8%</strong></div>
+            <div class="gl-legend-sub">Wilson 95% CI: 86.0% – 94.0%</div>
+          </div>
+          <div class="gl-legend-cell">
+            <div class="gl-legend-top"><span>Session-Isolated (290 Unseen)</span><strong style="color:var(--amber)">65.4%</strong></div>
+            <div class="gl-legend-sub">CI 63.1–67.7% · F1 0.71 / 0.71 / 0.01</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hairline-card">
+        <div class="card-kicker"><span>Root-Cause Diagnosis</span><span>Section D6</span></div>
+        <h3 class="card-h3">Four Causes of the 90.8% → 65.4% Gap</h3>
+        <div class="gap-list">
+          <div class="gap-row">
+            <span class="gap-idx">01</span>
+            <div>
+              <h4>Session Leakage in Random Split</h4>
+              <p>Clips from the same shed/mic appear in both train and test, allowing the model to recognise room acoustics rather than pathology.</p>
+            </div>
+          </div>
+          <div class="gap-row">
+            <span class="gap-idx">02</span>
+            <div>
+              <h4>HDBSCAN Pseudo-Label Noise (1,828 clips)</h4>
+              <p>Masked autoencoder (MSE 0.0072 → 0.0028) + heuristic clustering (largest cluster = Healthy) introduces unverified label noise.</p>
+            </div>
+          </div>
+          <div class="gap-row">
+            <span class="gap-idx">03</span>
+            <div>
+              <h4>Sparse 3rd Class (Noise F1 = 0.01)</h4>
+              <p>Classifier had too few Noise examples; mitigated in deployment by upstream Silence + YAMNet bird gates.</p>
+            </div>
+          </div>
+          <div class="gap-row">
+            <span class="gap-idx">04</span>
+            <div>
+              <h4>Cross-Site Microphone &amp; Fan Shift</h4>
+              <p>Real acoustic shift across recording rooms — solved next via short per-shed normal-condition calibration.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cost & Portability Strip -->
+    <div class="nodes-grid reveal">
+      <div class="hairline-card">
+        <div class="card-kicker"><span>Unit Economics</span><span>Section E1–E2</span></div>
+        <h3 class="card-h3">Rs 1,000–1,350 / Acoustic Node</h3>
+        <p style="font-size:13px;color:var(--slate);">
+          Cost and accuracy are decoupled: MFCCs run at ≈2.6 MFLOP/s (≈1% of one ESP32-S3 core) with zero cloud GPU or subscription fees. Accuracy is bounded by vet-confirmed data, not compute.
+        </p>
+      </div>
+      <div class="hairline-card">
+        <div class="card-kicker"><span>Portability Threshold</span><span>Section E3</span></div>
+        <h3 class="card-h3">78 KB RAM · Plain C++ Firmware</h3>
+        <p style="font-size:13px;color:var(--slate);">
+          Runs MFCC + TinyML together on ESP32, ESP32-S3, STM32F4/H7, or nRF5340 (requires I²S, FPU, ≥78 KB RAM). Cortex-M0 (32 KB, no FPU) excluded. Pi stack runs on any Linux board / Android Termux.
+        </p>
+      </div>
+      <div class="hairline-card">
+        <div class="card-kicker"><span>6-Month Roadmap</span><span>Section F10</span></div>
+        <h3 class="card-h3">From Prototype to Field-Ready</h3>
+        <p style="font-size:13px;color:var(--slate);">
+          (1) Collect vet-confirmed Haringhata labels; (2) Retrain purely on session-isolated splits with per-shed calibration; (3) Measure hardware power &amp; latency; (4) Run a 2-week logged field pilot.
+        </p>
+      </div>
+    </div>
+
+    <!-- Mandatory Claims to Correct Before Viva -->
+    <div class="audit-card reveal">
+      <div class="card-kicker"><span style="color:var(--amber)">Mandatory Pre-Viva Report Corrections</span><span>Verified Against Repo Code</span></div>
+      <h3 class="card-h3" style="margin-top:8px;">Three Claims in main.tex to Fix Before Examiner Review</h3>
+
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th>Location</th>
+            <th>Current Report Text</th>
+            <th>Actual Code Truth</th>
+            <th>Corrected Viva Statement</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sec 9.9.1</td>
+            <td>Attributes +57.68 pp jump (7.73% → 65.4%) to DSP parity &amp; data hygiene improving model.</td>
+            <td>7.73% came from a broken feature pipeline and a single-session test split.</td>
+            <td>“The 7.73% run was invalid due to a pipeline and split defect; after fixing it, valid session-isolated accuracy is 65.4%.”</td>
+          </tr>
+          <tr>
+            <td>Sec 9.9 · Tbl 2</td>
+            <td>Claims Mel sub-bands 5–8 cover 1.5–4.0 kHz and 128 bands span 300–4000 Hz.</td>
+            <td>librosa defaults to fmax = sr/2 = 8 kHz; bands 5–8 span 1.7–2.5, 2.5–3.7, 3.6–5.4, 5.3–8.0 kHz.</td>
+            <td>“Bands 5–8 span 1.7–8.0 kHz; bands 7–8 sit above the 4 kHz roll-off (residual broadband energy + recorder cues).”</td>
+          </tr>
+          <tr>
+            <td>Sec 9.9 (RF)</td>
+            <td>States Random Forest uses unweighted votes and defaults to majority class.</td>
+            <td><code>scripts/v12_copy.py</code> sets <code>class_weight='balanced'</code> (lines 299 &amp; 485).</td>
+            <td>Remove unweighted claim; state class weighting was balanced and remaining bias comes from data distribution.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="careful-strip">
+        <div class="careful-item"><strong>Butterworth Filter</strong>Say “N = 5 design giving a 10th-order band-pass, applied zero-phase via sosfiltfilt.”</div>
+        <div class="careful-item"><strong>SNR Feature</strong>Call it an energy-contrast measure (Psig / P10), not a true signal-to-noise ratio.</div>
+        <div class="careful-item"><strong>Power &amp; Latency</strong>Explicitly call them estimates (100–250 mW ESP32, few W Pi, 1–3s); not measured yet.</div>
+        <div class="careful-item"><strong>Health Labels</strong>State “dataset annotations, not vet-confirmed” — never claim named pathogen diagnosis.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================================
+     7. SECTION 05 — COMPLETE INTERACTIVE VIVA Q&A BANK (PARTS A–F)
+     ========================================================================= -->
+<section class="section" id="viva">
+  <div class="container">
+    <div class="section-header reveal">
+      <div>
+        <div class="section-index">05 / Examiner Defense Bank</div>
+        <h2 class="section-title">All 77 Viva Questions · Parts A to F.</h2>
+      </div>
+      <p class="section-lead">
+        Filter by technical domain or search any keyword instantly. For Part F hard questions: admit the limitation in sentence one, state what you did, then state what comes next.
+      </p>
+    </div>
+
+    <div class="viva-controls reveal">
+      <div class="tab-bar" id="qa-filters" style="margin-bottom:0;">
+        <button class="tab-btn active" data-part="F">Part F · Hard (12)</button>
+        <button class="tab-btn" data-part="A">A · Overview (8)</button>
+        <button class="tab-btn" data-part="B">B · Signal &amp; HW (18)</button>
+        <button class="tab-btn" data-part="C">C · Features &amp; ML (17)</button>
+        <button class="tab-btn" data-part="D">D · Results (12)</button>
+        <button class="tab-btn" data-part="E">E · Cost &amp; Scale (10)</button>
+        <button class="tab-btn" data-part="ALL">All (77)</button>
+      </div>
+      <input type="search" id="qa-search" class="search-input" placeholder="Search Nyquist, YAMNet, Wilson, leakage...">
+    </div>
+
+    <div class="qa-list reveal" id="qa-list"></div>
+  </div>
+</section>
+
+<!-- =========================================================================
+     8. SECTION 06 — 15-MINUTE SPEECH TELEPROMPTER & AUTHORS
+     ========================================================================= -->
+<section class="section" id="script">
+  <div class="container">
+    <div class="section-header reveal">
+      <div>
+        <div class="section-index">06 / Presentation Script &amp; Credits</div>
+        <h2 class="section-title">15-Minute Viva Teleprompter.</h2>
+      </div>
+      <p class="section-lead">
+        ≈2,000 words paced at 130–140 WPM across 20 slides. Point directly at the block diagram, keep slides sparse, and if running long trim Parts 3–4 — never Results or Limitations.
+      </p>
+    </div>
+
+    <div class="script-shell reveal">
+      <div class="script-head">
+        <div class="tab-bar" id="script-tabs" style="margin-bottom:0;">
+          <button class="tab-btn active" data-sp="0">Part 1 · 0:00–2:00</button>
+          <button class="tab-btn" data-sp="1">Part 2 · 2:00–4:00</button>
+          <button class="tab-btn" data-sp="2">Part 3 · 4:00–6:30</button>
+          <button class="tab-btn" data-sp="3">Part 4 · 6:30–9:30</button>
+          <button class="tab-btn" data-sp="4">Part 5 · 9:30–12:30</button>
+          <button class="tab-btn" data-sp="5">Part 6 · 12:30–15:00</button>
+        </div>
+        <button class="timer-btn" id="speech-timer-btn">15:00 Pacer</button>
+      </div>
+      <div class="script-body" id="script-body"></div>
+    </div>
+
+    <div class="tips-grid reveal">
+      <div class="hairline-card">
+        <div class="card-kicker"><span>Before Viva Day</span><span>Prep</span></div>
+        <p style="font-size:13px;color:var(--slate);line-height:1.65;">
+          Rehearse timed 3×. Memorise the 60s pitch &amp; key numbers. Fix the 3 report claims. Keep dashboard running on recorded audio + backup screen video. Put graphs g1, g3, g6, g8, g9 full-width on Slides 12–16.
+        </p>
+      </div>
+      <div class="hairline-card">
+        <div class="card-kicker"><span>During Slides</span><span>Delivery</span></div>
+        <p style="font-size:13px;color:var(--slate);line-height:1.65;">
+          One idea per slide, sparse text — let speech carry the detail. Point physically to the active block in the diagram and transition cleanly between sections.
+        </p>
+      </div>
+      <div class="hairline-card">
+        <div class="card-kicker"><span>Examiner Q&amp;A</span><span>Protocol</span></div>
+        <p style="font-size:13px;color:var(--slate);line-height:1.65;">
+          Pause 2 seconds, restate question in one line, answer in 30–60s. Never invent unmeasured numbers (“We did not measure that; our estimate is…, and we would measure it by…”).
+        </p>
+      </div>
+    </div>
+
+    <!-- Clean Authors & Technical Advisors Strip (Zero Phone Numbers / IDs) -->
+    <div class="authors-grid reveal">
+      <div class="author-card">
+        <div class="author-role">Faculty Mentor</div>
+        <div class="author-name">Dr. Subhajit Das</div>
+        <div class="author-meta">Associate Professor · Dept. of ECE</div>
+        <div class="author-scope">Principal Investigator &amp; academic supervision, UEM Kolkata.</div>
+      </div>
+      <div class="author-card">
+        <div class="author-role">Technical Advisor · Lead</div>
+        <div class="author-name">Ritam Das</div>
+        <div class="author-meta">ECE · 4th Year</div>
+        <div class="author-scope">PCB layout troubleshooting, 3D CAD/printing guidance, and IEEE paper draft review.</div>
+      </div>
+      <div class="author-card">
+        <div class="author-role">Technical Advisor</div>
+        <div class="author-name">Sutirtha Halder</div>
+        <div class="author-meta">ECE · 4th Year</div>
+        <div class="author-scope">Embedded systems guidance, AI pipeline architecture, and IEEE paper draft review.</div>
+      </div>
+      <div class="author-card">
+        <div class="author-role">Core Author</div>
+        <div class="author-name">Dibyajyotee Ghosh (DJ)</div>
+        <div class="author-meta">ECE · 3rd Year</div>
+        <div class="author-scope">System architecture, Edge DSP C++ firmware, and 3-tier microcontroller mesh.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- =========================================================================
+     9. MINIMALIST EDITORIAL FOOTER
+     ========================================================================= -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>AI-Driven Sustainable Bio-acoustic Systems · B.Tech ECE Project · UEM Kolkata</div>
+    <div class="footer-mono">MONARCH ORCA V14 · Nov 26, 2026 · Dr. Subhajit Das · Ritam Das · Sutirtha Halder · Dibyajyotee Ghosh</div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =========================================================================
+     1. LENIS SMOOTH SCROLL + SCROLL PROGRESS + REVEAL OBSERVER
+     ========================================================================= */
+  let lenis = null;
+  if (typeof Lenis !== 'undefined') {
+    lenis = new Lenis({
+      duration: 1.15,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      wheelMultiplier: 0.92,
+      touchMultiplier: 1.5
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    lenis.on('scroll', ({ progress }) => {
+      const bar = document.getElementById('scroll-progress');
+      if (bar) bar.style.width = (progress * 100).toFixed(2) + '%';
+    });
+  } else {
+    window.addEventListener('scroll', () => {
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      const p = h > 0 ? (window.scrollY / h) * 100 : 0;
+      const bar = document.getElementById('scroll-progress');
+      if (bar) bar.style.width = p.toFixed(2) + '%';
+    }, { passive: true });
+  }
+
+  // Smooth anchor scrolling via Lenis
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      const id = link.getAttribute('href');
+      if (!id || id === '#') return;
+      const target = document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      if (lenis) lenis.scrollTo(target, { offset: -72 });
+      else target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  // Intersection reveal
+  const revObs = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (en.isIntersecting) {
+        en.target.classList.add('is-visible');
+        revObs.unobserve(en.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach((el) => revObs.observe(el));
+
+  /* =========================================================================
+     2. BABYLON.JS PROFESSIONAL-GRADE PBR 3D HARDWARE STAGE (OPTION 1 SPEC)
+     ========================================================================= */
+  const nodeMeta = {
+    overview: {
+      caption: '3-Tier Offline Mesh · ESP32-S3 DSP → ESP32 TinyML (52B ESP-NOW) → Raspberry Pi 3B Gateway',
+      alpha: -1.12, beta: 1.04, radius: 7.4, target: [0.15, 0.05, 0.05]
+    },
+    node0: {
+      caption: 'Node 0 · Raspberry Pi 3B (1.2 GHz Cortex-A53, 1 GB RAM) · YAMNet Gate + 80-Feature MLP Stack + WebSocket HUD',
+      alpha: -1.35, beta: 0.96, radius: 4.3, target: [-0.95, 0.05, 0.25]
+    },
+    node1: {
+      caption: 'Node 1 · ESP32-S3 + INMP441 Digital I²S Mic · 16 kHz DMA · 13-MFCC Pure C++ · 73.5 KB SRAM · ≈1% Core',
+      alpha: -0.78, beta: 0.92, radius: 3.4, target: [1.48, 0.28, -1.05]
+    },
+    node2: {
+      caption: 'Node 2 · ESP32 TinyML Classifier · 6.3 KB Dynamic-Range TFLite · 4 KB Tensor Arena · Fast Local Alert',
+      alpha: -0.85, beta: 0.95, radius: 3.4, target: [1.72, 0.14, 1.18]
+    }
+  };
+
+  function initBabylonStage() {
+    const canvas = document.getElementById('babylon-stage');
+    if (!canvas || typeof BABYLON === 'undefined') return;
+
+    const engine = new BABYLON.Engine(canvas, true, {
+      preserveDrawingBuffer: true,
+      stencil: true,
+      antialias: true,
+      powerPreference: 'high-performance'
+    });
+    engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 2));
+
+    const scene = new BABYLON.Scene(engine);
+    scene.clearColor = new BABYLON.Color4(0.0235, 0.0275, 0.0353, 0.0);
+
+    // ACES Filmic studio color pipeline
+    scene.imageProcessingConfiguration.toneMappingEnabled = true;
+    scene.imageProcessingConfiguration.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
+    scene.imageProcessingConfiguration.exposure = 1.22;
+    scene.imageProcessingConfiguration.contrast = 1.12;
+
+    const camera = new BABYLON.ArcRotateCamera(
+      'cam',
+      nodeMeta.overview.alpha,
+      nodeMeta.overview.beta,
+      nodeMeta.overview.radius,
+      new BABYLON.Vector3(...nodeMeta.overview.target),
+      scene
+    );
+    camera.attachControl(canvas, true);
+    camera.inputs.removeByType('ArcRotateCameraMouseWheelInput'); // Keep Lenis page scroll unobstructed
+    camera.inertia = 0.86;
+    camera.lowerRadiusLimit = 2.6;
+    camera.upperRadiusLimit = 10.5;
+    camera.lowerBetaLimit = 0.35;
+    camera.upperBetaLimit = 1.48;
+    camera.panningSensibility = 0;
+
+    // Studio softbox lighting (sculpts matte anodized obsidian edges cleanly)
+    const hemi = new BABYLON.HemisphericLight('hemi', new BABYLON.Vector3(0, 1, 0), scene);
+    hemi.intensity = 0.85;
+    hemi.diffuse = new BABYLON.Color3(0.95, 0.94, 0.90);
+    hemi.groundColor = new BABYLON.Color3(0.08, 0.10, 0.14);
+
+    const keyLight = new BABYLON.DirectionalLight('key', new BABYLON.Vector3(-0.6, -1.0, 0.55), scene);
+    keyLight.position = new BABYLON.Vector3(6, 9, -5);
+    keyLight.intensity = 2.8;
+    keyLight.diffuse = new BABYLON.Color3(0.96, 0.94, 0.89);
+
+    const rimLight = new BABYLON.DirectionalLight('rim', new BABYLON.Vector3(0.8, -0.45, -0.8), scene);
+    rimLight.position = new BABYLON.Vector3(-7, 4, 7);
+    rimLight.intensity = 2.1;
+    rimLight.diffuse = new BABYLON.Color3(0.76, 0.84, 0.96);
+
+    const emeraldRim = new BABYLON.PointLight('emRim', new BABYLON.Vector3(2.2, 1.4, 0.2), scene);
+    emeraldRim.intensity = 1.05;
+    emeraldRim.diffuse = new BABYLON.Color3(0.06, 0.73, 0.51);
+    emeraldRim.range = 8;
+
+    const glow = new BABYLON.GlowLayer('glow', scene, { blurKernelSize: 28 });
+    glow.intensity = 0.55;
+
+    // Shared PBR Materials
+    const anodizedMat = new BABYLON.PBRMetallicRoughnessMaterial('anodized', scene);
+    anodizedMat.baseColor = new BABYLON.Color3(0.11, 0.12, 0.135);
+    anodizedMat.metallic = 0.52;
+    anodizedMat.roughness = 0.34;
+
+    const bezelMat = new BABYLON.PBRMetallicRoughnessMaterial('bezel', scene);
+    bezelMat.baseColor = new BABYLON.Color3(0.32, 0.34, 0.38);
+    bezelMat.metallic = 0.65;
+    bezelMat.roughness = 0.24;
+
+    const portDarkMat = new BABYLON.PBRMetallicRoughnessMaterial('portDark', scene);
+    portDarkMat.baseColor = new BABYLON.Color3(0.02, 0.022, 0.028);
+    portDarkMat.metallic = 0.3;
+    portDarkMat.roughness = 0.6;
+
+    const ledEmerald = new BABYLON.StandardMaterial('ledEm', scene);
+    ledEmerald.emissiveColor = new BABYLON.Color3(0.06, 0.78, 0.54);
+    ledEmerald.disableLighting = true;
+
+    const ledBone = new BABYLON.StandardMaterial('ledBone', scene);
+    ledBone.emissiveColor = new BABYLON.Color3(0.92, 0.90, 0.86);
+    ledBone.disableLighting = true;
+
+    // Helper: crisp laser-etched top decal texture
+    function makeTopPlateMaterial(name, title, subtitle, isPi) {
+      const tex = new BABYLON.DynamicTexture(name + '_tex', { width: 512, height: 512 }, scene, true);
+      const ctx = tex.getContext();
+      ctx.fillStyle = '#15181d';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Subtle machined border groove
+      ctx.strokeStyle = 'rgba(234,230,220,0.14)';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(18, 18, 476, 476);
+
+      if (isPi) {
+        // Minimal precision geometric emblem inspired by Node 0 Pi Hub
+        ctx.save();
+        ctx.translate(256, 226);
+        ctx.strokeStyle = 'rgba(234,230,220,0.34)';
+        ctx.lineWidth = 5;
+        const pts = [
+          [0, -48], [-32, -26], [32, -26], [-44, 14], [0, 8], [44, 14], [-22, 50], [22, 50]
+        ];
+        pts.forEach(([x, y]) => {
+          ctx.beginPath();
+          ctx.arc(x, y, 16, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+        ctx.beginPath();
+        ctx.ellipse(-18, -76, 18, 9, -0.45, 0, Math.PI * 2);
+        ctx.ellipse(18, -76, 18, 9, 0.45, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = 'rgba(234,230,220,0.42)';
+        ctx.font = '500 22px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('NODE 0 · GATEWAY HUB', 256, 396);
+        ctx.fillStyle = 'rgba(138,147,162,0.48)';
+        ctx.font = '400 18px "JetBrains Mono", monospace';
+        ctx.fillText('YAMNET + 80F MLP STACK', 256, 432);
+      } else {
+        ctx.fillStyle = 'rgba(234,230,220,0.46)';
+        ctx.font = '600 44px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(title, 256, 245);
+        ctx.fillStyle = 'rgba(138,147,162,0.55)';
+        ctx.font = '400 22px "JetBrains Mono", monospace';
+        ctx.fillText(subtitle, 256, 305);
+      }
+
+      tex.update();
+      const mat = new BABYLON.PBRMetallicRoughnessMaterial(name + '_mat', scene);
+      mat.baseTexture = tex;
+      mat.metallic = 0.42;
+      mat.roughness = 0.36;
+      return mat;
+    }
+
+    // Helper: chamfered industrial enclosure builder
+    function buildEnclosure(name, w, h, d, topMat, pos) {
+      const root = new BABYLON.TransformNode(name, scene);
+      root.position = pos.clone();
+
+      // Main body
+      const body = BABYLON.MeshBuilder.CreateBox(name + '_body', { width: w, height: h, depth: d }, scene);
+      body.material = anodizedMat;
+      body.parent = root;
+
+      // Subtle machined top chamfer bevel
+      const bevel = BABYLON.MeshBuilder.CreateBox(name + '_bevel', { width: w * 0.965, height: 0.035, depth: d * 0.965 }, scene);
+      bevel.position.y = h / 2 + 0.014;
+      bevel.material = bezelMat;
+      bevel.parent = root;
+
+      // Laser-etched top plate
+      const top = BABYLON.MeshBuilder.CreatePlane(name + '_top', { width: w * 0.94, height: d * 0.94, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+      top.rotation.x = Math.PI / 2;
+      top.position.y = h / 2 + 0.033;
+      top.material = topMat;
+      top.parent = root;
+
+      // Subtle underside rubber plinth
+      const base = BABYLON.MeshBuilder.CreateBox(name + '_base', { width: w * 0.92, height: 0.04, depth: d * 0.92 }, scene);
+      base.position.y = -h / 2 - 0.02;
+      base.material = portDarkMat;
+      base.parent = root;
+
+      return root;
+    }
+
+    // --- NODE 0: Raspberry Pi 3B Matte-Black Industrial Hub ---
+    const piRoot = buildEnclosure(
+      'node0', 2.45, 0.56, 1.85,
+      makeTopPlateMaterial('piTop', '', '', true),
+      new BABYLON.Vector3(-0.95, 0.02, 0.25)
+    );
+    piRoot.rotation.y = 0.22;
+
+    // Front metallic ports (USB-A x2 + RJ45 Ethernet)
+    const portOffsets = [-0.62, -0.14, 0.48];
+    const portWidths = [0.32, 0.32, 0.44];
+    portOffsets.forEach((px, i) => {
+      const frame = BABYLON.MeshBuilder.CreateBox('pFrame' + i, { width: portWidths[i], height: 0.30, depth: 0.06 }, scene);
+      frame.position = new BABYLON.Vector3(px, -0.02, 0.915);
+      frame.material = bezelMat;
+      frame.parent = piRoot;
+
+      const cavity = BABYLON.MeshBuilder.CreateBox('pCav' + i, { width: portWidths[i] - 0.06, height: 0.23, depth: 0.065 }, scene);
+      cavity.position = new BABYLON.Vector3(px, -0.02, 0.922);
+      cavity.material = portDarkMat;
+      cavity.parent = piRoot;
+    });
+
+    // Side USB-C + Micro-HDMI ports
+    [-0.38, 0.05].forEach((pz, i) => {
+      const sp = BABYLON.MeshBuilder.CreateBox('sPort' + i, { width: 0.05, height: 0.11, depth: 0.24 }, scene);
+      sp.position = new BABYLON.Vector3(-1.22, -0.04, pz);
+      sp.material = portDarkMat;
+      sp.parent = piRoot;
+    });
+
+    const piLed = BABYLON.MeshBuilder.CreateSphere('piLed', { diameter: 0.055 }, scene);
+    piLed.position = new BABYLON.Vector3(1.06, 0.04, 0.925);
+    piLed.material = ledEmerald;
+    piLed.parent = piRoot;
+
+    // --- NODE 1: ESP32-S3 + INMP441 DSP Node ---
+    const n1Root = buildEnclosure(
+      'node1', 1.18, 0.34, 0.96,
+      makeTopPlateMaterial('n1Top', 'ESP32-S3', 'INMP441 · 13-MFCC', false),
+      new BABYLON.Vector3(1.48, 0.28, -1.05)
+    );
+    n1Root.rotation.y = -0.34;
+
+    // Acoustic MEMS Aperture ring
+    const micPort = BABYLON.MeshBuilder.CreateCylinder('micPort', { diameter: 0.16, height: 0.05, tessellation: 24 }, scene);
+    micPort.position = new BABYLON.Vector3(-0.36, 0.18, 0.28);
+    micPort.material = bezelMat;
+    micPort.parent = n1Root;
+
+    const n1Led = BABYLON.MeshBuilder.CreateSphere('n1Led', { diameter: 0.045 }, scene);
+    n1Led.position = new BABYLON.Vector3(0.42, 0.18, 0.32);
+    n1Led.material = ledEmerald;
+    n1Led.parent = n1Root;
+
+    // --- NODE 2: ESP32 TinyML Node ---
+    const n2Root = buildEnclosure(
+      'node2', 1.18, 0.34, 0.96,
+      makeTopPlateMaterial('n2Top', 'ESP32', '6.3 KB TINYML', false),
+      new BABYLON.Vector3(1.72, 0.12, 1.18)
+    );
+    n2Root.rotation.y = 0.42;
+
+    const n2Led = BABYLON.MeshBuilder.CreateSphere('n2Led', { diameter: 0.045 }, scene);
+    n2Led.position = new BABYLON.Vector3(-0.42, 0.18, 0.32);
+    n2Led.material = ledBone;
+    n2Led.parent = n2Root;
+
+    // --- LUMINOUS ORBITAL RINGS & SIGNAL ARCS (EXACT OPTION 1 VISUAL SIGNATURE) ---
+    const arcMat = new BABYLON.StandardMaterial('arcMat', scene);
+    arcMat.emissiveColor = new BABYLON.Color3(0.76, 0.78, 0.82);
+    arcMat.alpha = 0.42;
+    arcMat.disableLighting = true;
+
+    const ringPts = [];
+    for (let i = 0; i <= 96; i++) {
+      const a = (i / 96) * Math.PI * 2;
+      ringPts.push(new BABYLON.Vector3(0.32 + Math.cos(a) * 2.08, -0.06, 0.12 + Math.sin(a) * 1.72));
+    }
+    const orbitalRing = BABYLON.MeshBuilder.CreateTube('orbitalRing', { path: ringPts, radius: 0.011, tessellation: 8 }, scene);
+    orbitalRing.material = arcMat;
+
+    // Secondary delicate telemetry splines connecting the 3 nodes
+    const path12 = BABYLON.Curve3.CreateQuadraticBezier(
+      n1Root.position.clone(),
+      new BABYLON.Vector3(2.25, 0.65, 0.05),
+      n2Root.position.clone(),
+      40
+    ).getPoints();
+    const link12 = BABYLON.MeshBuilder.CreateTube('link12', { path: path12, radius: 0.009, tessellation: 6 }, scene);
+    link12.material = arcMat;
+
+    const path10 = BABYLON.Curve3.CreateQuadraticBezier(
+      n1Root.position.clone(),
+      new BABYLON.Vector3(0.25, 0.62, -0.78),
+      piRoot.position.clone(),
+      40
+    ).getPoints();
+    const link10 = BABYLON.MeshBuilder.CreateTube('link10', { path: path10, radius: 0.009, tessellation: 6 }, scene);
+    link10.material = arcMat;
+
+    // Animated data packets gliding smoothly along mesh links
+    const packet12 = BABYLON.MeshBuilder.CreateSphere('pkt12', { diameter: 0.075 }, scene);
+    packet12.material = ledEmerald;
+    const packet10 = BABYLON.MeshBuilder.CreateSphere('pkt10', { diameter: 0.075 }, scene);
+    packet10.material = ledBone;
+
+    // Camera transition state
+    let camGoal = null;
+    let userDragging = false;
+    canvas.addEventListener('pointerdown', () => { userDragging = true; camGoal = null; });
+    window.addEventListener('pointerup', () => { userDragging = false; });
+
+    document.querySelectorAll('.node-tab').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.node-tab').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        const key = btn.dataset.focus;
+        const m = nodeMeta[key];
+        if (!m) return;
+        document.getElementById('node-caption').textContent = m.caption;
+        camGoal = {
+          alpha: m.alpha,
+          beta: m.beta,
+          radius: m.radius,
+          target: new BABYLON.Vector3(...m.target)
+        };
+      });
+    });
+
+    // Main render loop
+    let t = 0;
+    scene.registerBeforeRender(() => {
+      t += engine.getDeltaTime() * 0.001;
+
+      // Subtle museum levitation
+      piRoot.position.y = 0.02 + Math.sin(t * 1.1) * 0.035;
+      n1Root.position.y = 0.28 + Math.sin(t * 1.3 + 1.2) * 0.045;
+      n2Root.position.y = 0.12 + Math.sin(t * 1.25 + 2.4) * 0.042;
+
+      // Signal packets traveling along Bezier links
+      const idx12 = Math.floor(((t * 0.55) % 1) * (path12.length - 1));
+      packet12.position.copyFrom(path12[idx12]);
+      const idx10 = Math.floor((((t * 0.42) + 0.5) % 1) * (path10.length - 1));
+      packet10.position.copyFrom(path10[idx10]);
+
+      // Gentle camera transition or slow ambient drift
+      if (camGoal) {
+        camera.alpha += (camGoal.alpha - camera.alpha) * 0.07;
+        camera.beta += (camGoal.beta - camera.beta) * 0.07;
+        camera.radius += (camGoal.radius - camera.radius) * 0.07;
+        camera.target = BABYLON.Vector3.Lerp(camera.target, camGoal.target, 0.08);
+        if (Math.abs(camGoal.alpha - camera.alpha) < 0.004 && Math.abs(camGoal.radius - camera.radius) < 0.01) {
+          camGoal = null;
+        }
+      } else if (!userDragging) {
+        camera.alpha += 0.0014;
+      }
+    });
+
+    engine.runRenderLoop(() => scene.render());
+    window.addEventListener('resize', () => engine.resize());
+  }
+  initBabylonStage();
+
+  /* =========================================================================
+     3. BIOACOUSTIC WAVEFORM RIBBON (EXACT OPTION 1 BONE-TO-EMERALD FINE LINES)
+     ========================================================================= */
+  const wfProfiles = {
+    healthy: { savian: '2.48', state: 'Healthy · 0.94', amp: 0.72, jitter: 0.18, freq: 1.0, burst: 0.25 },
+    sick:    { savian: '2.86', state: 'Sick · HITL 10s', amp: 0.95, jitter: 0.62, freq: 1.9, burst: 0.78 },
+    noise:   { savian: '0.02', state: 'Discarded < 0.05', amp: 0.30, jitter: 0.10, freq: 0.35, burst: 0.08 }
+  };
+  let activeWf = 'healthy';
+  let audioCtx = null, synthNodes = null;
+
+  function stopSynth() {
+    if (synthNodes) {
+      try { synthNodes.osc.stop(); synthNodes.lfo.stop(); } catch (_) {}
+      synthNodes = null;
+    }
+    const btn = document.getElementById('wf-audio-btn');
+    if (btn) { btn.classList.remove('playing'); btn.textContent = 'Listen Synth'; }
+  }
+
+  function toggleSynth() {
+    const btn = document.getElementById('wf-audio-btn');
+    if (synthNodes) { stopSynth(); return; }
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor) return;
+    if (!audioCtx) audioCtx = new AudioContextCtor();
+    const osc = audioCtx.createOscillator();
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+    const gain = audioCtx.createGain();
+
+    filter.type = 'bandpass';
+    if (activeWf === 'healthy') {
+      osc.type = 'triangle'; osc.frequency.value = 1150;
+      lfo.frequency.value = 4.2; lfoGain.gain.value = 180;
+      filter.frequency.value = 1400; gain.gain.value = 0.04;
+    } else if (activeWf === 'sick') {
+      osc.type = 'sawtooth'; osc.frequency.value = 720;
+      lfo.frequency.value = 14.5; lfoGain.gain.value = 340;
+      filter.frequency.value = 2100; gain.gain.value = 0.035;
+    } else {
+      osc.type = 'sine'; osc.frequency.value = 160;
+      lfo.frequency.value = 1.8; lfoGain.gain.value = 18;
+      filter.frequency.value = 220; gain.gain.value = 0.045;
+    }
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(); lfo.start();
+    synthNodes = { osc, lfo };
+    btn.classList.add('playing');
+    btn.textContent = 'Stop Audio';
+  }
+
+  document.getElementById('wf-audio-btn').addEventListener('click', toggleSynth);
+  document.querySelectorAll('.wf-mode-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.wf-mode-btn').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeWf = btn.dataset.wf;
+      const p = wfProfiles[activeWf];
+      document.getElementById('wf-savian').textContent = p.savian;
+      document.getElementById('wf-state').textContent = p.state;
+      if (synthNodes) { stopSynth(); toggleSynth(); }
+    });
+  });
+
+  function initWaveformRibbon() {
+    const canvas = document.getElementById('waveform-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let phase = 0;
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function draw() {
+      const w = canvas.getBoundingClientRect().width;
+      const h = canvas.getBoundingClientRect().height;
+      const mid = h / 2;
+      const p = wfProfiles[activeWf];
+      phase += 0.032;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Hairline center baseline
+      ctx.strokeStyle = 'rgba(234, 230, 220, 0.18)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, mid);
+      ctx.lineTo(w, mid);
+      ctx.stroke();
+
+      // Vertical fine-line spectrum ribbon (bone -> subtle emerald blend)
+      const bars = Math.floor(w / 3.2);
+      for (let i = 0; i < bars; i++) {
+        const u = i / bars;
+        // Organic envelope peaked around 0.25–0.55 just like Option 1
+        const env = Math.exp(-Math.pow((u - 0.36) / 0.26, 2)) + 0.35 * Math.exp(-Math.pow((u - 0.66) / 0.16, 2));
+        const wave = Math.abs(
+          Math.sin(u * 48 * p.freq + phase) * 0.55 +
+          Math.sin(u * 113 * p.freq - phase * 1.4) * (0.25 + p.jitter * 0.35) +
+          Math.cos(u * 197 + phase * 0.7) * p.burst * 0.35
+        );
+        const amp = Math.min(mid - 6, env * wave * mid * p.amp * 1.05);
+        const x = u * w;
+
+        // Bone white transitioning into muted surgical emerald in harmonic tail
+        const emBlend = Math.max(0, Math.min(1, (u - 0.42) * 2.1));
+        const r = Math.round(234 * (1 - emBlend) + 16 * emBlend);
+        const g = Math.round(230 * (1 - emBlend) + 185 * emBlend);
+        const b = Math.round(220 * (1 - emBlend) + 129 * emBlend);
+        const alpha = 0.22 + (amp / mid) * 0.72;
+
+        ctx.strokeStyle = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
+        ctx.lineWidth = 1.15;
+        ctx.beginPath();
+        ctx.moveTo(x, mid - amp);
+        ctx.lineTo(x, mid + amp);
+        ctx.stroke();
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+  initWaveformRibbon();
+
+  /* =========================================================================
+     4. INTERACTIVE BAYESIAN MASKING SIMULATOR & BODE RESPONSE PLOT
+     ========================================================================= */
+  function updateBayesian() {
+    const sav = parseFloat(document.getElementById('sl-savian').value);
+    const p1 = parseFloat(document.getElementById('sl-p1').value);
+    let p2 = parseFloat(document.getElementById('sl-p2').value);
+    let p0 = Math.max(0.01, 1 - p1 - p2);
+    const sumRaw = p0 + p1 + p2;
+    p0 /= sumRaw;
+    const rp1 = p1 / sumRaw;
+    const rp2 = p2 / sumRaw;
+
+    document.getElementById('val-savian').textContent = sav.toFixed(2);
+    document.getElementById('val-p1').textContent = rp1.toFixed(2);
+    document.getElementById('val-p2').textContent = rp2.toFixed(2);
+    document.getElementById('bay-ratio').textContent = 'p₁/p₀ = ' + (rp1 / p0).toFixed(2);
+
+    let outH = p0, outS = rp1, outN = rp2;
+    const banner = document.getElementById('bay-status');
+    const dec = document.getElementById('bay-decision');
+    const gateTag = document.getElementById('bay-gate-tag');
+
+    if (sav < 0.05) {
+      banner.className = 'status-banner discard';
+      dec.textContent = 'DISCARDED BY YAMNET BIRD GATE (NOT AVIAN)';
+      gateTag.textContent = 'S_avian < 0.05';
+    } else if (sav >= 0.08) {
+      outH = p0 / (p0 + rp1);
+      outS = rp1 / (p0 + rp1);
+      outN = 0;
+      gateTag.textContent = 'MASKED · S_avian ≥ 0.08';
+      if (outS >= outH || outH < 0.85) {
+        banner.className = 'status-banner hitl';
+        dec.textContent = outS >= outH ? 'SICK VOCALISATION → 10s HUMAN CONFIRMATION' : 'CONF < 0.85 → 10s HUMAN CONFIRMATION';
+      } else {
+        banner.className = 'status-banner healthy';
+        dec.textContent = 'HEALTHY NORMAL · LOGGED OFFLINE';
+      }
+    } else {
+      gateTag.textContent = 'ADMITTED (0.05–0.08 · UNMASKED)';
+      const top = Math.max(outH, outS, outN);
+      if (outS === top || top < 0.85) {
+        banner.className = 'status-banner hitl';
+        dec.textContent = 'LOW EVIDENCE / UNCERTAIN → 10s HUMAN CHECK';
+      } else {
+        banner.className = 'status-banner healthy';
+        dec.textContent = 'HEALTHY NORMAL (UNMASKED)';
+      }
+    }
+
+    document.getElementById('bar-h').style.width = (outH * 100).toFixed(1) + '%';
+    document.getElementById('bar-s').style.width = (outS * 100).toFixed(1) + '%';
+    document.getElementById('bar-n').style.width = (outN * 100).toFixed(1) + '%';
+    document.getElementById('txt-h').textContent = (outH * 100).toFixed(1) + '%';
+    document.getElementById('txt-s').textContent = (outS * 100).toFixed(1) + '%';
+    document.getElementById('txt-n').textContent = (outN * 100).toFixed(1) + '%';
+  }
+
+  ['sl-savian', 'sl-p1', 'sl-p2'].forEach((id) => {
+    document.getElementById(id).addEventListener('input', updateBayesian);
+  });
+  updateBayesian();
+
+  /* =========================================================================
+     4B. BABYLON.JS 3D TIME-FREQUENCY-MAGNITUDE WATERFALL (SNAP 3 -> 3D)
+     ========================================================================= */
+  function attachVisibilityGate(canvas, engine, scene) {
+    let visible = true;
+    const io = new IntersectionObserver((entries) => {
+      visible = entries[0].isIntersecting;
+    }, { threshold: 0.02 });
+    io.observe(canvas);
+    engine.runRenderLoop(() => { if (visible) scene.render(); });
+    window.addEventListener('resize', () => engine.resize());
+  }
+
+  function initBabylonDspWaterfall() {
+    const canvas = document.getElementById('babylon-dsp');
+    if (!canvas || typeof BABYLON === 'undefined') return;
+
+    const engine = new BABYLON.Engine(canvas, true, { antialias: true, powerPreference: 'high-performance' });
+    engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 2));
+    const scene = new BABYLON.Scene(engine);
+    scene.clearColor = new BABYLON.Color4(0.024, 0.028, 0.036, 0.0);
+
+    const camera = new BABYLON.ArcRotateCamera('dspCam', -1.18, 1.02, 7.6, new BABYLON.Vector3(0, 0.45, 0), scene);
+    camera.attachControl(canvas, true);
+    camera.inputs.removeByType('ArcRotateCameraMouseWheelInput');
+    camera.inertia = 0.85;
+    camera.lowerBetaLimit = 0.35;
+    camera.upperBetaLimit = 1.42;
+    camera.panningSensibility = 0;
+
+    const hemi = new BABYLON.HemisphericLight('dspHemi', new BABYLON.Vector3(0, 1, 0), scene);
+    hemi.intensity = 0.95;
+    const key = new BABYLON.DirectionalLight('dspKey', new BABYLON.Vector3(-0.5, -1, 0.6), scene);
+    key.intensity = 1.6;
+
+    // Subtle obsidian reference floor grid
+    const gridLines = [];
+    for (let x = -3; x <= 3; x += 0.75) {
+      gridLines.push([new BABYLON.Vector3(x, 0, -2), new BABYLON.Vector3(x, 0, 2)]);
+    }
+    for (let z = -2; z <= 2; z += 0.8) {
+      gridLines.push([new BABYLON.Vector3(-3, 0, z), new BABYLON.Vector3(3, 0, z)]);
+    }
+    const floorGrid = BABYLON.MeshBuilder.CreateLineSystem('dspGrid', { lines: gridLines }, scene);
+    floorGrid.color = new BABYLON.Color3(0.16, 0.19, 0.24);
+    floorGrid.alpha = 0.55;
+
+    // Translucent emerald 300 Hz & 4000 Hz passband boundary curtains
+    const fMin = 50, fMax = 8000;
+    const xOfFreq = (f) => -3 + (Math.log10(f / fMin) / Math.log10(fMax / fMin)) * 6;
+    const wallMat = new BABYLON.StandardMaterial('passWall', scene);
+    wallMat.emissiveColor = new BABYLON.Color3(0.06, 0.72, 0.50);
+    wallMat.alpha = 0.16;
+    wallMat.backFaceCulling = false;
+    wallMat.disableLighting = true;
+
+    [300, 4000].forEach((fc, idx) => {
+      const w = BABYLON.MeshBuilder.CreatePlane('fcWall' + idx, { width: 4.0, height: 1.85, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+      w.rotation.y = Math.PI / 2;
+      w.position = new BABYLON.Vector3(xOfFreq(fc), 0.92, 0);
+      w.material = wallMat;
+    });
+
+    // Dynamic 3D time x log-frequency x magnitude waterfall mesh
+    const nx = 44, nz = 20;
+    let filteredMode = true;
+    let filterBlend = 1.0;
+
+    function computeSurface(timePhase, blend) {
+      const paths = [];
+      const colors = [];
+      for (let iz = 0; iz < nz; iz++) {
+        const vz = iz / (nz - 1);
+        const z = -2 + vz * 4;
+        const row = [];
+        for (let ix = 0; ix < nx; ix++) {
+          const vx = ix / (nx - 1);
+          const x = -3 + vx * 6;
+          const f = fMin * Math.pow(fMax / fMin, vx);
+
+          // Raw shed spectrum: loud fan rumble <280 Hz + avian formants 1.2–3.5 kHz + hiss >4 kHz
+          const fan = 1.35 * Math.exp(-Math.pow((Math.log10(f) - Math.log10(135)) / 0.22, 2)) * (0.85 + 0.15 * Math.sin(vz * 5 - timePhase * 1.4));
+          const bird1 = 1.45 * Math.exp(-Math.pow((Math.log10(f) - Math.log10(1900)) / 0.16, 2)) * (0.55 + 0.45 * Math.pow(Math.sin(vz * 6.5 - timePhase * 2.4 + 0.4), 2));
+          const bird2 = 1.05 * Math.exp(-Math.pow((Math.log10(f) - Math.log10(3100)) / 0.11, 2)) * (0.45 + 0.55 * Math.pow(Math.cos(vz * 7.8 - timePhase * 2.1), 2));
+          const hiss = 0.82 * Math.exp(-Math.pow((Math.log10(f) - Math.log10(6200)) / 0.15, 2)) * (0.75 + 0.25 * Math.sin(vz * 11 + timePhase * 3.1));
+
+          const rawAmp = 0.08 + fan + bird1 + bird2 + hiss;
+
+          // 10th-order zero-phase Butterworth |H(jw)|^2 response
+          const hp = 1 / Math.sqrt(1 + Math.pow(300 / f, 10));
+          const lp = 1 / Math.sqrt(1 + Math.pow(f / 4000, 10));
+          const gain = Math.pow(hp * lp, 2);
+
+          const effGain = (1 - blend) + blend * gain;
+          const y = Math.min(2.15, rawAmp * effGain);
+          row.push(new BABYLON.Vector3(x, y, z));
+
+          // Color: obsidian low floor -> warm bone passband peaks -> emerald highlights, amber when raw noise exposed
+          const inPass = (f >= 300 && f <= 4000);
+          const normY = Math.min(1, y / 1.8);
+          if (!inPass && (1 - blend) > 0.15) {
+            colors.push(0.18 + normY * 0.78, 0.12 + normY * 0.48, 0.08 + normY * 0.06, 1);
+          } else if (inPass) {
+            colors.push(0.14 + normY * 0.78, 0.18 + normY * 0.72, 0.18 + normY * 0.58, 1);
+          } else {
+            colors.push(0.10 + normY * 0.35, 0.12 + normY * 0.38, 0.16 + normY * 0.44, 1);
+          }
+        }
+        paths.push(row);
+      }
+      return { paths, colors };
+    }
+
+    const initData = computeSurface(0, 1);
+    const ribbon = BABYLON.MeshBuilder.CreateRibbon('dspRibbon', {
+      pathArray: initData.paths,
+      sideOrientation: BABYLON.Mesh.DOUBLESIDE,
+      updatable: true
+    }, scene);
+    ribbon.setVerticesData(BABYLON.VertexBuffer.ColorKind, initData.colors, true);
+
+    const surfMat = new BABYLON.StandardMaterial('dspSurfMat', scene);
+    surfMat.specularColor = new BABYLON.Color3(0.25, 0.25, 0.25);
+    surfMat.emissiveColor = new BABYLON.Color3(0.08, 0.09, 0.11);
+    surfMat.backFaceCulling = false;
+    ribbon.material = surfMat;
+
+    // Toggle filtered vs raw shed spectrum
+    document.querySelectorAll('#dsp-mode-toggle .gl-toggle-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#dsp-mode-toggle .gl-toggle-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        filteredMode = btn.dataset.dsp === 'filtered';
+        document.getElementById('dsp-badge').textContent = filteredMode
+          ? 'Filtered 300–4000 Hz (sosfiltfilt) · Drag Orbit'
+          : 'Raw Shed Spectrum (Fan <280Hz + Hiss >4kHz)';
+      });
+    });
+
+    let t = 0;
+    let dragging = false;
+    canvas.addEventListener('pointerdown', () => { dragging = true; });
+    window.addEventListener('pointerup', () => { dragging = false; });
+
+    scene.registerBeforeRender(() => {
+      t += engine.getDeltaTime() * 0.001;
+      const targetBlend = filteredMode ? 1.0 : 0.0;
+      filterBlend += (targetBlend - filterBlend) * 0.09;
+
+      const d = computeSurface(t, filterBlend);
+      BABYLON.MeshBuilder.CreateRibbon('dspRibbon', { pathArray: d.paths, instance: ribbon });
+      ribbon.updateVerticesData(BABYLON.VertexBuffer.ColorKind, d.colors);
+
+      wallMat.alpha = 0.06 + filterBlend * 0.14;
+      if (!dragging) camera.alpha += 0.0012;
+    });
+
+    attachVisibilityGate(canvas, engine, scene);
+  }
+  initBabylonDspWaterfall();
+
+  /* =========================================================================
+     4C. BABYLON.JS 3D ARCHITECTURAL BENCHMARK PILLARS (SNAP 2 -> 3D)
+     ========================================================================= */
+  const evalDatasets = {
+    accuracy: [
+      { label: 'LightGBM (Best Single · N=206)', val: 0.927, txt: '92.7%', sub: '+4 clips vs stack · overlapping CI', ciLow: 0.883, ciHigh: 0.955, color: [0.79, 0.76, 0.71], css: 'var(--bone-dim)' },
+      { label: 'MLP Stack — Sick Recall (N=94)', val: 0.926, txt: '92.6%', sub: '7/94 sick missed (baseline missed 10)', ciLow: 0.854, ciHigh: 0.964, color: [0.06, 0.73, 0.51], css: 'var(--emerald)' },
+      { label: 'MLP Stack (Random Split · N=206)', val: 0.908, txt: '90.8%', sub: 'Wilson 95% CI: 86.0% – 94.0%', ciLow: 0.860, ciHigh: 0.940, color: [0.92, 0.90, 0.86], css: 'var(--bone)' },
+      { label: 'Session-Isolated (290 Unseen)', val: 0.654, txt: '65.4%', sub: 'CI 63.1–67.7% · F1 0.71 / 0.71 / 0.01', ciLow: 0.631, ciHigh: 0.677, color: [0.96, 0.62, 0.04], css: 'var(--amber)' }
+    ],
+    f1: [
+      { label: 'Unseen F1 — Healthy Class', val: 0.71, txt: '0.71', sub: '1,639 clips across 290 unseen sessions', ciLow: 0.68, ciHigh: 0.74, color: [0.06, 0.73, 0.51], css: 'var(--emerald)' },
+      { label: 'Unseen F1 — Sick Class', val: 0.71, txt: '0.71', sub: 'Strong real signal above 3-class chance', ciLow: 0.68, ciHigh: 0.74, color: [0.92, 0.90, 0.86], css: 'var(--bone)' },
+      { label: '3-Class Random Chance', val: 0.333, txt: '0.33', sub: 'Uniform baseline reference (33.3%)', ciLow: 0.333, ciHigh: 0.333, color: [0.46, 0.50, 0.58], css: 'var(--slate)' },
+      { label: 'Unseen F1 — Noise Class', val: 0.025, txt: '0.01', sub: 'Mitigated upstream by Silence + YAMNet', ciLow: 0.01, ciHigh: 0.04, color: [0.96, 0.25, 0.37], css: 'var(--rose)' }
+    ]
+  };
+
+  function initBabylonEvalPillars() {
+    const canvas = document.getElementById('babylon-eval');
+    if (!canvas || typeof BABYLON === 'undefined') return;
+
+    const engine = new BABYLON.Engine(canvas, true, { antialias: true, powerPreference: 'high-performance' });
+    engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 2));
+    const scene = new BABYLON.Scene(engine);
+    scene.clearColor = new BABYLON.Color4(0.024, 0.028, 0.036, 0.0);
+
+    const camera = new BABYLON.ArcRotateCamera('evalCam', -1.25, 1.12, 7.6, new BABYLON.Vector3(0, 1.25, 0), scene);
+    camera.attachControl(canvas, true);
+    camera.inputs.removeByType('ArcRotateCameraMouseWheelInput');
+    camera.inertia = 0.86;
+    camera.lowerBetaLimit = 0.45;
+    camera.upperBetaLimit = 1.46;
+    camera.panningSensibility = 0;
+
+    const hemi = new BABYLON.HemisphericLight('evHemi', new BABYLON.Vector3(0, 1, 0), scene);
+    hemi.intensity = 0.9;
+    const key = new BABYLON.DirectionalLight('evKey', new BABYLON.Vector3(-0.6, -1, 0.5), scene);
+    key.intensity = 2.0;
+
+    const glow = new BABYLON.GlowLayer('evGlow', scene, { blurKernelSize: 20 });
+    glow.intensity = 0.35;
+
+    // Hairline architectural floor & horizontal 25/50/75/100% elevation rails
+    const lines = [];
+    for (let x = -3.2; x <= 3.2; x += 0.8) lines.push([new BABYLON.Vector3(x, 0, -1.6), new BABYLON.Vector3(x, 0, 1.6)]);
+    for (let z = -1.6; z <= 1.6; z += 0.8) lines.push([new BABYLON.Vector3(-3.2, 0, z), new BABYLON.Vector3(3.2, 0, z)]);
+    [0.25, 0.5, 0.75, 1.0].forEach((lvl) => {
+      const y = lvl * 3.0;
+      lines.push([new BABYLON.Vector3(-3.0, y, -1.2), new BABYLON.Vector3(3.0, y, -1.2)]);
+    });
+    const grid = BABYLON.MeshBuilder.CreateLineSystem('evGrid', { lines }, scene);
+    grid.color = new BABYLON.Color3(0.18, 0.21, 0.26);
+    grid.alpha = 0.55;
+
+    const capMat = new BABYLON.StandardMaterial('ciCapMat', scene);
+    capMat.emissiveColor = new BABYLON.Color3(0.92, 0.90, 0.86);
+    capMat.disableLighting = true;
+
+    const xPositions = [-2.1, -0.7, 0.7, 2.1];
+    const pillars = xPositions.map((px, i) => {
+      const mat = new BABYLON.PBRMetallicRoughnessMaterial('pMat' + i, scene);
+      mat.metallic = 0.42;
+      mat.roughness = 0.32;
+
+      const box = BABYLON.MeshBuilder.CreateBox('pillar' + i, { width: 0.84, height: 1, depth: 0.84 }, scene);
+      box.position.x = px;
+      box.material = mat;
+
+      // Wilson 95% CI 3D Error-Cap Bracket
+      const stem = BABYLON.MeshBuilder.CreateCylinder('ciStem' + i, { diameter: 0.032, height: 1 }, scene);
+      stem.position.x = px;
+      stem.position.z = 0.52;
+      stem.material = capMat;
+
+      const topCap = BABYLON.MeshBuilder.CreateBox('ciTop' + i, { width: 0.36, height: 0.03, depth: 0.04 }, scene);
+      topCap.position.x = px;
+      topCap.position.z = 0.52;
+      topCap.material = capMat;
+
+      const botCap = BABYLON.MeshBuilder.CreateBox('ciBot' + i, { width: 0.36, height: 0.03, depth: 0.04 }, scene);
+      botCap.position.x = px;
+      botCap.position.z = 0.52;
+      botCap.material = capMat;
+
+      return { box, mat, stem, topCap, botCap, curH: 0.1, targetH: 2.5, curLow: 0.1, curHigh: 0.2 };
+    });
+
+    let activeKey = 'accuracy';
+    function applyDataset(key) {
+      activeKey = key;
+      const ds = evalDatasets[key];
+      ds.forEach((d, i) => {
+        pillars[i].targetH = Math.max(0.08, d.val * 3.0);
+        pillars[i].mat.baseColor = new BABYLON.Color3(...d.color);
+        pillars[i].mat.emissiveColor = new BABYLON.Color3(d.color[0] * 0.14, d.color[1] * 0.14, d.color[2] * 0.14);
+      });
+      const legend = document.getElementById('eval-legend');
+      if (legend) {
+        legend.innerHTML = ds.map((d) => `
+          <div class="gl-legend-cell">
+            <div class="gl-legend-top"><span>${d.label}</span><strong style="color:${d.css}">${d.txt}</strong></div>
+            <div class="gl-legend-sub">${d.sub}</div>
+          </div>
+        `).join('');
+      }
+    }
+    applyDataset('accuracy');
+
+    document.querySelectorAll('#eval-mode-toggle .gl-toggle-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#eval-mode-toggle .gl-toggle-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyDataset(btn.dataset.eval);
+      });
+    });
+
+    let dragging = false;
+    canvas.addEventListener('pointerdown', () => { dragging = true; });
+    window.addEventListener('pointerup', () => { dragging = false; });
+
+    scene.registerBeforeRender(() => {
+      const ds = evalDatasets[activeKey];
+      pillars.forEach((p, i) => {
+        p.curH += (p.targetH - p.curH) * 0.09;
+        p.box.scaling.y = p.curH;
+        p.box.position.y = p.curH / 2;
+
+        const lo = ds[i].ciLow * 3.0;
+        const hi = ds[i].ciHigh * 3.0;
+        p.curLow += (lo - p.curLow) * 0.09;
+        p.curHigh += (hi - p.curHigh) * 0.09;
+        const span = Math.max(0.03, p.curHigh - p.curLow);
+        p.stem.scaling.y = span;
+        p.stem.position.y = p.curLow + span / 2;
+        p.topCap.position.y = p.curHigh;
+        p.botCap.position.y = p.curLow;
+      });
+      if (!dragging) camera.alpha += 0.0014;
+    });
+
+    attachVisibilityGate(canvas, engine, scene);
+  }
+  initBabylonEvalPillars();
+
+  /* =========================================================================
+     5. FEATURE TAXONOMY TABS & TIMERS (60s PITCH + 15m PACER)
+     ========================================================================= */
+  document.querySelectorAll('#architecture .tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#architecture .tab-btn').forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('#architecture .tab-panel').forEach((p) => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  function wireCountdown(btnId, totalSec, idleText) {
+    const btn = document.getElementById(btnId);
+    let iv = null, rem = totalSec;
+    btn.addEventListener('click', () => {
+      if (iv) {
+        clearInterval(iv); iv = null; rem = totalSec;
+        btn.classList.remove('running'); btn.textContent = idleText;
+        return;
+      }
+      btn.classList.add('running');
+      const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+      btn.textContent = fmt(rem) + ' · Stop';
+      iv = setInterval(() => {
+        rem--;
+        if (rem <= 0) {
+          clearInterval(iv); iv = null; rem = totalSec;
+          btn.classList.remove('running'); btn.textContent = 'Done · Reset';
+        } else {
+          btn.textContent = fmt(rem) + ' · Stop';
+        }
+      }, 1000);
+    });
+  }
+  wireCountdown('pitch-timer-btn', 60, 'Start 60s Timer');
+  wireCountdown('speech-timer-btn', 900, '15:00 Pacer');
+
+  /* =========================================================================
+     6. COMPLETE VIVA Q&A DEFENSE BANK (PARTS A–F — MATHJAX ENHANCED)
+     ========================================================================= */
+  const qaData = [
+    // Part A
+    ['A1','A','Why detect poultry disease from sound at all?','Respiratory diseases (CRD, Infectious Bronchitis, Newcastle Disease) change coughing, sneezing, rales and breathing before birds become visibly lethargic. A microphone monitors thousands of birds continuously, without contact and without handling stress. Visual inspection and lab tests are slow and reactive.'],
+    ['A2','A','Does your system diagnose CRD, IB or ND?','No. It classifies vocalisations as Healthy, Sick or Noise. The disease names are motivation only; our labels are not confirmed by pathogen tests, so we never claim disease-specific diagnosis (Section 4.2).'],
+    ['A3','A','What were the field requirements and where did they come from?','From visits to Haringhata Meat (WBLDC) broiler facilities: no recurring cloud fees, low hardware cost, offline operation, robustness to dust and fan noise, simple local alarms, and time-stamped logs for biosecurity audits.'],
+    ['A4','A','Describe the system in one breath.','Capture at 16 kHz → 300–4000 Hz band-pass → silence gate → YAMNet bird-sound gate → 80 features + outlier shield → MLP meta-learner over five base classifiers → posterior masking → dashboard, local alarm, optional Telegram.'],
+    ['A5','A','What is new compared with earlier work?','Three things together: a fully offline implementation on ESP32 microcontrollers plus a Raspberry Pi; an 80-feature description of respiratory sounds; and evaluation on recording sessions unseen in training, which most published studies do not report.'],
+    ['A6','A','Why three nodes instead of one board?','The single Raspberry Pi in V12/V13 ran hot and was heavily loaded by continuous spectral processing. Moving MFCC extraction to an ESP32-S3 and a small classifier to a second ESP32 reduces the Pi’s load and gives a cheap per-shed sensing node. Section 9.11 also shows the two ESP32 tasks could be merged onto one ESP32-S3.'],
+    ['A7','A','Is the system really offline?','Detection, logging, the dashboard and the local alarm are fully offline. Only the optional Telegram alerts and the LLM question-answering need internet.'],
+    ['A8','A','What does the LLM (Groq) do and is it safe?','It answers operator questions over Telegram using a read-only summary of sensor values. It cannot run commands on the device and plays no part in detection.'],
+    // Part B
+    ['B1','B','Why sample at 16 kHz?','By the Nyquist–Shannon theorem, \\(f_s \\ge 2f_{\\max}\\). Chicken vocal energy lies mostly below 4 kHz, so 16 kHz gives an 8 kHz Nyquist limit with a wide margin for the anti-aliasing filter, while keeping data rates and compute low. YAMNet also expects 16 kHz input.'],
+    ['B2','B','Why a 300–4000 Hz band-pass?','Ventilation fans and mechanical rumble sit mostly below about 280 Hz; electrical hiss sits above 4 kHz. The 300–4000 Hz band keeps the fundamental and formants of most calls.'],
+    ['B3','B','Your filter is "5th order" — what order is it really, and why sosfiltfilt?','scipy’s <code>butter(N=5, btype="band")</code> produces a 10th-order band-pass (two 5th-order edges). <code>sosfiltfilt</code> runs it forwards and backwards, applying \\(|H(j\\omega)|^2\\) which cancels phase distortion (zero phase) and doubles attenuation in dB. SOS form avoids high-order transfer-function instability.'],
+    ['B4','B','What is the −3 dB cutoff?','The frequency where \\(|H| = 1/\\sqrt{2} \\approx 0.707\\), i.e. output power halves; \\(20\\log_{10}(0.707) \\approx -3\\text{ dB}\\). For an RC low-pass, \\(f_c = \\frac{1}{2\\pi RC}\\).'],
+    ['B5','B','Why does a capacitor block DC?','Its reactance is \\(X_C = \\frac{1}{\\omega C}\\); at DC \\(\\omega = 0\\), so reactance is infinite (open circuit). At high frequency it tends to zero (short circuit). An inductor is opposite: \\(X_L = \\omega L\\) is 0 at DC and grows with frequency.'],
+    ['B6','B','Derive the RLC notch frequency and Q.','Series LC branch impedance is \\(j(\\omega L - \\frac{1}{\\omega C})\\), zero when \\(\\omega L = \\frac{1}{\\omega C}\\), giving \\(f_r = \\frac{1}{2\\pi\\sqrt{LC}}\\). Bandwidth \\(\\text{BW} = \\frac{R}{2\\pi L}\\), so \\(Q = \\frac{f_r}{\\text{BW}} = \\frac{1}{R}\\sqrt{\\frac{L}{C}}\\). Higher \\(Q\\) means a narrower notch.'],
+    ['B7','B','Why does a π-filter fall at −60 dB/decade?','It has three energy-storage elements (\\(C_1, L, C_2\\)), so it is third order: three poles, each contributing \\(-20\\text{ dB/decade}\\).'],
+    ['B8','B','What is CMRR and why does it matter?','\\(\\text{CMRR} = |A_d/A_c|\\) (or \\(20\\log_{10}|A_d/A_c|\\text{ dB}\\)). Noise picked up equally on both wires is common-mode and rejected. In our system INMP441 digitises inside the package, so no long analogue cable is exposed to shed interference.'],
+    ['B9','B','Why the INMP441 digital MEMS microphone?','It contains the capacitive sensor, preamplifier, \\(\\Delta\\Sigma\\) ADC and I²S interface in one 4.72 × 3.76 mm package, so the signal leaves as digital words and cannot pick up analogue noise. Cheap (Rs 170–250) with 61 dB SNR.'],
+    ['B10','B','What is SQNR for 24 bits?','\\(\\text{SQNR} = 6.02B + 1.76\\text{ dB} \\approx 146\\text{ dB}\\) for \\(B=24\\), so quantisation is never the limit; the microphone’s own noise (61 dB SNR) is.'],
+    ['B11','B','Explain the FFT speed-up.','A direct DFT of \\(N = 1024\\) needs \\(N^2 \\approx 1.05\\times 10^6\\) complex multiplications; radix-2 FFT needs \\(N\\log_2 N = 10{,}240\\), roughly 100× fewer. Bin spacing is \\(f_s/N = 15.625\\text{ Hz}\\).'],
+    ['B12','B','Why a short-time (windowed) transform?','Calls are non-stationary: a cough lasts 100–300 ms. Frames of 1024 samples with a 512-sample hop (32 ms) and a Hann window (to reduce spectral leakage) track these short events.'],
+    ['B13','B','Walk through MFCC computation.','Pre-emphasis \\(y[n] = x[n] - 0.97x[n-1]\\) → Hann window → FFT → power spectrum → Mel filterbank \\(m = 2595\\log_{10}(1 + f/700)\\) → logarithm → DCT-II, keeping 13 coefficients. Log turns the vocal-tract filter additive; DCT decorrelates band energies.'],
+    ['B14','B','Why the Mel scale for chickens?','It gives finer resolution at low frequencies where most vocal structure lies. Designed for human hearing; it is a practical, widely used compromise rather than a model of chicken hearing.'],
+    ['B15','B','How does Node 1 stream audio without dropping samples?','I²S DMA fills a ring buffer (8 × 64 samples) in hardware while the CPU computes. Each 512-sample hop is shifted into a 1024-sample window with <code>memmove</code> (50% overlap), MFCCs are computed, and 13 values are averaged over one second before sending.'],
+    ['B16','B','How are the 24-bit samples scaled?','The 24-bit sample sits left-justified in a 32-bit word; firmware shifts right by 14 bits and divides by 32,768. Full scale is \\(\\pm 4.0\\), and normal shed levels stay well inside \\(\\pm 1.0\\).'],
+    ['B17','B','How do the nodes communicate?','Node 1 → Node 2: ESP-NOW, 52-byte packets (13 floats). Node 1 → Pi: USB serial at 115,200 baud or Wi-Fi TCP. Pi → dashboard: WebSocket at 10 updates/sec.'],
+    ['B18','B','Which Raspberry Pi and why?','Raspberry Pi 3 Model B (1.2 GHz quad-core Cortex-A53, 1 GB RAM): cheap and sufficient for YAMNet TFLite plus classical models. A Pi 4/5 works unchanged.'],
+    // Part C
+    ['C1','C','Why 80 hand-crafted features instead of a deep network on spectrograms?','Features encode respiratory acoustics (energy spread, pitch stability, harmonic contrast, rhythm), so small models run on cheap hardware. Our dataset is too small and varied for a large CNN. Trade-off: weaker adaptation to unseen rooms (65.4%).'],
+    ['C2','C','What do the two feature tiers contain?','Level 1 (27): 13 MFCCs, 13 deltas, ZCR. Level 2 (53): centroid, roll-off, bandwidth, flatness, RMS mean/std, F0 mean/std, voiced ratio, tempo, onset rate, SNR, IOI std, 8 Mel sub-bands, 12 chroma, 7 spectral contrast, 13 delta-delta.'],
+    ['C3','C','Which features matter most, and what frequencies are Mel sub-bands 5–8?','Random Forest importance is led by Mel sub-bands 6, 8, 7 and 5, mean F0 and spectral-contrast band 5. Each sub-band averages 16 of 128 librosa bands over 0–8 kHz: bands 5–8 span ≈1.7–2.5, 2.5–3.7, 3.6–5.4, and 5.3–8.0 kHz (correct the report’s 1.5–4 kHz figure).'],
+    ['C4','C','Why would bands 7 and 8 matter if you filter at 4 kHz?','Filter attenuates but does not delete energy above 4 kHz. Broadband sneezes and rales leave residual energy past roll-off. Honest caveat: these bands may also capture recorder/session differences, consistent with the unseen-session drop.'],
+    ['C5','C','Define jitter, shimmer and HNR.','Jitter: mean pitch change between consecutive voiced frames divided by mean pitch. Shimmer: same for frame RMS amplitude. \\(\\text{HNR} = 10\\log_{10}\\!\\left(\\frac{r}{1-r}\\right)\\) using normalised autocorrelation peak \\(r\\); low HNR means noisy breathy phonation. Shown on HUD, not classifier inputs.'],
+    ['C6','C','Explain the SNR feature and its clip.','\\(\\text{SNR} = \\operatorname{clip}\\!\\left(10\\log_{10}(P_{\\text{sig}}/P_{10}), -20, 80\\right)\\text{ dB}\\), where \\(P_{\\text{sig}}\\) is mean power and \\(P_{10}\\) the 10th percentile of squared samples. Clipping prevents near-silent blocks from distorting standardisation. Behaves as energy-contrast rather than true SNR.'],
+    ['C7','C','What is stacking and why use an MLP meta-learner?','Five base models (LR, SVM, RF, XGBoost, k-NN) produce class probabilities; an MLP (32 and 16 hidden units) learns how to combine them. Out-of-fold predictions (\\(\\text{cv}=3\\)) train the meta-learner without leaked training fits.'],
+    ['C8','C','Why keep the stack if LightGBM scored higher?','On \\(N = 206\\) the gap (90.8% vs 92.7%) is 4 recordings with overlapping CIs — not statistically significant. Top 3 models miss the same 7 sick birds. Stack provides calibrated 3-class probabilities for the cascade and masking rule.'],
+    ['C9','C','How does the runtime cascade work?','MLP stack decides. Only if unavailable/errors does it fall back to RF → SVM → LR (each needing \\(\\ge 0.80\\) confidence) → majority vote. Sick or low-confidence (\\(< 0.85\\)) results open a 10-second human confirmation window.'],
+    ['C10','C','What is S_avian and why can it exceed 1?','\\(S_{\\text{avian}}\\) is the sum of YAMNet scores over 20 bird and livestock classes. YAMNet uses independent sigmoids per class, so the sum is not a probability and can exceed 1 (observed 2.26–3.04).'],
+    ['C11','C','Why two thresholds, 0.05 and 0.08?','0.05 admits a block permissively so faint calls are not lost. 0.08 requires stronger evidence before overriding the classifier (posterior masking) or bypassing the outlier shield.'],
+    ['C12','C','Explain posterior masking and its assumption.','If \\(S_{\\text{avian}} \\ge 0.08\\), set \\(P(\\text{Noise}) = 0\\) and renormalise: \\(P(\\text{Sick}) = \\frac{p_1}{p_0 + p_1}\\). Ratio \\(p_1/p_0\\) stays unchanged with no retraining. Assumption: high avian score means a bird is present; if YAMNet errs, block cannot be labelled Noise.'],
+    ['C13','C','What is the outlier shield?','After standardisation, rejects a block if \\(>6\\) spectral features have \\(|z| > 6\\) and \\(S_{\\text{avian}} < 0.08\\) (typical of electrical pops/knocks). Loudness features (RMS mean/std, voiced ratio, tempo) are excluded.'],
+    ['C14','C','What did self-supervised learning add?','Masked autoencoder reconstructed spectrograms with 40% masked (MSE 0.0072 → 0.0028); HDBSCAN clustered unlabelled farm clips into 2 clusters giving 1,828 pseudo-labels. Accuracy gain not yet ablated — listed as future work.'],
+    ['C15','C','How were pseudo-labels assigned?','Largest cluster became Healthy, the other Sick. This is a heuristic with no ground truth and one cause of the session-isolated gap (Section 9.12).'],
+    ['C16','C','What quantisation did you use on the ESP32 model?','Post-training dynamic-range quantisation: 8-bit integer weights, float activations. Full INT8 with a representative calibration dataset is future work.'],
+    ['C17','C','Why Isolation Forest?','Removed the 5% most anomalous recordings before V12/V13 benchmark training. Fitted before train/test split — acknowledged as a mild leakage limitation.'],
+    // Part D
+    ['D1','D','What is your headline result?','MLP stack reaches 90.8% accuracy (95% Wilson CI 86.0–94.0%) on \\(N = 206\\) random split, with 92.6% sick recall. On 1,639 clips from 290 unseen sessions, 3-class accuracy is 65.4% (CI 63.1–67.7%). Always state both together.'],
+    ['D2','D','Why report a confidence interval?','With 206 samples, one clip shifts accuracy by ≈0.5 pp. Wilson interval shows plausible true accuracy and stays well-behaved near 90–100% or small \\(N\\).'],
+    ['D3','D','Why is sick recall more important than accuracy?','A missed sick bird (false negative) lets disease spread; a false alarm costs only a human check. We prioritise Sick recall and route uncertain cases to 10s human confirmation.'],
+    ['D4','D','What is a random split and why is it optimistic?','Clips from the same recording session (same shed, mic, fan noise, birds) can land in both train and test. Model partially recognises the session — data leakage.'],
+    ['D5','D','What is a session-isolated split?','GroupShuffleSplit grouped by recording session: every clip from one session goes solely to train or solely to test, simulating deployment in a brand-new shed.'],
+    ['D6','D','Why did accuracy fall from 90.8% to 65.4%?','Four causes: (1) session leakage inflated random split; (2) HDBSCAN pseudo-labels add label noise; (3) Noise class had sparse training examples (F1 = 0.01); (4) real mic, room and fan acoustic differences across sites.'],
+    ['D7','D','Your Noise F1 is 0.01. Isn’t the system broken?','The classifier alone cannot detect Noise, but in deployment Noise is mainly removed earlier by the silence gate and YAMNet bird gate before the classifier runs. The 0.01 confirms the classifier needs proper labelled Noise data.'],
+    ['D8','D','Is 65.4% the deployed system’s accuracy?','No. It measures the classifier on extracted features. Deployed runtime adds YAMNet gate, outlier shield, posterior masking and HITL confirmation. End-to-end field evaluation is future work.'],
+    ['D9','D','What was the 7.73% result mentioned in the report?','An early pipeline run with a single-session test set and mismatched feature extraction. Fixing the bug brought valid session-isolated accuracy to 65.4%. A lesson in evaluation hygiene, not a +57.68 pp model gain.'],
+    ['D10','D','Is the difference between LightGBM (92.7%) and the stack (90.8%) significant?','No — 4 recordings out of 206 with overlapping CIs. A McNemar test on paired predictions is the right formal test.'],
+    ['D11','D','How do you compare with published work?','Published studies often report 90–99% using random splits, lab audio, or a single farm. Our random split matches that range; our session-isolated result tests a harder, realistic deployment condition.'],
+    ['D12','D','What does the confusion matrix tell you?','On random split, 7 of 94 sick clips were missed — and the exact same 7 were missed by the top 3 models, indicating genuinely ambiguous or mislabelled recordings rather than a weakness of one algorithm.'],
+    // Part E
+    ['E1','E','Why is the system cheap yet accurate?','MFCC feature extraction uses only ≈2.6 MFLOP/s (≈1% of one ESP32-S3 core), hand-crafted features encode domain knowledge so classifiers stay small, and inference is 100% local with zero cloud fees. Accuracy is bounded by data, not compute.'],
+    ['E2','E','What does one node cost and what does a shed need?','One acoustic node (ESP32-S3, INMP441, enclosure, power) costs Rs 1,000–1,350. One Pi gateway serves multiple nodes, so per-shed cost scales with acoustic coverage zones.'],
+    ['E3','E','Can you change the microcontroller?','Yes — plain C++ MFCC code with no ESP-only maths. Needs I²S, FPU, and ≈78 KB RAM for MFCC + NN together (ESP32, ESP32-S3, STM32F4/H7, nRF5340 qualify; Cortex-M0 32 KB does not).'],
+    ['E4','E','What is lost if you drop the Raspberry Pi?','YAMNet, 80-feature extraction and the 5-model stack exceed microcontroller RAM. An MCU-only setup runs the 13-MFCC neural network alone: cheaper and lower power, without the bird gate and ensemble.'],
+    ['E5','E','Could it run on a phone or a Jetson?','Yes. Python + TFLite + scikit-learn runs on any Linux SBC or Android Termux. Jetson enables larger spectrogram CNNs but isn’t required for current models.'],
+    ['E6','E','What is the power consumption?','Not measured yet. Datasheet estimates: active ESP32-S3 ≈100–250 mW, Raspberry Pi 3 a few watts. Real power and battery life measurements are future work — never quote an invented exact figure.'],
+    ['E7','E','What is the latency?','Audio is analysed in 1-second blocks, so detection latency is on the order of one to a few seconds (estimated; formal end-to-end timing is future work).'],
+    ['E8','E','Does the ESP32 neural network use the same features as the Pi?','No. Node 2 uses only the 13 averaged MFCCs streamed from Node 1; Pi uses 80 features. ESP32 is a lightweight first-stage indicator; Pi makes the final decision.'],
+    ['E9','E','How would you scale to a large farm?','One acoustic node per shed zone → ESP-NOW / Wi-Fi to one gateway per shed → sync logs centrally when online. Short per-shed normal-condition calibration mitigates session shift.'],
+    ['E10','E','Is the data secure?','Raw audio is never uploaded; only decisions and summaries leave if Telegram is enabled, protecting shed worker privacy too.'],
+    // Part F (Hard Questions)
+    ['F1','F','Who labelled the birds as sick? Were they confirmed by a veterinarian?','No — supervised labels come from source dataset annotations, not veterinarian or lab confirmation. That is why we classify "Sick vocalisation" and never a named disease. Vet-confirmed labels are our #1 future work item.'],
+    ['F2','F','Your 90.8% is on a random split. Isn’t it inflated?','Yes, it is optimistic because clips from the same session can appear in both train and test. That is why we added session-isolated evaluation and report 65.4% alongside it as the realistic new-shed figure.'],
+    ['F3','F','65.4% is barely better than chance. Why should anyone use this?','Chance for 3 classes is 33%, and both Healthy and Sick reach F1 = 0.71, proving real signal. It is not a stand-alone diagnostic — a human confirms every sick/uncertain alert, and over hours moderate per-clip accuracy aggregates into a reliable flock-level trend monitor.'],
+    ['F4','F','Your pseudo-labels came from clustering. How do you know cluster 1 means sick?','We do not know for certain. Largest-cluster = Healthy is a heuristic that introduces label noise. We state this explicitly as a limitation and propose validating clusters against a small vet-labelled subset.'],
+    ['F5','F','You evaluated one model but deploy a cascade. Isn’t that inconsistent?','Partly, yes. The evaluated MLP stack is the primary runtime decision-maker, so its metrics represent normal operation; fallbacks trigger only on errors. Gates and masking were not evaluated end-to-end — that is planned future work.'],
+    ['F6','F','Why didn’t you compare against YAMNet fine-tuned or a CNN on spectrograms?','We used YAMNet strictly as a gate and skipped a spectrogram CNN baseline due to our small labelled set. That comparison is missing, would strengthen the work, and is in our future work list.'],
+    ['F7','F','The Isolation Forest was fitted before the split. Isn’t that leakage?','Yes, mild leakage: test samples influenced which outliers were removed. The right order is split first, then fit on train only. The impact is likely small, and we openly acknowledge it.'],
+    ['F8','F','Why use dynamic-range quantisation instead of full INT8?','No calibration dataset needed and activations stay float, keeping accuracy loss negligible. The trade-off is skipping integer-only hardware acceleration; full INT8 with a representative set is future work.'],
+    ['F9','F','What is your own contribution versus libraries?','Libraries supply standard primitives (librosa, scikit-learn, TFLite, YAMNet). Our contribution is the complete system: C++ ESP32 MFCC firmware, 3-node architecture, 80-feature set, gating/masking logic, session-isolated evaluation, and field dashboard/alarm.'],
+    ['F10','F','If you had six more months, what would you do first?','(1) Collect vet-confirmed labels from Haringhata sheds; (2) Retrain and evaluate solely on session-isolated data; (3) Measure power and latency on real hardware; (4) Run a 2-week field pilot with end-to-end logging.'],
+    ['F11','F','Did you measure anything on a live farm?','State only what is true: field visits to Haringhata Meat were for requirements gathering; the system was validated on recorded datasets and bench hardware, and a live shed pilot is planned next.'],
+    ['F12','F','Explain one equation from your report without notes.','Prepare three cold: (1) Mel scale \\(m = 2595\\log_{10}(1 + f/700)\\); (2) Posterior masking \\(P(\\text{Sick}) = \\frac{p_1}{p_0 + p_1}\\) preserving odds \\(p_1/p_0\\); (3) Wilson CI — stays strictly inside 0–100% and remains reliable for small \\(N\\).']
+  ];
+
+  let activePart = 'F';
+  const qaList = document.getElementById('qa-list');
+  const qaSearch = document.getElementById('qa-search');
+
+  function renderQA() {
+    const q = (qaSearch.value || '').trim().toLowerCase();
+    const filtered = qaData.filter(([code, part, question, ans]) => {
+      if (!q && activePart !== 'ALL' && part !== activePart) return false;
+      if (q) return (code + ' ' + question + ' ' + ans).toLowerCase().includes(q);
+      return true;
+    });
+
+    if (!filtered.length) {
+      qaList.innerHTML = '<div style="padding:28px 8px;color:var(--mute);font-family:var(--mono);font-size:12px;">No matching viva questions.</div>';
+      return;
+    }
+
+    qaList.innerHTML = filtered.map(([code, part, question, ans], idx) => `
+      <div class="qa-item ${idx === 0 && !q ? 'open' : ''}">
+        <button class="qa-trigger" type="button">
+          <span class="qa-code ${part === 'F' ? 'hard' : ''}">${code}</span>
+          <span class="qa-q">${question}</span>
+          <span class="qa-plus">+</span>
+        </button>
+        <div class="qa-answer">${ans}</div>
+      </div>
+    `).join('');
+
+    qaList.querySelectorAll('.qa-trigger').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        btn.parentElement.classList.toggle('open');
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise([btn.parentElement]).catch(() => {});
+        }
+      });
+    });
+
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise([qaList]).catch(() => {});
+    }
+  }
+
+  document.querySelectorAll('#qa-filters .tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#qa-filters .tab-btn').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      activePart = btn.dataset.part;
+      qaSearch.value = '';
+      renderQA();
+    });
+  });
+  qaSearch.addEventListener('input', renderQA);
+  renderQA();
+
+  /* =========================================================================
+     7. 15-MINUTE SPEECH TELEPROMPTER (ALL 6 PARTS / 20 SLIDES — ANONYMOUS CUES)
+     ========================================================================= */
+  const speechParts = [
+    {
+      html: `
+        <div class="slide-cue">Slide 1 · Title, project overview, faculty supervision · Part 1</div>
+        <p>Good morning, respected members of the panel. We are presenting our project, "AI-Driven Bio-acoustic Analysis for Early Detection of Poultry Health", carried out under the guidance of our faculty mentor.</p>
+        <div class="slide-cue">Slide 2 · Photo of a broiler shed — "Disease is heard before it is seen"</div>
+        <p>India is one of the largest poultry producers in the world, and most of that production happens in crowded broiler sheds holding thousands of birds. In such sheds, respiratory diseases — chronic respiratory disease, infectious bronchitis and Newcastle disease — can spread through a flock within days. Today, a farmer usually notices a problem only when birds look dull, stop eating or start dying. By then the infection has already spread.</p>
+        <p>But a sick chicken changes how it sounds before it changes how it looks. Coughs, sneezes, rattling breath sounds called rales, and changes in call pitch appear early. A farm worker cannot listen to ten thousand birds all day. A microphone can.</p>
+        <div class="slide-cue">Slide 3 · Requirements from Haringhata visits — offline, low cost, robust, simple alarm, logs</div>
+        <p>We visited broiler facilities at Haringhata Meat, run by WBLDC, to understand what a working farm actually needs. Five requirements came out of those visits: no recurring cloud fees, low hardware cost, operation without internet, robustness to dust and loud ventilation fans, and a simple local alarm with time-stamped records for biosecurity audits. Every design decision we will show you comes from those five requirements.</p>
+      `
+    },
+    {
+      html: `
+        <div class="slide-cue">Slide 4 · Objective in one sentence · Part 2</div>
+        <p>Our objective was to build a low-cost, fully offline system that continuously listens to a poultry flock and classifies its vocalisations as Healthy, Sick or Noise, while keeping a human in control of every serious decision.</p>
+        <p>We want to be precise about one point from the start: our system does not diagnose a named disease. Our labels say "healthy vocalisation" or "sick vocalisation". The disease names are the motivation, not the output.</p>
+        <div class="slide-cue">Slide 5 · Block diagram — Node 1 (ESP32-S3 + INMP441) → Node 2 (ESP32 TinyML) → Raspberry Pi</div>
+        <p>The system has three nodes. Node 1 is an ESP32-S3 microcontroller with a digital MEMS microphone. It captures audio and computes acoustic features on the chip itself. Node 2 is a second ESP32 that runs a very small neural network as a fast first indicator. The Raspberry Pi is the gateway: it runs the full analysis pipeline, stores logs, serves a dashboard, drives the local alarm, and optionally sends Telegram alerts.</p>
+        <p>We arrived at this split the hard way. Our earlier versions ran everything on a single Raspberry Pi, which ran hot and was heavily loaded by continuous spectral processing. Moving feature extraction to a microcontroller solved that and gave us a cheap sensing node that can be repeated across a shed. Next, we explain the signal chain.</p>
+      `
+    },
+    {
+      html: `
+        <div class="slide-cue">Slide 6 · INMP441 &amp; signal chain — 16 kHz, I²S, 24-bit · Part 3</div>
+        <p>Next, let us look at how sound becomes data. We use the INMP441 MEMS microphone. Its sensor, preamplifier, analogue-to-digital converter and I²S interface are inside one small package, so the signal leaves the microphone already digital. No analogue wire runs through the shed to pick up interference from fans and motors.</p>
+        <p>We sample at 16 kilohertz. Chicken vocal energy lies mostly below 4 kilohertz, so by the Nyquist theorem 16 kilohertz gives us an 8 kilohertz limit with a comfortable margin, and it is also the rate expected by the YAMNet network we use later.</p>
+        <div class="slide-cue">Slide 7 · Band-pass filter response, 300–4000 Hz</div>
+        <p>Next, a Butterworth band-pass filter keeps 300 to 4,000 hertz. Below 300 hertz we remove the rumble of ventilation fans; above 4 kilohertz we remove electrical hiss. We apply the filter forwards and backwards, which gives zero phase distortion, so the timing of short events like coughs is preserved.</p>
+        <div class="slide-cue">Slide 8 · MFCC pipeline — window → FFT → Mel filterbank → log → DCT</div>
+        <p>On Node 1, the audio is cut into frames of 1,024 samples with 50 percent overlap and a Hann window. A Fast Fourier Transform gives the spectrum — roughly a hundred times less work than a direct transform. The spectrum passes through a Mel filterbank for finer low-frequency resolution, then a logarithm and discrete cosine transform, yielding 13 MFCCs.</p>
+        <p>All of this runs in C++ firmware we wrote for the ESP32-S3. I²S DMA fills buffers while the processor computes so no samples drop, using about one percent of one core. The 13 averaged coefficients stream over ESP-NOW to Node 2 and serial/Wi-Fi to the Pi. Next is the intelligence pipeline.</p>
+      `
+    },
+    {
+      html: `
+        <div class="slide-cue">Slide 9 · Runtime pipeline — silence gate → YAMNet → 80 features → shield → stack → masking · Part 4</div>
+        <p>Here is how the Raspberry Pi decides. First, a silence gate drops low-energy blocks. Then YAMNet, pretrained by Google on 500+ sound classes, scores 20 bird and livestock classes. If that avian sum is below 0.05, the block is discarded — removing doors, voices and machinery before our classifier ever runs.</p>
+        <div class="slide-cue">Slide 10 · The 80 features in two tiers</div>
+        <p>For bird sounds, we extract 80 features: 27 basic (13 MFCCs, 13 deltas, zero-crossing rate) and 53 extended (spectral centroid, bandwidth, roll-off, flatness, pitch, voicing, rhythm, onset rate, 8 Mel sub-bands, chroma and spectral contrast). An outlier shield then rejects blocks with more than six extreme spectral z-scores (&gt;6) when avian confidence is under 0.08.</p>
+        <div class="slide-cue">Slide 11 · Stacked ensemble — LR, SVM, RF, XGBoost, k-NN → MLP meta-learner</div>
+        <p>Five diverse base models output class probabilities, and a small MLP meta-learner learns how to combine them. If YAMNet confidence is strong (≥ 0.08), we mask out Noise and renormalise between Healthy and Sick. Any Sick result or confidence below 85 percent opens a ten-second human confirmation window.</p>
+        <p>We also trained a masked autoencoder on unlabelled farm spectrograms and clustered 1,828 pseudo-labelled clips, which we treat cautiously as approximate. On Node 2, a 6.3 KB dynamic-range TFLite network runs on 13 MFCCs inside a 4 KB tensor arena. Next, we present our experimental results.</p>
+      `
+    },
+    {
+      html: `
+        <div class="slide-cue">Slide 12 · Accuracy with confidence intervals (graph g1) · Part 5</div>
+        <p>On a random split of 206 test recordings, our stacked model reached 90.8 percent accuracy (95% Wilson CI: 86 to 94 percent), with 92.6 percent sick recall — only 7 of 94 sick recordings missed. LightGBM reached 92.7 percent, a four-recording difference that is not statistically significant.</p>
+        <div class="slide-cue">Slide 13 · Random split vs session-isolated (graph g3)</div>
+        <p>However, clips from the same session can appear in both train and test on a random split. A real farm is always a new room. Testing on 1,639 clips from 290 unseen sessions gives 65.4 percent three-class accuracy, with F1 of 0.71 for both Healthy and Sick. Noise scored 0.01 — confirming the classifier shouldn’t handle Noise, which is why silence and YAMNet gates filter it upstream.</p>
+        <div class="slide-cue">Slide 14 · Why the gap — four causes</div>
+        <p>Four causes explain the gap: session leakage inflating the random split, noise in HDBSCAN pseudo-labels, sparse Noise training examples, and real acoustic shifts between sheds. Reporting both numbers honestly sets our evaluation apart from single-split papers.</p>
+        <div class="slide-cue">Slide 15 &amp; 16 · Cost, compute &amp; portability (graphs g6, g8, g9)</div>
+        <p>One acoustic node costs 1,000 to 1,350 rupees because DSP does the heavy lifting at ≈1% of an ESP32-S3 core, and accuracy is limited by data rather than compute. The plain C++ MFCC engine + TinyML fits in ≈78 KB RAM on ESP32, ESP32-S3, STM32F4 or nRF5340, and the Pi stack runs on any Linux board.</p>
+      `
+    },
+    {
+      html: `
+        <div class="slide-cue">Slide 17 · Limitations · Part 6</div>
+        <p>We want to be clear about what this work does not yet show. Our labels are not confirmed by a veterinarian. Generalisation to new sheds is moderate. The full deployed pipeline, including the gates and human confirmation, was not evaluated end-to-end. And power and latency are estimates, not measurements.</p>
+        <div class="slide-cue">Slide 18 · Future work</div>
+        <p>Our next steps follow directly. First, collect veterinarian-confirmed recordings from Haringhata sheds. Second, retrain and evaluate only on session-isolated data, with a short calibration recording for each new shed. Third, measure power and latency on the real hardware. And fourth, run a two-week field pilot with full logging.</p>
+        <div class="slide-cue">Slide 19 &amp; 20 · Live demo + Conclusion (three takeaways)</div>
+        <p>If the panel permits, we would like to show the dashboard running on recorded audio. To conclude: we built a three-node, fully offline poultry sound monitor that costs about a thousand rupees per node; we showed that it reaches above 90 percent on a standard evaluation and 65 percent on unseen sessions; and we identified exactly what stands between this prototype and a field-ready tool. Thank you. We welcome your questions.</p>
+      `
+    }
+  ];
+
+  const scriptBody = document.getElementById('script-body');
+  function showSpeech(idx) {
+    scriptBody.innerHTML = speechParts[idx].html;
+  }
+  document.querySelectorAll('#script-tabs .tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#script-tabs .tab-btn').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      showSpeech(Number(btn.dataset.sp));
+    });
+  });
+  showSpeech(0);
+})();
+</script>
+</body>
+</html>
