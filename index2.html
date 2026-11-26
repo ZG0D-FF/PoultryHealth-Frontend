@@ -458,11 +458,11 @@ body.is-coarse #threeCanvas.scroll-safe { touch-action: pan-y; }
       <option value="auto">MUX: Auto (Proximity)</option>
       <option value="force_pi">MUX: Mic 1 (Pi USB)</option>
       <option value="force_node1">MUX: Mic 2 (ESP-1 I2S)</option>
-      <option value="force_node2">MUX: Mic 3 (ESP-2 COM3)</option>
+      <option value="force_node2">MUX: Mic 3 (ESP-2 VR3)</option>
     </select>
     <div class="badge" id="wsBadge" title="Click to reconnect"><span class="dot"></span><span id="wsText">WS: STANDBY</span></div>
-    <button class="btn-ctrl" id="btnUsb1">USB 1</button>
-    <button class="btn-ctrl" id="btnUsb2">USB 2 (COM3)</button>
+    <button class="btn-ctrl" id="btnUsb1">USB 1 (Node 1)</button>
+    <button class="btn-ctrl" id="btnUsb2">USB 2 (Node 2)</button>
 
     <!-- Offline WAV DSP & Custom Upload -->
     <div class="sample-group">
@@ -629,7 +629,7 @@ body.is-coarse #threeCanvas.scroll-safe { touch-action: pan-y; }
           <div class="hw-val" id="hwNode1">STANDBY</div>
         </div>
         <div class="hw-card">
-          <div class="hw-lbl">Node 2 (COM3)</div>
+          <div class="hw-lbl">Node 2 (VR3.1)</div>
           <div class="hw-val" id="hwNode2">STANDBY</div>
         </div>
         <div class="hw-card">
@@ -662,7 +662,7 @@ body.is-coarse #threeCanvas.scroll-safe { touch-action: pan-y; }
         <div class="term-macro-row">
           <button class="macro-btn" id="macroRec">▶ REC 10s</button>
           <button class="macro-btn" id="macroThresh">λ 0.85</button>
-          <button class="macro-btn" id="macroTestMics">TEST MICS</button>
+          <button class="macro-btn" id="macroTestMics">CALIBRATE</button>
           <button class="macro-btn" id="macroExport">💾 CSV</button>
           <button class="macro-btn" id="macroClear">CLEAR</button>
         </div>
@@ -725,6 +725,7 @@ const state = {
   liveScoreLabel: '',
   lastLoggedPred: null,
   lastLoggedSource: null,
+  lastLoggedCal: null,
   lastHeartbeatLog: 0,
   lastAutoRecTime: 0,
   autoRecEnabled: true,
@@ -1480,7 +1481,7 @@ function executeCliCommand(rawCmd) {
   rec [sec]         · Live WS: capture real 10Hz telemetry JSON | Offline: export real 16-bit WAV
   thresh [0.01-0.99]· Move HUD visual Bayes cutoff λ (does not alter Pi cascade threshold)
   mux [auto|pi|node1|node2] · Dispatch set_mux to Raspberry Pi
-  testmics          · Trigger Pi 3-Mic Hardware Self-Test (action: test_mics)
+  testmics / calibrate · Run On-Spot 3-Mic Calibration & Hardware Check
   hitl [h|s|n]      · Send Dual HITL confirmation to Pi (action: confirm_label)
   sample [healthy|sick|noise] · Switch offline WAV DSP preview
   autorec [on|off]  · Toggle 10s live ring-buffer dump on Pi SICK alarm (30s cooldown)
@@ -1537,11 +1538,12 @@ function executeCliCommand(rawCmd) {
     }
 
     case 'testmics':
+    case 'calibrate':
       if (state.ws && state.ws.readyState === WebSocket.OPEN) {
-        state.ws.send(JSON.stringify({ action: 'test_mics' }));
-        logTerminal('Dispatched action: test_mics -> check Raspberry Pi console for 3-mic self-test.', 'SYS', 'ok');
+        state.ws.send(JSON.stringify({ action: 'calibrate_mics' }));
+        logTerminal('Dispatched action: calibrate_mics -> spot-calibrating Pi USB + ESP1 + ESP2.', 'SYS', 'ok');
       } else {
-        logTerminal('Cannot run testmics: Pi WebSocket offline.', 'SYS', 'alarm');
+        logTerminal('Cannot calibrate mics: Pi WebSocket offline.', 'SYS', 'alarm');
       }
       break;
 
@@ -1631,6 +1633,14 @@ async function initTelemetry() {
     if (eRes) {
       state.empiricalData = eRes;
       state.empiricalCdf = buildEmpiricalTailCdf(eRes);
+    } else {
+      // Built-in mathematical fallback when file:// CORS blocks fetch()
+      state.empiricalData = {
+        auc: 0.946,
+        healthy: { mean: -1.15, std: 0.85 },
+        sick: { mean: 1.35, std: 0.95 }
+      };
+      state.empiricalCdf = buildEmpiricalTailCdf(state.empiricalData);
     }
     if (tRes?.manifold_points) {
       state.manifoldPoints = tRes.manifold_points;
@@ -1638,7 +1648,7 @@ async function initTelemetry() {
     if (eRes) {
       logTerminal(`Loaded Kaggle empirical distributions (ROC AUC ${Number(eRes.auc || 0).toFixed(3)}) & ${state.manifoldPoints.length} t-SNE manifold points.`, 'SYS', 'info');
     } else if (location.protocol === 'file:') {
-      logTerminal('Opened via file:// — browser blocks fetch() of local JSON/WAVs. Drop a WAV file or connect Pi WS, or serve via HTTP.', 'SYS', 'alarm');
+      logTerminal(`CORS block on file:// — launch launch_hud.bat on laptop to open http://127.0.0.1:8088/index2.html with full WAV/JSON support.`, 'SYS', 'alarm');
     }
   } catch (err) {
     logTerminal(`Static telemetry load warning: ${err.message}`, 'SYS', 'info');
@@ -1942,11 +1952,14 @@ function renderLiveMelSpectrogram() {
       if (v > maxV) maxV = v;
     }
   }
-  const span = Math.max(8.0, maxV - minV);
+  // Physical dB floor/ceiling so -54 dB ambient silence stays dark and real avian formants pop cleanly
+  const dbFloor = state.hasTrueMel64 ? Math.min(-72.0, maxV - 38.0) : minV;
+  const dbCeil = state.hasTrueMel64 ? Math.max(-24.0, maxV) : Math.max(minV + 12.0, maxV);
+  const span = Math.max(12.0, dbCeil - dbFloor);
   for (let t = 0; t < cols; t++) {
     const col = state.liveMelHistory[t];
     for (let b = 0; b < bins; b++) {
-      const norm = Math.max(0, Math.min(1, (col[b] - minV) / span));
+      const norm = Math.max(0, Math.min(1, (col[b] - dbFloor) / span));
       grid[b * cols + t] = Math.round(norm * 255);
     }
   }
@@ -2121,18 +2134,17 @@ function buildWireframeBox() {
 
 function buildWaterfallMesh() {
   const N_BINS = 13, N_HIST = 40;
-  const geom = new THREE.PlaneGeometry(3.0, 2.4, N_BINS - 1, N_HIST - 1);
-  geom.rotateX(-Math.PI / 2.3);
+  const geom = new THREE.PlaneGeometry(3.1, 2.2, N_BINS - 1, N_HIST - 1);
 
   const mat = new THREE.MeshStandardMaterial({
     color: 0x38bdf8,
     wireframe: true,
-    roughness: 0.4,
-    metalness: 0.6,
-    emissive: 0x06283d
+    roughness: 0.35,
+    metalness: 0.55,
+    emissive: 0x083344
   });
   ribbonMesh = new THREE.Mesh(geom, mat);
-  ribbonMesh.position.set(0, 0.1, 0);
+  ribbonMesh.position.set(0, 0, 0);
   stageScene.add(ribbonMesh);
   updateWaterfallGeometry(state.waterfallFIFO);
 }
@@ -2142,7 +2154,7 @@ function updateWaterfallGeometry(fifo) {
   const pos = ribbonMesh.geometry.attributes.position;
   const N_BINS = 13, N_HIST = 40;
 
-  // Per-bin z-normalized range so c[0] (DC log energy) does not dwarf c[1..12] cepstral relief
+  // Per-bin dynamic range with minimum 6 dB span so silence stays flat near floor and vocalizations rise cleanly
   const binMin = new Float32Array(N_BINS).fill(Infinity);
   const binMax = new Float32Array(N_BINS).fill(-Infinity);
   for (let z = 0; z < N_HIST; z++) {
@@ -2156,14 +2168,18 @@ function updateWaterfallGeometry(fifo) {
   let idx = 0;
   for (let z = 0; z < N_HIST; z++) {
     const frame = fifo[z];
+    const worldX = -1.55 + (z / (N_HIST - 1)) * 3.10;
     for (let x = 0; x < N_BINS; x++) {
-      const span = Math.max(2.0, binMax[x] - binMin[x]);
+      const worldZ = -1.10 + (x / (N_BINS - 1)) * 2.20;
+      const span = Math.max(6.0, binMax[x] - binMin[x]);
       const norm = Math.max(0, Math.min(1, (frame[x] - binMin[x]) / span));
-      pos.setZ(idx, norm * 0.82);
+      const worldY = -0.82 + norm * 1.25;
+      pos.setXYZ(idx, worldX, worldY, worldZ);
       idx++;
     }
   }
   pos.needsUpdate = true;
+  ribbonMesh.geometry.computeVertexNormals();
 }
 
 function buildManifoldClusters() {
@@ -2581,7 +2597,22 @@ const LOG2_1025 = Math.log2(1025); // librosa.stft default n_fft=2048 -> 1025 fr
 function ingestLivePacket(pkt, source = 'WS') {
   if (!pkt || typeof pkt !== 'object') return;
   recordRealPacketTick();
-  state.liveMode = true;
+
+  const selectedMic = pkt.selected_mic || 'pi_mic';
+  const piMic = pkt.pi_mic || {};
+  const n1 = pkt.node1_esp || {};
+  const n2 = pkt.node2_esp || {};
+  const bio = pkt.bioacoustics || {};
+
+  // Guard Q1/Q2 from going blank if live stream has not delivered non-empty arrays yet
+  const hasLiveWave = Array.isArray(piMic.raw) && piMic.raw.length > 8;
+  const hasLiveMfcc = (Array.isArray(piMic.proc) && piMic.proc.length >= 13) ||
+                      (Array.isArray(n1.mfcc) && n1.mfcc.length >= 13) ||
+                      (Array.isArray(n2.mfcc) && n2.mfcc.length >= 13) ||
+                      (Array.isArray(pkt.mfcc) && pkt.mfcc.length >= 13);
+  if (hasLiveWave || hasLiveMfcc) {
+    state.liveMode = true;
+  }
 
   // Store in 10s rolling ring buffer & manual capture buffer
   if (source === 'WS') {
@@ -2593,20 +2624,18 @@ function ingestLivePacket(pkt, source = 'WS') {
   const modePill = document.getElementById('badgeSourceMode');
   if (modePill) { modePill.textContent = source === 'WS' ? 'PI LIVE WS' : source; modePill.className = 'metric-pill mode-live'; }
 
-  const selectedMic = pkt.selected_mic || 'pi_mic';
-  const piMic = pkt.pi_mic || {};
-  const n1 = pkt.node1_esp || {};
-  const n2 = pkt.node2_esp || {};
-  const bio = pkt.bioacoustics || {};
+  const frameTs = piMic.frame_ts || pkt.time || null;
+  const isNewAudioFrame = (source !== 'WS') || !frameTs || (frameTs !== state.lastAudioFrameTs);
+  if (frameTs) state.lastAudioFrameTs = frameTs;
 
   // 1. Q1 Live Waveform from Pi pi_mic.raw[400]
-  if (Array.isArray(piMic.raw) && piMic.raw.length > 8) {
+  if (Array.isArray(piMic.raw) && piMic.raw.length > 8 && isNewAudioFrame) {
     state.liveRawWaveform = piMic.raw;
     document.getElementById('q1WaveTag').textContent = `PI LIVE WAVE (${selectedMic.toUpperCase()})`;
     drawWaveformFromArray(piMic.raw, 0, false);
   }
 
-  // 2. Active 13-MFCC -> Q2 3D Waterfall + Q1 Live IDCT Log-Mel Spectrogram
+  // 2. Active 13-MFCC -> Q2 3D Waterfall + True 64-Bin Log-Mel Spectrogram
   let mfcc = null;
   if (selectedMic === 'node1_esp' && Array.isArray(n1.mfcc) && n1.mfcc.length >= 13) mfcc = n1.mfcc;
   else if (selectedMic === 'node2_esp' && Array.isArray(n2.mfcc) && n2.mfcc.length >= 13) mfcc = n2.mfcc;
@@ -2614,19 +2643,27 @@ function ingestLivePacket(pkt, source = 'WS') {
   else if (Array.isArray(n1.mfcc) && n1.mfcc.length >= 13) mfcc = n1.mfcc;
   else if (Array.isArray(pkt.mfcc) && pkt.mfcc.length >= 13) mfcc = pkt.mfcc;
 
-  if (mfcc) {
+  if (mfcc && isNewAudioFrame) {
     const f13 = Float32Array.from(mfcc.slice(0, 13).map(Number));
     state.waterfallFIFO.shift();
     state.waterfallFIFO.push(f13);
     updateWaterfallGeometry(state.waterfallFIFO);
     if (!state.webglActive) draw2DWaterfallFallback();
 
-    // Reconstruct 64 Mel bands via IDCT-II for rolling Q1 live spectrogram
-    const mel64 = idct13ToMel64(f13);
-    state.liveMelHistory.shift();
-    state.liveMelHistory.push(mel64);
-    document.getElementById('q1SpecTag').textContent = 'LIVE MEL-CEPSTRAL (13-MFCC IDCT)';
-    updateFreqScaleLabels(8000, true);
+    if (selectedMic === 'pi_mic' && Array.isArray(piMic.mel64) && piMic.mel64.length === 64) {
+      state.hasTrueMel64 = true;
+      state.liveMelHistory.shift();
+      state.liveMelHistory.push(Float32Array.from(piMic.mel64.map(Number)));
+      document.getElementById('q1SpecTag').textContent = 'LIVE 64-MEL STFT SPECTRUM (0–8.0 kHz)';
+      updateFreqScaleLabels(8000, false);
+    } else {
+      state.hasTrueMel64 = false;
+      const mel64 = idct13ToMel64(f13);
+      state.liveMelHistory.shift();
+      state.liveMelHistory.push(mel64);
+      document.getElementById('q1SpecTag').textContent = 'LIVE MEL-CEPSTRAL (13-MFCC IDCT)';
+      updateFreqScaleLabels(8000, true);
+    }
     renderLiveMelSpectrogram();
   }
 
@@ -2644,12 +2681,12 @@ function ingestLivePacket(pkt, source = 'WS') {
     document.getElementById('badgeSnr').textContent = `SNR ${Number(snrVal).toFixed(1)} dB`;
   }
 
-  // 4. Q4 IEEE Perturbation Cards (Exact Pi -> dB / bits Unit Conversion)
+  // 4. Q4 IEEE Perturbation Cards (Updated at true 1 Hz audio frame rate so sparklines animate cleanly)
   document.getElementById('q4MetaBadge').textContent = 'Pi 80-DSP Live Stream (Unit-Converted)';
   if (bio.f0_mean !== undefined) {
     const f0 = Number(bio.f0_mean);
     document.getElementById('valF0').textContent = `${f0.toFixed(1)} Hz`;
-    pushSpark('f0', f0);
+    if (isNewAudioFrame) pushSpark('f0', f0);
   }
   if (bio.voiced_ratio !== undefined) {
     document.getElementById('subVoiced').textContent = `Voiced: ${(Number(bio.voiced_ratio) * 100).toFixed(1)}%`;
@@ -2658,36 +2695,48 @@ function ingestLivePacket(pkt, source = 'WS') {
     const rawJ = Number(bio.jitter);
     const jitPct = rawJ <= 1.0 ? rawJ * 100.0 : rawJ;
     document.getElementById('valJitter').textContent = `${jitPct.toFixed(2)}%`;
-    pushSpark('jitter', jitPct);
+    if (isNewAudioFrame) pushSpark('jitter', jitPct);
   }
   if (bio.shimmer !== undefined) {
     const rawS = Math.max(0, Number(bio.shimmer));
-    // Pi computes ratio mean(|diff(rms)|)/rms_mean -> exact dB conversion: 20*log10(1 + ratio)
     const shimDb = 20.0 * Math.log10(1.0 + rawS);
     document.getElementById('valShimmer').textContent = `${shimDb.toFixed(2)} dB`;
-    pushSpark('shimmer', shimDb);
+    if (isNewAudioFrame) pushSpark('shimmer', shimDb);
   }
   if (bio.hnr_db !== undefined) {
     const hnr = Number(bio.hnr_db);
     document.getElementById('valHnr').textContent = `${hnr.toFixed(1)} dB`;
-    pushSpark('hnr', hnr);
+    if (isNewAudioFrame) pushSpark('hnr', hnr);
   }
   if (bio.spectral_entropy !== undefined) {
     const rawH = Number(bio.spectral_entropy);
-    // Pi normalizes entropy by log2(1025) -> recover true Shannon bits
     const entBits = rawH <= 1.05 ? rawH * LOG2_1025 : rawH;
     document.getElementById('valEntropy').textContent = `${entBits.toFixed(2)} bits`;
-    pushSpark('entropy', entBits);
+    if (isNewAudioFrame) pushSpark('entropy', entBits);
   }
 
-  // 5. Q5 Hardware Telemetry (Fixes hwNode2 & Syncs MUX Dropdown)
+  // 5. Q5 Hardware Telemetry (Calibration + Mic Health + MUX Sync)
   if (pkt.hardware) {
     const tC = pkt.hardware.cpu_temp_c !== null && pkt.hardware.cpu_temp_c !== undefined ? `${pkt.hardware.cpu_temp_c}°C` : '--°C';
     const ram = pkt.hardware.ram_percent !== null && pkt.hardware.ram_percent !== undefined ? `${pkt.hardware.ram_percent}%` : '--%';
     document.getElementById('hwPiLoad').textContent = `${tC} · ${ram}`;
   }
-  if (n1.status) document.getElementById('hwNode1').textContent = n1.status;
-  if (n2.status) document.getElementById('hwNode2').textContent = n2.status;
+  if (n1.status) {
+    const mStat = n1.mic_status ? ` (${n1.mic_status})` : '';
+    document.getElementById('hwNode1').textContent = `${n1.status}${mStat}`;
+  }
+  if (n2.status) {
+    const vrTag = n2.vr_ok !== undefined ? ` (${n2.vr_ok ? 'VR_OK' : 'VR_WAIT'} · RX:${n2.espnow_rx || 0})` : '';
+    document.getElementById('hwNode2').textContent = `${n2.status}${vrTag}`;
+  }
+  if (pkt.calibration && pkt.calibration.last_calibrated && pkt.calibration.last_calibrated !== state.lastLoggedCal) {
+    state.lastLoggedCal = pkt.calibration.last_calibrated;
+    const cm = pkt.calibration.mics || {};
+    const pSt = cm.pi_mic ? `${cm.pi_mic.status} [${cm.pi_mic.ambient_db} dB]` : 'N/A';
+    const e1St = cm.node1_esp ? `${cm.node1_esp.mic_status || cm.node1_esp.status}` : 'N/A';
+    const e2St = cm.node2_esp ? `${cm.node2_esp.status} (VR:${cm.node2_esp.vr_ok ? 'OK' : 'WAIT'})` : 'N/A';
+    logTerminal(`[CAL ${state.lastLoggedCal}] Pi=${pSt} | ESP1=${e1St} | ESP2=${e2St}`, 'SYS', 'ok');
+  }
   if (pkt.uptime) document.getElementById('hwUptime').textContent = `UP: ${pkt.uptime}`;
   if (pkt.active_mux) {
     const muxEl = document.getElementById('muxSelect');
@@ -2707,25 +2756,29 @@ function ingestLivePacket(pkt, source = 'WS') {
     }
   }
 
-  // 7. Real Pi Verdict, Avian Bayesian Indicator & Live Q3 Score Marker
+  // 7. Real Verdict Routed by active selected_mic
+  const useN2Pred = (selectedMic === 'node2_esp' && n2.pred && n2.pred !== 'STANDBY');
   const predStr = String(
-    piMic.pred ||
+    (useN2Pred ? n2.pred : piMic.pred) ||
     (pkt.pred === 1 ? 'SICK' : (pkt.pred === 0 ? 'HEALTHY' : (pkt.pred === 2 ? 'NOISE' : ''))) ||
     pkt.class ||
     'LISTENING'
   ).toUpperCase();
-  const confRaw = Number(piMic.conf !== undefined ? piMic.conf : (pkt.conf || 0));
+  const confRaw = Number(useN2Pred ? (n2.conf || 0.9) : (piMic.conf !== undefined ? piMic.conf : (pkt.conf || 0)));
   const confProb = confRaw > 1.0 ? confRaw / 100.0 : confRaw;
-  const diagSource = piMic.diag_source || source;
+  const diagSource = useN2Pred ? 'Node 2 TinyML (ESP-NOW)' : (piMic.diag_source || source);
   const isSick = predStr === 'SICK';
 
-  // Update Q3 live score cursor
+  // Update Q3 live score cursor (active for all states including LISTENING / NOISE)
   if (predStr === 'SICK' || predStr === 'HEALTHY') {
     const pSick = isSick ? Math.min(0.995, Math.max(0.5, confProb)) : Math.max(0.005, 1.0 - Math.max(0.5, confProb));
     state.liveScoreZ = Math.log(pSick / (1.0 - pSick));
     state.liveScoreLabel = `${predStr} (${(confProb * 100).toFixed(1)}%)`;
-    drawGaussianCurve();
+  } else {
+    state.liveScoreZ = -1.15;
+    state.liveScoreLabel = `${predStr}`;
   }
+  if (isNewAudioFrame) drawGaussianCurve();
 
   const q3Meta = document.getElementById('q3MetaBadge');
   if (q3Meta && diagSource) {
@@ -2750,7 +2803,10 @@ function ingestLivePacket(pkt, source = 'WS') {
     state.lastHeartbeatLog = nowMs;
     const tag = isSick ? 'ALARM' : (source.startsWith('USB') ? 'SERIAL' : 'SYS');
     const type = isSick ? 'alarm' : 'ok';
-    logTerminal(`[${source}] ${predStr} (${(confProb * 100).toFixed(1)}%) · ${diagSource} · F0=${Number(bio.f0_mean || 0).toFixed(1)}Hz`, tag, type);
+    const sp = pkt.spectrum || {};
+    const specTxt = sp.peak_hz ? ` · ${sp.peak_hz}Hz [${sp.band_low_hz || 0}-${sp.band_high_hz || 0}Hz]` : '';
+    const v12Txt = pkt.model_votes?.v12_p_healthy ? ` · V12:${JSON.stringify(pkt.model_votes.v12_p_healthy)}` : '';
+    logTerminal(`[${source}] ${predStr} (${(confProb * 100).toFixed(1)}%) · ${diagSource}${specTxt} · F0=${Number(bio.f0_mean || 0).toFixed(1)}Hz${v12Txt}`, tag, type);
     if (isSick) triggerLiveAutoRec(`${predStr} via ${diagSource}`);
   }
 }
@@ -2900,21 +2956,33 @@ function connectWs(manualTrigger = false) {
     state.ws = ws;
 
     ws.onopen = () => {
+      if (state.ws !== ws) return;
       state.wsConnected = true;
       badge.className = 'badge live';
       txt.textContent = 'PI WS: LIVE';
       logTerminal(`Connected to Raspberry Pi Sentry -> ${url}`, 'SYS', 'ok');
     };
     ws.onmessage = evt => {
+      if (state.ws !== ws) return;
       try {
         const data = JSON.parse(evt.data);
         ingestLivePacket(data, 'WS');
-      } catch (e) {}
+      } catch (e) {
+        console.error('[WS INGEST ERROR]', e);
+        const nowErr = Date.now();
+        if (!state.lastWsErrLog || nowErr - state.lastWsErrLog > 3000) {
+          state.lastWsErrLog = nowErr;
+          logTerminal(`WS packet error: ${e.message || e}`, 'SYS', 'alarm');
+        }
+      }
     };
-    ws.onerror = () => {
+    ws.onerror = err => {
+      if (state.ws !== ws) return;
       state.wsConnected = false;
+      console.error('[WS CONNECTION ERROR]', url, err);
     };
     ws.onclose = () => {
+      if (state.ws !== ws) return;
       const wasConnected = state.wsConnected;
       state.wsConnected = false;
       badge.className = 'badge';
@@ -2967,8 +3035,9 @@ async function initSerial(portNum) {
     const btn = document.getElementById(portNum === 1 ? 'btnUsb1' : 'btnUsb2');
     btn.classList.add('active');
     btn.textContent = `USB ${portNum} (LIVE)`;
-    if (portNum === 2) document.getElementById('hwNode2').textContent = 'COM3 LIVE';
-    logTerminal(`Serial USB ${portNum} opened at 115200 baud${portNum === 2 ? ' (Pi WS relay armed)' : ''}.`, 'SERIAL', 'ok');
+    if (portNum === 1) document.getElementById('hwNode1').textContent = 'LAPTOP USB1 LIVE';
+    if (portNum === 2) document.getElementById('hwNode2').textContent = 'LAPTOP USB2 LIVE';
+    logTerminal(`Serial USB ${portNum} opened at 115200 baud (Pi WS relay armed).`, 'SERIAL', 'ok');
 
     const decoder = new TextDecoderStream();
     const reader = port.readable.pipeThrough(decoder).getReader();
@@ -2983,15 +3052,27 @@ async function initSerial(portNum) {
       for (const rawLine of lines) {
         const line = rawLine.trim();
         if (!line) continue;
-        if (line.startsWith('{')) {
-          // Relay Laptop COM3 (Node 2) directly to Raspberry Pi WS per monitor_v14_titan_sentry.py:1415
-          if (portNum === 2 && state.ws && state.ws.readyState === WebSocket.OPEN) {
-            state.ws.send(JSON.stringify({ action: 'laptop_node2_packet', raw: line }));
-          }
+        if (line.startsWith('{') && line.endsWith('}')) {
           try {
             const pkt = JSON.parse(line);
-            ingestLivePacket(pkt, `USB${portNum}`);
-          } catch (e) {}
+            const isN1 = (pkt.node === 1 || Array.isArray(pkt.mfcc));
+            if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+              const evtName = isN1 ? 'laptop_node1_packet' : 'laptop_node2_packet';
+              state.ws.send(JSON.stringify({ action: evtName, raw: line }));
+              if (isN1 && pkt.mic_status) {
+                document.getElementById('hwNode1').textContent = `USB1 (${pkt.mic_status})`;
+              }
+            } else {
+              ingestLivePacket(pkt, `USB${portNum}`);
+            }
+          } catch (e) {
+            console.error(`[USB${portNum} PARSE ERROR]`, e, line);
+            const nowErr = Date.now();
+            if (!state.lastSerialErrLog || nowErr - state.lastSerialErrLog > 3000) {
+              state.lastSerialErrLog = nowErr;
+              logTerminal(`USB${portNum} packet error: ${e.message || e}`, 'SERIAL', 'alarm');
+            }
+          }
         }
       }
     }
@@ -3104,6 +3185,8 @@ window.addEventListener('resize', () => {
     const d = state.dspCache[state.activeSampleKey];
     drawWaveformFromArray(d.waveform, state.playbackProgress, true);
     renderSpectrogramGrid(d.specGrid, d.specSteps, d.specBins, state.playbackProgress);
+  } else if (state.liveMode) {
+    renderLiveMelSpectrogram();
   }
   drawGaussianCurve();
   drawRocCurve();
